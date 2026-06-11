@@ -1,109 +1,649 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitGuard AI - Setup</title>
-    
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitGuard AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.5/camera_utils.js"></script>
     <style>
-        body {
-            background-color: #010915;
-            margin: 0;
-            padding: 16px;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: sans-serif;
-            color: #ffffff;
+        :root {
+            --bg-dark: #07152b;
+            --bg-mid: #0d2346;
+            --neon-green: #14f195;
+            --neon-cyan: #00ffcc;
+            --highlight: #dffe33;
+            --text-soft: #d1dbed;
+            --surface: rgba(6, 15, 36, 0.92);
+            --surface-strong: rgba(4, 9, 29, 0.98);
         }
 
-        .camera-box {
-            width: 100%;
-            max-width: 1280px;
-            aspect-ratio: 16 / 9;
-            background-color: #031126;
-            border: 2px solid #1e293b;
-            border-radius: 16px;
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-mid) 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        main {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 80px;
+        }
+
+        section {
+            margin-bottom: 70px;
+            padding: 32px;
+            border-radius: 28px;
+            background: rgba(4, 9, 29, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
+            backdrop-filter: blur(16px);
+        }
+
+        .hero {
             position: relative;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        .info-text {
+        .hero::before {
+            content: '';
             position: absolute;
-            top: 24px;
-            left: 0; 
-            right: 0;
-            display: flex;
-            flex-direction: column;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(20, 241, 149, 0.14), transparent 28%),
+                        radial-gradient(circle at bottom right, rgba(0, 255, 204, 0.14), transparent 20%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 80px 20px 64px;
+        }
+
+        .hero-title {
+            font-size: clamp(3.6rem, 5vw, 5.6rem);
+            line-height: 0.88;
+            margin: 0;
+            letter-spacing: -0.04em;
+        }
+
+        .hero-title span {
+            color: var(--neon-green);
+        }
+
+        .badge {
+            display: inline-flex;
             align-items: center;
-            justify-content: flex-start;
-            z-index: 10;
+            justify-content: center;
+            margin: 26px auto 22px;
+            padding: 14px 28px;
+            border-radius: 999px;
+            background: var(--highlight);
+            color: #07152b;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            max-width: 720px;
         }
 
-        .title {
-            color: #AAFF00;
-            font-weight: 900;
-            letter-spacing: 2px;
-            font-size: 20px;
-            margin-bottom: 8px;
+        .hero-description {
+            max-width: 760px;
+            margin: 0 auto 36px;
+            font-size: 1.08rem;
+            color: var(--text-soft);
+            line-height: 1.9;
         }
 
-        .subtitle {
-            color: #64748b;
-            font-size: 12px;
-            font-family: monospace;
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 18px 36px;
+            border-radius: 999px;
+            border: 1px solid rgba(20, 241, 149, 0.35);
+            background: linear-gradient(135deg, rgba(20, 241, 149, 0.2), rgba(0, 255, 204, 0.12));
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 18px 45px rgba(20, 241, 149, 0.12);
+            transition: transform 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
         }
 
-        .target-frame {
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 26px 55px rgba(20, 241, 149, 0.22);
+            background: linear-gradient(135deg, rgba(20, 241, 149, 0.34), rgba(0, 255, 204, 0.18));
+        }
+
+        .section-header {
+            margin: 0 0 24px;
+            font-size: clamp(1.9rem, 2.3vw, 2.4rem);
+            letter-spacing: -0.03em;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 22px;
+        }
+
+        .exercise-card {
+            background: rgba(2, 7, 25, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 26px;
+            padding: 26px 24px;
+            display: grid;
+            gap: 16px;
+            cursor: pointer;
+            transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+            min-height: 170px;
+            text-align: left;
+        }
+
+        .exercise-card:hover,
+        .exercise-card.active {
+            transform: translateY(-6px);
+            border-color: rgba(20, 241, 149, 0.6);
+            box-shadow: 0 22px 40px rgba(20, 241, 149, 0.18);
+        }
+
+        .exercise-name {
+            margin: 0;
+            font-size: 1.7rem;
+            font-weight: 700;
+        }
+
+        .exercise-subtitle {
+            margin: 0;
+            color: var(--text-soft);
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        .exercise-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(20, 241, 149, 0.12);
+            color: var(--neon-green);
+            font-weight: 700;
+            font-size: 0.95rem;
+            width: fit-content;
+        }
+
+        .workout-panel {
+            display: grid;
+            grid-template-columns: 1.3fr 0.75fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .camera-panel,
+        .status-card {
+            border-radius: 26px;
+            background: rgba(3, 9, 28, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+        }
+
+        .camera-panel {
+            overflow: hidden;
+        }
+
+        .camera-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .camera-title {
+            margin: 0;
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+            color: var(--text-soft);
+        }
+
+        .camera-frame {
+            position: relative;
+            width: 100%;
+            padding-top: calc(480 / 640 * 100%);
+            background: radial-gradient(circle at center, rgba(20, 241, 149, 0.06), transparent 36%);
+        }
+
+        .camera-frame video,
+        .camera-frame canvas {
             position: absolute;
-            top: 75px; 
-            left: 24px; 
-            right: 24px; 
-            bottom: 24px;
-            border: 1px dashed rgba(170, 255, 0, 0.4);
-            border-radius: 12px;
-            pointer-events: none;
-            z-index: 20;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #040b18;
         }
 
-        .corner {
+        #webcam {
             position: absolute;
-            width: 16px;
-            height: 16px;
-            border-color: #AAFF00;
-            border-style: solid;
-            border-width: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
             pointer-events: none;
-            z-index: 20;
         }
-        .top-left     { top: 16px; left: 16px; border-top-width: 2px; border-left-width: 2px; border-top-left-radius: 4px; }
-        .top-right    { top: 16px; right: 16px; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 4px; }
-        .bottom-left  { bottom: 16px; left: 16px; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 4px; }
-        .bottom-right { bottom: 16px; right: 16px; border-bottom-width: 2px; border-right-width: 2px; border-bottom-right-radius: 4px; }
 
+        #output_canvas {
+            transform: scaleX(-1);
+        }
+
+        .status-card {
+            padding: 24px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .status-item {
+            padding: 20px 22px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .status-title {
+            margin: 0 0 10px;
+            font-size: 0.88rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-soft);
+        }
+
+        .status-value {
+            margin: 0;
+            font-size: 1.38rem;
+            line-height: 1.45;
+            color: #fff;
+        }
+
+        .status-value span {
+            color: var(--neon-green);
+        }
+
+        .status-hint {
+            margin: 0;
+            color: var(--text-soft);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 1000px) {
+            .workout-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            main {
+                width: calc(100% - 20px);
+            }
+
+            section {
+                padding: 24px;
+            }
+
+            .hero-content {
+                padding: 60px 16px 46px;
+            }
+
+            .hero-title {
+                font-size: 3rem;
+            }
+
+            .exercise-card {
+                min-height: auto;
+            }
+
+            .status-card {
+                padding: 18px;
+            }
+        }
     </style>
 </head>
 <body>
+    <main>
+        <section class="hero" id="section-hero">
+            <div class="hero-content">
+                <h1 class="hero-title">FitGuard <span>AI</span></h1>
+                <div class="badge">ออกกำลังกายอย่างมั่นใจ ปลอดภัย มีประสิทธิภาพ</div>
+                <p class="hero-description">
+                    ระบบประเมินความเสี่ยงการบาดเจ็บจากการออกกำลังกาย ด้วยการวิเคราะห์ชีวกลศาสตร์การเคลื่อนไหว
+                    แบบ Real-time โดยใช้ปัญญาประดิษฐ์
+                </p>
+                <button class="cta-button" id="start-workout">START WORKOUT</button>
+            </div>
+        </section>
 
-    <div class="camera-box">
-        
+        <section id="section-exercises">
+            <h2 class="section-header">วันนี้คุณต้องการฝึกท่าไหน?</h2>
+            <div class="grid-cards" id="exercise-grid"></div>
+        </section>
 
-        <div class="info-text">
-            <span class="title">FITGUARD AI</span>
-            <span class="subtitle">READY FOR WEBCAM STREAM</span>
-        </div>
+        <section id="section-dashboard">
+            <h2 class="section-header">AI Webcam & Analytics Dashboard</h2>
+            <div class="workout-panel">
+                <div class="camera-panel">
+                    <div class="camera-header">
+                        <p class="camera-title">Webcam Live</p>
+                    </div>
+                    <div class="camera-frame">
+                        <video id="webcam" playsinline muted></video>
+                        <canvas id="output_canvas" width="640" height="480"></canvas>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-item">
+                        <p class="status-title">ท่าที่เลือก</p>
+                        <p class="status-value" id="selected-workout">ยังไม่ได้เลือกท่า</p>
+                    </div>
+                    <div class="status-item">
+                        <p class="status-title">สถานะท่าทาง</p>
+                        <p class="status-value" id="form-status">รอเลือกท่าและเปิดกล้อง</p>
+                    </div>
+                    <div class="status-item">
+                        <p class="status-title">จำนวนครั้ง</p>
+                        <p class="status-value" id="rep-counter">0</p>
+                    </div>
+                    <p class="status-hint">ระบบจะเริ่มวิเคราะห์เมื่อเลือกท่าและเปิดกล้องเรียบร้อย</p>
+                </div>
+            </div>
+        </section>
+    </main>
 
-        <div class="target-frame"></div>
+    <script>
+        const workoutOptions = [
+            { key: 'pushup', label: 'Push Up', thai: 'วิดพื้น', thresholds: { kneeAngle: 90, torsoAngle: 90 } },
+            { key: 'situp', label: 'Sit Up', thai: 'ซิกอัพ', thresholds: { hipAngle: 50, torsoAngle: 45 } },
+            { key: 'squat', label: 'Squat', thai: 'สควอท', thresholds: { kneeAngle: 95, hipAngle: 110 } },
+            { key: 'plank', label: 'Plank', thai: 'แพลงก์', thresholds: { torsoAngle: 170, hipAngle: 170 } }
+        ];
 
+        const state = {
+            selected: null,
+            repCount: 0,
+            cameraActive: false,
+            poseThresholds: null,
+            lastPhase: 'up'
+        };
 
-        <div class="corner top-left"></div>
-        <div class="corner top-right"></div>
-        <div class="corner bottom-left"></div>
-        <div class="corner bottom-right"></div>
+        const exerciseGrid = document.getElementById('exercise-grid');
+        const startWorkoutButton = document.getElementById('start-workout');
+        const selectedWorkoutEl = document.getElementById('selected-workout');
+        const formStatusEl = document.getElementById('form-status');
+        const repCounterEl = document.getElementById('rep-counter');
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
 
-    </div>
+        function buildExerciseCards() {
+            workoutOptions.forEach((workout) => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'exercise-card';
+                card.innerHTML = `
+                    <div>
+                        <h3 class="exercise-name">${workout.label}</h3>
+                        <p class="exercise-subtitle">${workout.thai}</p>
+                    </div>
+                    <div class="exercise-badge">เลือก</div>
+                `;
+                card.addEventListener('click', () => selectWorkout(workout, card));
+                exerciseGrid.appendChild(card);
+            });
+        }
 
+        function selectWorkout(workout, card) {
+            state.selected = workout;
+            state.poseThresholds = workout.thresholds;
+            state.repCount = 0;
+            state.lastPhase = 'up';
+            updateWorkoutSelectionUI(card);
+            updateDashboard();
+            scrollToSection('section-dashboard');
+            initializeCamera();
+        }
+
+        function updateWorkoutSelectionUI(activeCard) {
+            document.querySelectorAll('.exercise-card').forEach((card) => {
+                card.classList.toggle('active', card === activeCard);
+            });
+        }
+
+        function updateDashboard() {
+            selectedWorkoutEl.textContent = state.selected
+                ? `${state.selected.label} (${state.selected.thai})`
+                : 'ยังไม่ได้เลือกท่า';
+            repCounterEl.textContent = state.repCount;
+            formStatusEl.textContent = state.selected
+                ? 'กำลังเตรียมกล้องและเริ่มวิเคราะห์...'
+                : 'รอเลือกท่าและเปิดกล้อง';
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        startWorkoutButton.addEventListener('click', () => scrollToSection('section-exercises'));
+
+        const pose = new Pose({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
+        });
+
+        pose.setOptions({
+            modelComplexity: 0,
+            smoothLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        pose.onResults(onPoseResults);
+
+        const poseConnections = [
+            [11, 13], [13, 15], [12, 14], [14, 16],
+            [11, 12], [11, 23], [12, 24], [23, 24],
+            [23, 25], [24, 26], [25, 27], [26, 28]
+        ];
+
+        const jointDots = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
+
+        let poseLoopStarted = false;
+        let isSending = false;
+
+        async function initializeCamera() {
+            if (!state.selected || state.cameraActive) return;
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                formStatusEl.textContent = 'เบราว์เซอร์ไม่รองรับการเข้าถึงกล้อง';
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480 },
+                    audio: false
+                });
+                videoElement.srcObject = stream;
+                videoElement.muted = true;
+                await videoElement.play();
+
+                startPoseLoop();
+                state.cameraActive = true;
+                formStatusEl.textContent = 'กำลังเช็กองศา...';
+            } catch (error) {
+                console.error('Camera init error:', error);
+                formStatusEl.textContent = 'เปิดกล้องไม่ได้ กรุณาตรวจสอบสิทธิ์และลองใหม่';
+            }
+        }
+
+        function startPoseLoop() {
+            if (poseLoopStarted) return;
+            poseLoopStarted = true;
+
+            const loop = async () => {
+                if (videoElement.readyState >= 2 && !isSending) {
+                    isSending = true;
+                    try {
+                        await pose.send({ image: videoElement });
+                    } catch (error) {
+                        console.error('Pose send error:', error);
+                    }
+                    isSending = false;
+                }
+                requestAnimationFrame(loop);
+            };
+
+            requestAnimationFrame(loop);
+        }
+
+        function onPoseResults(results) {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.image) {
+                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            }
+
+            if (!results.poseLandmarks || !state.selected) {
+                canvasCtx.restore();
+                return;
+            }
+
+            drawPose(results.poseLandmarks);
+            evaluatePose(results.poseLandmarks);
+            canvasCtx.restore();
+        }
+
+        function drawPose(landmarks) {
+            canvasCtx.lineWidth = 4;
+            canvasCtx.strokeStyle = 'rgba(20, 241, 149, 0.95)';
+            canvasCtx.fillStyle = 'rgba(0, 255, 204, 0.95)';
+            canvasCtx.shadowColor = 'rgba(20, 241, 149, 0.55)';
+            canvasCtx.shadowBlur = 12;
+
+            poseConnections.forEach(([start, end]) => {
+                const a = landmarks[start];
+                const b = landmarks[end];
+                if (!a || !b || a.visibility < 0.5 || b.visibility < 0.5) return;
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(a.x * canvasElement.width, a.y * canvasElement.height);
+                canvasCtx.lineTo(b.x * canvasElement.width, b.y * canvasElement.height);
+                canvasCtx.stroke();
+            });
+
+            jointDots.forEach((index) => {
+                const point = landmarks[index];
+                if (!point || point.visibility < 0.5) return;
+                canvasCtx.beginPath();
+                canvasCtx.arc(point.x * canvasElement.width, point.y * canvasElement.height, 7, 0, Math.PI * 2);
+                canvasCtx.fill();
+            });
+
+            canvasCtx.shadowBlur = 0;
+        }
+
+        function evaluatePose(landmarks) {
+            const leftShoulder = landmarks[11];
+            const rightShoulder = landmarks[12];
+            const leftHip = landmarks[23];
+            const rightHip = landmarks[24];
+            const leftKnee = landmarks[25];
+            const rightKnee = landmarks[26];
+            const leftAnkle = landmarks[27];
+            const rightAnkle = landmarks[28];
+
+            const torsoAngle = averageAngle(
+                calculateAngle(leftShoulder, leftHip, leftKnee),
+                calculateAngle(rightShoulder, rightHip, rightKnee)
+            );
+            const hipAngle = averageAngle(
+                calculateAngle(leftShoulder, leftHip, leftKnee),
+                calculateAngle(rightShoulder, rightHip, rightKnee)
+            );
+            const kneeAngle = averageAngle(
+                calculateAngle(leftHip, leftKnee, leftAnkle),
+                calculateAngle(rightHip, rightKnee, rightAnkle)
+            );
+
+            const thresholds = state.poseThresholds;
+            const feedbackParts = [];
+
+            if (thresholds.kneeAngle) {
+                feedbackParts.push(`เข่า ${Math.round(kneeAngle)}° vs ${thresholds.kneeAngle}°`);
+            }
+            if (thresholds.hipAngle) {
+                feedbackParts.push(`สะโพก ${Math.round(hipAngle)}° vs ${thresholds.hipAngle}°`);
+            }
+            if (thresholds.torsoAngle) {
+                feedbackParts.push(`ลำตัว ${Math.round(torsoAngle)}° vs ${thresholds.torsoAngle}°`);
+            }
+
+            formStatusEl.textContent = feedbackParts.join(' | ');
+
+            const phase = detectPhase({ torsoAngle, kneeAngle, hipAngle });
+            if (state.lastPhase === 'up' && phase === 'down') {
+                state.repCount += 1;
+                repCounterEl.textContent = state.repCount;
+            }
+            state.lastPhase = phase;
+        }
+
+        function calculateAngle(a, b, c) {
+            if (!a || !b || !c) return 0;
+            const ab = { x: a.x - b.x, y: a.y - b.y };
+            const cb = { x: c.x - b.x, y: c.y - b.y };
+            const dot = ab.x * cb.x + ab.y * cb.y;
+            const magAB = Math.hypot(ab.x, ab.y);
+            const magCB = Math.hypot(cb.x, cb.y);
+            if (!magAB || !magCB) return 0;
+            const angle = Math.acos(Math.min(1, Math.max(-1, dot / (magAB * magCB))));
+            return angle * (180 / Math.PI);
+        }
+
+        function averageAngle(...values) {
+            const valid = values.filter((x) => typeof x === 'number' && !Number.isNaN(x));
+            if (!valid.length) return 0;
+            return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+        }
+
+        function detectPhase({ torsoAngle, kneeAngle, hipAngle }) {
+            if (state.selected.key === 'pushup') {
+                return torsoAngle < 100 ? 'down' : 'up';
+            }
+            if (state.selected.key === 'situp') {
+                return kneeAngle < 120 ? 'down' : 'up';
+            }
+            if (state.selected.key === 'squat') {
+                return kneeAngle < 110 ? 'down' : 'up';
+            }
+            if (state.selected.key === 'plank') {
+                return torsoAngle > 160 ? 'up' : 'down';
+            }
+            return 'up';
+        }
+
+        buildExerciseCards();
+        updateDashboard();
+    </script>
 </body>
 </html>
