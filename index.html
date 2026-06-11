@@ -365,6 +365,10 @@
                         <p class="status-title">จำนวนครั้ง</p>
                         <p class="status-value" id="rep-counter">0</p>
                     </div>
+                    <div class="status-item">
+                        <p class="status-title">คำแนะนำกล้อง</p>
+                        <p class="status-value" id="camera-advice">ปรับกล้องให้เห็นทั้งตัวตรงกลาง</p>
+                    </div>
                     <p class="status-hint">ระบบจะเริ่มวิเคราะห์เมื่อเลือกท่าและเปิดกล้องเรียบร้อย</p>
                 </div>
             </div>
@@ -384,7 +388,12 @@
             repCount: 0,
             cameraActive: false,
             poseThresholds: null,
-            lastPhase: 'up'
+            lastPhase: 'up',
+            stablePhase: 'up',
+            phaseHoldCount: 0,
+            hasReachedDown: false,
+            readyToCount: false,
+            readyHoldCount: 0
         };
 
         const exerciseGrid = document.getElementById('exercise-grid');
@@ -392,6 +401,7 @@
         const selectedWorkoutEl = document.getElementById('selected-workout');
         const formStatusEl = document.getElementById('form-status');
         const repCounterEl = document.getElementById('rep-counter');
+        const cameraAdviceEl = document.getElementById('camera-advice');
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -418,6 +428,11 @@
             state.poseThresholds = workout.thresholds;
             state.repCount = 0;
             state.lastPhase = 'up';
+            state.stablePhase = 'up';
+            state.phaseHoldCount = 0;
+            state.hasReachedDown = false;
+            state.readyToCount = false;
+            state.readyHoldCount = 0;
             updateWorkoutSelectionUI(card);
             updateDashboard();
             scrollToSection('section-dashboard');
@@ -529,16 +544,26 @@
                 return;
             }
 
-            drawPose(results.poseLandmarks);
-            evaluatePose(results.poseLandmarks);
+            const evaluation = evaluatePose(results.poseLandmarks);
+            drawPose(results.poseLandmarks, evaluation.isCorrect);
+            cameraAdviceEl.textContent = evaluation.cameraAdvice;
+            formStatusEl.textContent = evaluation.formMessage;
             canvasCtx.restore();
         }
 
-        function drawPose(landmarks) {
+        function drawPose(landmarks, isCorrect) {
             canvasCtx.lineWidth = 4;
-            canvasCtx.strokeStyle = 'rgba(20, 241, 149, 0.95)';
-            canvasCtx.fillStyle = 'rgba(0, 255, 204, 0.95)';
-            canvasCtx.shadowColor = 'rgba(20, 241, 149, 0.55)';
+            canvasCtx.strokeStyle = isCorrect === null
+                ? 'rgba(255, 255, 255, 0.9)'
+                : isCorrect
+                    ? 'rgba(20, 241, 149, 0.95)'
+                    : 'rgba(255, 80, 80, 0.95)';
+            canvasCtx.fillStyle = isCorrect === null
+                ? 'rgba(255, 255, 255, 0.95)'
+                : isCorrect
+                    ? 'rgba(20, 241, 149, 0.95)'
+                    : 'rgba(255, 80, 80, 0.95)';
+            canvasCtx.shadowColor = 'rgba(255, 255, 255, 0.55)';
             canvasCtx.shadowBlur = 12;
 
             poseConnections.forEach(([start, end]) => {
@@ -565,6 +590,8 @@
         function evaluatePose(landmarks) {
             const leftShoulder = landmarks[11];
             const rightShoulder = landmarks[12];
+            const leftElbow = landmarks[13];
+            const rightElbow = landmarks[14];
             const leftHip = landmarks[23];
             const rightHip = landmarks[24];
             const leftKnee = landmarks[25];
@@ -572,13 +599,20 @@
             const leftAnkle = landmarks[27];
             const rightAnkle = landmarks[28];
 
+            const leftWrist = landmarks[15];
+            const rightWrist = landmarks[16];
+
             const torsoAngle = averageAngle(
-                calculateAngle(leftShoulder, leftHip, leftKnee),
-                calculateAngle(rightShoulder, rightHip, rightKnee)
+                calculateAngle(leftHip, leftShoulder, leftElbow),
+                calculateAngle(rightHip, rightShoulder, rightElbow)
             );
             const hipAngle = averageAngle(
                 calculateAngle(leftShoulder, leftHip, leftKnee),
                 calculateAngle(rightShoulder, rightHip, rightKnee)
+            );
+            const elbowAngle = averageAngle(
+                calculateAngle(leftShoulder, leftElbow, leftWrist),
+                calculateAngle(rightShoulder, rightElbow, rightWrist)
             );
             const kneeAngle = averageAngle(
                 calculateAngle(leftHip, leftKnee, leftAnkle),
@@ -598,14 +632,62 @@
                 feedbackParts.push(`ลำตัว ${Math.round(torsoAngle)}° vs ${thresholds.torsoAngle}°`);
             }
 
-            formStatusEl.textContent = feedbackParts.join(' | ');
+            const cameraAdvice = getCameraAdvice(landmarks);
+            const cameraReady = isCameraAligned(landmarks);
+            const poseCorrect = cameraReady
+                ? checkPoseCorrectness({ torsoAngle, kneeAngle, hipAngle, elbowAngle })
+                : null;
+            const formMessage = feedbackParts.join(' | ');
 
-            const phase = detectPhase({ torsoAngle, kneeAngle, hipAngle });
-            if (state.lastPhase === 'up' && phase === 'down') {
-                state.repCount += 1;
-                repCounterEl.textContent = state.repCount;
+            const isReadyPose = isExerciseStartPose({ torsoAngle, kneeAngle, hipAngle, elbowAngle });
+            const requiredReadyHold = 10;
+            if (!state.readyToCount) {
+                if (isReadyPose && cameraReady) {
+                    state.readyHoldCount += 1;
+                } else {
+                    state.readyHoldCount = 0;
+                }
+
+                if (state.readyHoldCount >= requiredReadyHold) {
+                    state.readyToCount = true;
+                    state.stablePhase = 'up';
+                    state.lastPhase = 'up';
+                    state.phaseHoldCount = requiredReadyHold;
+                }
+
+                return {
+                    isCorrect: null,
+                    cameraAdvice: cameraAdvice || 'เลื่อนกล้องให้เห็นทั้งตัวตรงกลาง',
+                    formMessage: `${formMessage} | รอท่าเริ่ม`
+                };
             }
-            state.lastPhase = phase;
+
+            const phase = detectPhase({ torsoAngle, kneeAngle, hipAngle, elbowAngle });
+            if (phase === state.lastPhase) {
+                state.phaseHoldCount += 1;
+            } else {
+                state.lastPhase = phase;
+                state.phaseHoldCount = 1;
+            }
+
+            const requiredHold = 5;
+            if (state.phaseHoldCount >= requiredHold && phase !== state.stablePhase) {
+                state.stablePhase = phase;
+                if (phase === 'down') {
+                    state.hasReachedDown = true;
+                }
+                if (phase === 'up' && state.hasReachedDown) {
+                    state.repCount += 1;
+                    repCounterEl.textContent = state.repCount;
+                    state.hasReachedDown = false;
+                }
+            }
+
+            return {
+                isCorrect: poseCorrect,
+                cameraAdvice: cameraAdvice,
+                formMessage: formMessage
+            };
         }
 
         function calculateAngle(a, b, c) {
@@ -626,20 +708,89 @@
             return valid.reduce((sum, value) => sum + value, 0) / valid.length;
         }
 
-        function detectPhase({ torsoAngle, kneeAngle, hipAngle }) {
+        function detectPhase({ torsoAngle, kneeAngle, hipAngle, elbowAngle }) {
+            if (!state.selected) return 'up';
+
             if (state.selected.key === 'pushup') {
-                return torsoAngle < 100 ? 'down' : 'up';
+                if (elbowAngle < 95 && torsoAngle < 110) return 'down';
+                if (elbowAngle > 160 && torsoAngle > 150) return 'up';
+                return state.lastPhase;
             }
             if (state.selected.key === 'situp') {
-                return kneeAngle < 120 ? 'down' : 'up';
+                if (hipAngle < 70 && torsoAngle < 80) return 'down';
+                if (hipAngle > 110 && torsoAngle > 110) return 'up';
+                return state.lastPhase;
             }
             if (state.selected.key === 'squat') {
-                return kneeAngle < 110 ? 'down' : 'up';
+                if (kneeAngle < 100) return 'down';
+                if (kneeAngle > 120) return 'up';
+                return state.lastPhase;
             }
             if (state.selected.key === 'plank') {
-                return torsoAngle > 160 ? 'up' : 'down';
+                if (torsoAngle > 165) return 'up';
+                if (torsoAngle < 150) return 'down';
+                return state.lastPhase;
             }
             return 'up';
+        }
+
+        function checkPoseCorrectness({ torsoAngle, kneeAngle, hipAngle, elbowAngle }) {
+            if (!state.selected) return null;
+            if (state.selected.key === 'pushup') {
+                return elbowAngle > 145 && torsoAngle > 145 && hipAngle > 135;
+            }
+            if (state.selected.key === 'situp') {
+                return hipAngle > 95 && torsoAngle > 95;
+            }
+            if (state.selected.key === 'squat') {
+                return kneeAngle > 105 && hipAngle > 125;
+            }
+            if (state.selected.key === 'plank') {
+                return torsoAngle > 155 && hipAngle > 145;
+            }
+            return null;
+        }
+
+        function getCameraAdvice(landmarks) {
+            const keyPoints = [11, 12, 23, 24, 25, 26].map((index) => landmarks[index]).filter(Boolean);
+            if (!keyPoints.length) return 'ยังมองไม่เห็นส่วนหลักของร่างกาย';
+
+            const avgX = keyPoints.reduce((sum, pt) => sum + pt.x, 0) / keyPoints.length;
+            const avgY = keyPoints.reduce((sum, pt) => sum + pt.y, 0) / keyPoints.length;
+            const xs = keyPoints.map((pt) => pt.x);
+            const ys = keyPoints.map((pt) => pt.y);
+            const width = Math.max(...xs) - Math.min(...xs);
+            const height = Math.max(...ys) - Math.min(...ys);
+
+            if (avgX < 0.35) return 'เลื่อนกล้องไปทางขวาเล็กน้อย';
+            if (avgX > 0.65) return 'เลื่อนกล้องไปทางซ้ายเล็กน้อย';
+            if (avgY < 0.3) return 'เลื่อนกล้องลงเล็กน้อย';
+            if (avgY > 0.75) return 'เลื่อนกล้องขึ้นเล็กน้อย';
+            if (width < 0.25 || height < 0.25) return 'เข้าใกล้กล้องอีกนิด';
+            if (width > 0.7 || height > 0.7) return 'ถอยห่างกล้องเล็กน้อย';
+            return 'กล้องมุมดีแล้ว';
+        }
+
+        function isCameraAligned(landmarks) {
+            const advice = getCameraAdvice(landmarks);
+            return advice === 'กล้องมุมดีแล้ว';
+        }
+
+        function isExerciseStartPose({ torsoAngle, kneeAngle, hipAngle, elbowAngle }) {
+            if (!state.selected) return false;
+            if (state.selected.key === 'pushup') {
+                return elbowAngle > 160 && torsoAngle > 150 && hipAngle > 145;
+            }
+            if (state.selected.key === 'situp') {
+                return hipAngle > 110 && torsoAngle > 110;
+            }
+            if (state.selected.key === 'squat') {
+                return kneeAngle > 130 && hipAngle > 145;
+            }
+            if (state.selected.key === 'plank') {
+                return torsoAngle > 165 && hipAngle > 160;
+            }
+            return false;
         }
 
         buildExerciseCards();
