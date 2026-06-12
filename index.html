@@ -1,800 +1,2453 @@
-<!DOCTYPE html>
-<html lang="th">
+﻿<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FitGuard AI</title>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.5/camera_utils.js"></script>
     <style>
         :root {
-            --bg-dark: #07152b;
-            --bg-mid: #0d2346;
-            --neon-green: #14f195;
-            --neon-cyan: #00ffcc;
-            --highlight: #dffe33;
-            --text-soft: #d1dbed;
-            --surface: rgba(6, 15, 36, 0.92);
-            --surface-strong: rgba(4, 9, 29, 0.98);
+            --bg: #071b35;
+            --panel: rgba(13, 43, 82, 0.88);
+            --panel-strong: rgba(7, 27, 53, 0.96);
+            --border: rgba(0, 212, 255, 0.12);
+            --border-strong: rgba(124, 255, 107, 0.18);
+            --text: #e8f6ff;
+            --muted: #9bb8d8;
+            --accent: #00d4ff;
+            --accent-2: #00e6c3;
+            --green: #7cff6b;
+            --danger: #ff6577;
+            --warning: #ffd56b;
+            --shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+            --radius: 28px;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
 
         * {
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             margin: 0;
+            min-height: 100%;
+            background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.12), transparent 18%),
+                        radial-gradient(circle at bottom right, rgba(124, 255, 107, 0.08), transparent 20%),
+                        linear-gradient(180deg, #071b35 0%, #0d2b52 100%);
+            color: var(--text);
+        }
+
+        button, input, select, textarea {
+            font: inherit;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 280px 1fr;
             min-height: 100vh;
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-mid) 100%);
-            color: #fff;
+        }
+
+        .sidebar {
+            background: rgba(7, 27, 53, 0.96);
+            border-right: 1px solid rgba(124, 255, 107, 0.08);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .brand-block {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .brand-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.7rem;
+            font-weight: 800;
+        }
+
+        .brand-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--green));
+            box-shadow: 0 0 18px rgba(0, 212, 255, 0.55);
+        }
+
+        .brand-desc {
+            color: var(--muted);
+            line-height: 1.8;
+            max-width: 220px;
+        }
+
+        .sidebar-summary {
+            background: rgba(13, 43, 82, 0.75);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: 24px;
+            padding: 22px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .sidebar-summary h3 {
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .metric-block {
+            display: grid;
+            gap: 12px;
+        }
+
+        .metric-block strong {
+            font-size: 1.9rem;
+            color: var(--green);
+            display: block;
+        }
+
+        .metric-caption {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .nav-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px solid transparent;
+            border-radius: 20px;
+            padding: 14px 16px;
+            background: rgba(9, 23, 46, 0.8);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .nav-item.active,
+        .nav-item:hover {
+            border-color: rgba(0, 212, 255, 0.22);
+            background: rgba(0, 212, 255, 0.08);
+            box-shadow: 0 14px 45px rgba(0, 212, 255, 0.08);
+        }
+
+        .nav-item span {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .nav-badge {
+            min-width: 24px;
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--bg);
+            background: var(--green);
+            border-radius: 999px;
+            padding: 6px 10px;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            background: rgba(9, 23, 46, 0.9);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            padding: 20px;
+            border-radius: 24px;
+        }
+
+        .footer-title {
+            font-size: 0.95rem;
+            color: var(--muted);
+            margin: 0 0 10px;
+        }
+
+        .footer-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .main-panel {
+            padding: 28px 34px;
             overflow-x: hidden;
         }
 
-        main {
-            width: min(1180px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 40px 0 80px;
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 28px;
         }
 
-        section {
-            margin-bottom: 70px;
-            padding: 32px;
-            border-radius: 28px;
-            background: rgba(4, 9, 29, 0.72);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
-            backdrop-filter: blur(16px);
+        .page-title {
+            margin: 0;
+            font-size: clamp(2rem, 2.6vw, 2.7rem);
+            line-height: 1.05;
         }
 
-        .hero {
+        .page-subtitle {
+            margin: 10px 0 0;
+            color: var(--muted);
+            max-width: 720px;
+            line-height: 1.8;
+        }
+
+        .topbar-search {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(9, 23, 46, 0.88);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: 20px;
+            padding: 12px 18px;
+            min-width: 360px;
+            color: var(--text);
+        }
+
+        .topbar-search svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+
+        .topbar-search input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .top-action {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(124, 255, 107, 0.1);
+            background: rgba(9, 23, 46, 0.88);
+            cursor: pointer;
+            transition: transform 0.25s ease;
+        }
+
+        .top-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00e6c3 100%);
+            display: grid;
+            place-items: center;
+            color: #071b35;
+            font-weight: 800;
+            box-shadow: 0 16px 30px rgba(0, 212, 255, 0.18);
+        }
+
+        .page-container {
+            display: grid;
+            gap: 24px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .layout-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .glass-card {
+            background: rgba(7, 27, 53, 0.85);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 26px;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(18px);
         }
 
-        .hero::before {
+        .glass-card::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at top left, rgba(20, 241, 149, 0.14), transparent 28%),
-                        radial-gradient(circle at bottom right, rgba(0, 255, 204, 0.14), transparent 20%);
             pointer-events: none;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 52%);
         }
 
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            max-width: 760px;
-            margin: 0 auto;
-            text-align: center;
-            padding: 80px 20px 64px;
-        }
-
-        .hero-title {
-            font-size: clamp(3.6rem, 5vw, 5.6rem);
-            line-height: 0.88;
-            margin: 0;
-            letter-spacing: -0.04em;
-        }
-
-        .hero-title span {
-            color: var(--neon-green);
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin: 26px auto 22px;
-            padding: 14px 28px;
-            border-radius: 999px;
-            background: var(--highlight);
-            color: #07152b;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-            max-width: 720px;
-        }
-
-        .hero-description {
-            max-width: 760px;
-            margin: 0 auto 36px;
-            font-size: 1.08rem;
-            color: var(--text-soft);
-            line-height: 1.9;
-        }
-
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 18px 36px;
-            border-radius: 999px;
-            border: 1px solid rgba(20, 241, 149, 0.35);
-            background: linear-gradient(135deg, rgba(20, 241, 149, 0.2), rgba(0, 255, 204, 0.12));
-            color: #fff;
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 18px 45px rgba(20, 241, 149, 0.12);
-            transition: transform 0.24s ease, box-shadow 0.24s ease, background 0.24s ease;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 26px 55px rgba(20, 241, 149, 0.22);
-            background: linear-gradient(135deg, rgba(20, 241, 149, 0.34), rgba(0, 255, 204, 0.18));
-        }
-
-        .section-header {
-            margin: 0 0 24px;
-            font-size: clamp(1.9rem, 2.3vw, 2.4rem);
-            letter-spacing: -0.03em;
-        }
-
-        .grid-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 22px;
-        }
-
-        .exercise-card {
-            background: rgba(2, 7, 25, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 26px;
-            padding: 26px 24px;
-            display: grid;
-            gap: 16px;
-            cursor: pointer;
-            transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
-            min-height: 170px;
-            text-align: left;
-        }
-
-        .exercise-card:hover,
-        .exercise-card.active {
-            transform: translateY(-6px);
-            border-color: rgba(20, 241, 149, 0.6);
-            box-shadow: 0 22px 40px rgba(20, 241, 149, 0.18);
-        }
-
-        .exercise-name {
-            margin: 0;
-            font-size: 1.7rem;
-            font-weight: 700;
-        }
-
-        .exercise-subtitle {
-            margin: 0;
-            color: var(--text-soft);
-            line-height: 1.7;
-            font-size: 1rem;
-        }
-
-        .exercise-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 16px;
-            border-radius: 999px;
-            background: rgba(20, 241, 149, 0.12);
-            color: var(--neon-green);
-            font-weight: 700;
-            font-size: 0.95rem;
-            width: fit-content;
-        }
-
-        .workout-panel {
-            display: grid;
-            grid-template-columns: 1.3fr 0.75fr;
-            gap: 28px;
-            align-items: start;
-        }
-
-        .camera-panel,
-        .status-card {
-            border-radius: 26px;
-            background: rgba(3, 9, 28, 0.94);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
-        }
-
-        .camera-panel {
-            overflow: hidden;
-        }
-
-        .camera-header {
+        .card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 14px;
-            padding: 20px 24px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 22px;
         }
 
-        .camera-title {
+        .card-title {
             margin: 0;
-            font-size: 1rem;
-            letter-spacing: 0.12em;
-            color: var(--text-soft);
+            font-size: 1.05rem;
+            font-weight: 700;
         }
 
-        .camera-frame {
+        .small-chip {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(0, 212, 255, 0.12);
+            color: var(--accent);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stat-row {
+            display: grid;
+            gap: 18px;
+        }
+
+        .stat-card {
+            background: rgba(10, 24, 46, 0.88);
+            border: 1px solid rgba(124, 255, 107, 0.1);
+            border-radius: 24px;
+            padding: 22px;
+            transition: transform 0.25s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .stat-secondary {
+            margin-top: 10px;
+            color: var(--muted);
+        }
+
+        .metric-list {
+            display: grid;
+            gap: 18px;
+        }
+
+        .metric-bubble {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: rgba(9, 23, 46, 0.88);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 22px;
+            padding: 18px 20px;
+        }
+
+        .bubble-left {
+            display: grid;
+            gap: 6px;
+        }
+
+        .bubble-label {
+            font-size: 0.95rem;
+            color: var(--muted);
+        }
+
+        .bubble-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .progress-ring {
+            width: 115px;
+            height: 115px;
             position: relative;
-            width: 100%;
-            padding-top: calc(480 / 640 * 100%);
-            background: radial-gradient(circle at center, rgba(20, 241, 149, 0.06), transparent 36%);
         }
 
-        .camera-frame video,
-        .camera-frame canvas {
+        .progress-ring circle {
+            fill: none;
+            stroke-width: 10;
+            transform: rotate(-90deg);
+            transform-origin: center;
+        }
+
+        .progress-ring .track {
+            stroke: rgba(255,255,255,0.08);
+        }
+
+        .progress-ring .fill {
+            stroke: var(--green);
+            stroke-linecap: round;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .progress-ring-label {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: var(--text);
+            font-weight: 800;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .status-pill.missing {
+            color: #ff8ea6;
+            border-color: rgba(255, 101, 119, 0.15);
+        }
+
+        .status-pill.weak {
+            color: #ffd56b;
+            border-color: rgba(255, 213, 107, 0.18);
+        }
+
+        .live-grid {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: 1.6fr 1fr;
+        }
+
+        .camera-card {
+            min-height: 520px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-panel {
+            position: relative;
+            height: 100%;
+            border-radius: 28px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            box-shadow: inset 0 0 80px rgba(0, 212, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at 30% 40%, rgba(0, 212, 255, 0.12), transparent 20%),
+                linear-gradient(180deg, rgba(2, 16, 38, 0.95), rgba(0, 0, 0, 0.15));
+        }
+
+        .camera-feed video,
+        .camera-feed canvas {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            background: #040b18;
         }
 
-        #webcam {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
+        .camera-feed canvas {
             pointer-events: none;
         }
 
-        #output_canvas {
-            transform: scaleX(-1);
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .status-card {
-            padding: 24px;
+        .camera-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 22px;
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .camera-stats {
+            display: grid;
+            gap: 10px;
+        }
+
+        .camera-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            font-size: 0.92rem;
+        }
+
+        .exercise-selection {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+            margin: 16px 0 0;
+        }
+
+        .exercise-selection button {
+            padding: 14px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            background: rgba(9, 23, 46, 0.88);
+            color: var(--text);
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .exercise-selection button.active,
+        .exercise-selection button:hover {
+            background: rgba(0, 212, 255, 0.14);
+            border-color: rgba(0, 212, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .live-summary {
+            display: grid;
+            gap: 16px;
+        }
+
+        .section-card h3 {
+            margin: 0 0 14px;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .bar-graph {
+            width: 100%;
+            display: grid;
+            gap: 12px;
+        }
+
+        .bar-track {
+            height: 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .bar-value {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--green));
+        }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .error-panel {
+            display: grid;
+            gap: 14px;
+        }
+
+        .error-item {
+            display: grid;
+            gap: 6px;
+            padding: 16px 18px;
+            background: rgba(255, 101, 119, 0.08);
+            border: 1px solid rgba(255, 101, 119, 0.12);
+            border-radius: 20px;
+        }
+
+        .error-item strong {
+            color: #ffb0c0;
+        }
+
+        .table-card {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text);
+            min-width: 680px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        th {
+            color: var(--muted);
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .chat-panel {
             display: grid;
             gap: 18px;
         }
 
-        .status-item {
-            padding: 20px 22px;
+        .chat-box {
+            display: grid;
+            gap: 14px;
+            background: rgba(9, 23, 46, 0.88);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 26px;
+            padding: 22px;
+        }
+
+        .chat-message {
+            padding: 16px 18px;
             border-radius: 22px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            max-width: 86%;
+            line-height: 1.75;
+            position: relative;
         }
 
-        .status-title {
-            margin: 0 0 10px;
-            font-size: 0.88rem;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            color: var(--text-soft);
+        .chat-message.user {
+            justify-self: end;
+            background: rgba(0, 212, 255, 0.12);
+            color: var(--text);
         }
 
-        .status-value {
-            margin: 0;
-            font-size: 1.38rem;
-            line-height: 1.45;
-            color: #fff;
+        .chat-message.ai {
+            background: rgba(124, 255, 107, 0.12);
+            color: var(--text);
         }
 
-        .status-value span {
-            color: var(--neon-green);
+        .chat-action {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .status-hint {
-            margin: 0;
-            color: var(--text-soft);
-            font-size: 0.95rem;
-            line-height: 1.7;
+        .action-chip {
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 212, 255, 0.12);
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--text);
+            cursor: default;
+            transition: transform 0.2s ease;
         }
 
-        @media (max-width: 1000px) {
-            .workout-panel {
-                grid-template-columns: 1fr;
-            }
+        .profile-grid {
+            display: grid;
+            gap: 22px;
+            grid-template-columns: 1.3fr 0.7fr;
         }
 
-        @media (max-width: 640px) {
-            main {
-                width: calc(100% - 20px);
-            }
+        .info-list {
+            display: grid;
+            gap: 14px;
+        }
 
-            section {
-                padding: 24px;
-            }
+        .info-item {
+            display: grid;
+            gap: 6px;
+            padding: 18px;
+            background: rgba(9, 23, 46, 0.88);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 212, 255, 0.08);
+        }
 
-            .hero-content {
-                padding: 60px 16px 46px;
-            }
+        .info-item strong {
+            color: var(--text);
+            font-size: 1.1rem;
+        }
 
-            .hero-title {
-                font-size: 3rem;
-            }
+        .settings-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
 
-            .exercise-card {
-                min-height: auto;
-            }
+        .setting-item {
+            background: rgba(9, 23, 46, 0.88);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 24px;
+            padding: 22px;
+            display: grid;
+            gap: 14px;
+        }
 
-            .status-card {
-                padding: 18px;
-            }
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .setting-row label {
+            color: var(--muted);
+        }
+
+        .switch {
+            width: 52px;
+            height: 28px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            position: relative;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .switch::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            transition: left 0.25s ease;
+        }
+
+        .switch.active::after {
+            left: 28px;
+            background: var(--green);
+        }
+
+        .mobile-nav {
+            display: none;
+        }
+
+        @media (max-width: 1230px) {
+            .app-shell { grid-template-columns: 1fr; }
+            .sidebar { flex-direction: row; overflow-x: auto; padding: 20px; min-height: auto; position: sticky; top: 0; z-index: 20; }
+            .brand-block { display: none; }
+            .sidebar-summary { display: none; }
+            .nav-list { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; padding-bottom: 6px; }
+            .nav-item { min-width: 180px; }
+            .sidebar-footer { display: none; }
+        }
+
+        @media (max-width: 960px) {
+            .main-panel { padding: 20px 18px 100px; }
+            .topbar { flex-direction: column; align-items: stretch; }
+            .topbar-search { min-width: auto; width: 100%; }
+            .live-grid, .page-grid, .profile-grid, .settings-grid, .chart-row, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+            .camera-card { min-height: 420px; }
+            .sidebar { padding: 16px; }
+            .nav-item { min-width: 150px; }
+        }
+
+        @media (max-width: 720px) {
+            .topbar-actions { justify-content: space-between; }
+            .topbar-search { padding: 12px 14px; }
+            .nav-item { padding: 12px 14px; }
+            .page-title { font-size: 2rem; }
+            .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 16px; gap: 10px; background: rgba(7, 27, 53, 0.96); border-top: 1px solid rgba(0, 212, 255, 0.1); z-index: 30; }
+            .mobile-nav button { flex: 1; border-radius: 18px; }
+            .page-container { padding-bottom: 120px; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.5/camera_utils.js"></script>
 </head>
 <body>
-    <main>
-        <section class="hero" id="section-hero">
-            <div class="hero-content">
-                <h1 class="hero-title">FitGuard <span>AI</span></h1>
-                <div class="badge">ออกกำลังกายอย่างมั่นใจ ปลอดภัย มีประสิทธิภาพ</div>
-                <p class="hero-description">
-                    ระบบประเมินความเสี่ยงการบาดเจ็บจากการออกกำลังกาย ด้วยการวิเคราะห์ชีวกลศาสตร์การเคลื่อนไหว
-                    แบบ Real-time โดยใช้ปัญญาประดิษฐ์
-                </p>
-                <button class="cta-button" id="start-workout">START WORKOUT</button>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-block">
+                <div class="brand-title"><span class="brand-dot"></span>FitGuard AI</div>
+                <p class="brand-desc">AI-driven workout analysis and injury prevention using live camera posture intelligence.</p>
             </div>
-        </section>
 
-        <section id="section-exercises">
-            <h2 class="section-header">วันนี้คุณต้องการฝึกท่าไหน?</h2>
-            <div class="grid-cards" id="exercise-grid"></div>
-        </section>
-
-        <section id="section-dashboard">
-            <h2 class="section-header">AI Webcam & Analytics Dashboard</h2>
-            <div class="workout-panel">
-                <div class="camera-panel">
-                    <div class="camera-header">
-                        <p class="camera-title">Webcam Live</p>
-                    </div>
-                    <div class="camera-frame">
-                        <video id="webcam" playsinline muted></video>
-                        <canvas id="output_canvas" width="640" height="480"></canvas>
-                    </div>
+            <div class="sidebar-summary">
+                <h3>Session Summary</h3>
+                <div class="metric-block">
+                    <strong id="summaryWorkoutCount">0</strong>
+                    <span class="metric-caption">Workouts completed</span>
                 </div>
-                <div class="status-card">
-                    <div class="status-item">
-                        <p class="status-title">ท่าที่เลือก</p>
-                        <p class="status-value" id="selected-workout">ยังไม่ได้เลือกท่า</p>
-                    </div>
-                    <div class="status-item">
-                        <p class="status-title">สถานะท่าทาง</p>
-                        <p class="status-value" id="form-status">รอเลือกท่าและเปิดกล้อง</p>
-                    </div>
-                    <div class="status-item">
-                        <p class="status-title">จำนวนครั้ง</p>
-                        <p class="status-value" id="rep-counter">0</p>
-                    </div>
-                    <div class="status-item">
-                        <p class="status-title">คำแนะนำกล้อง</p>
-                        <p class="status-value" id="camera-advice">ปรับกล้องให้เห็นทั้งตัวตรงกลาง</p>
-                    </div>
-                    <p class="status-hint">ระบบจะเริ่มวิเคราะห์เมื่อเลือกท่าและเปิดกล้องเรียบร้อย</p>
+                <div class="metric-block">
+                    <strong id="summaryAverageForm">-</strong>
+                    <span class="metric-caption">Average form score</span>
                 </div>
             </div>
-        </section>
-    </main>
+
+            <nav class="nav-list" aria-label="Primary navigation">
+                <button class="nav-item active" data-page="dashboard"><span>Dashboard</span><span class="nav-badge">01</span></button>
+                <button class="nav-item" data-page="live-analysis"><span>Live Workout</span><span class="nav-badge">02</span></button>
+                <button class="nav-item" data-page="progress-analytics"><span>Progress</span><span class="nav-badge">03</span></button>
+                <button class="nav-item" data-page="exercise-history"><span>History</span><span class="nav-badge">04</span></button>
+                <button class="nav-item" data-page="workout-reports"><span>Reports</span><span class="nav-badge">05</span></button>
+                <button class="nav-item" data-page="ai-coach"><span>AI Coach</span><span class="nav-badge">06</span></button>
+                <button class="nav-item" data-page="challenges"><span>Challenges</span><span class="nav-badge">07</span></button>
+                <button class="nav-item" data-page="achievements"><span>Achievements</span><span class="nav-badge">08</span></button>
+                <button class="nav-item" data-page="profile"><span>Profile</span><span class="nav-badge">09</span></button>
+                <button class="nav-item" data-page="settings"><span>Settings</span><span class="nav-badge">10</span></button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p class="footer-title">Pro tip</p>
+                <div class="footer-chip">Choose an exercise, then start a session to activate live analysis.</div>
+            </div>
+        </aside>
+
+        <div class="main-panel">
+            <header class="topbar">
+                <div>
+                    <h1 class="page-title">FitGuard AI Control Center</h1>
+                    <p class="page-subtitle">Every insight is generated from live pose landmarks, joint angles, and exercise analysis.</p>
+                </div>
+                <div class="topbar-actions">
+                    <label class="topbar-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="search" placeholder="Search workouts, analytics, tips…" />
+                    </label>
+                    <button class="top-action" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+                    <div class="avatar">AG</div>
+                </div>
+            </header>
+
+            <div class="page-container">
+                <section class="page active" id="dashboard">
+                    <div class="layout-grid grid-3">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Workout Performance</h2><span class="small-chip">Live</span></div>
+                            <div class="stat-row">
+                                <div class="stat-card">
+                                    <p class="stat-value" id="dashboardFitnessScore">-</p>
+                                    <p class="stat-secondary">Current session form</p>
+                                </div>
+                                <div class="stat-card">
+                                    <p class="stat-value" id="dashboardWorkoutCount">0</p>
+                                    <p class="stat-secondary">Workout sessions</p>
+                                </div>
+                                <div class="stat-card">
+                                    <p class="stat-value" id="dashboardFormAccuracy">-</p>
+                                    <p class="stat-secondary">Average accuracy</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Risk Insights</h2><span class="small-chip">Analysis</span></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Most frequent issue</span><strong id="dashboardTopIssue">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Current streak</span><strong id="dashboardStreak">0 days</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Injury warning</span><strong id="dashboardWarning">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Best form score</span><strong id="dashboardBestForm">-</strong></div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Live Session</h2><span class="small-chip">Status</span></div>
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 120 120" aria-hidden="true">
+                                    <circle class="track" cx="60" cy="60" r="50"></circle>
+                                    <circle class="fill" cx="60" cy="60" r="50" id="dashboardProgressFill"></circle>
+                                </svg>
+                                <div class="progress-ring-label" id="dashboardProgressLabel">0%</div>
+                            </div>
+                            <p class="stat-secondary" style="margin-top: 18px;" id="dashboardProgressText">Start a workout to populate metrics.</p>
+                        </div>
+                    </div>
+                    <div class="layout-grid grid-2" style="margin-top: 24px;">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Session Summary</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Total active minutes</span><strong id="dashboardActiveMinutes">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="dashboardTotalReps">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Completed drills</span><strong id="dashboardDrills">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Most common error</span><strong id="dashboardCommonError">None</strong></div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">AI Coach</h2></div>
+                            <p id="dashboardCoachTip">Select Live Workout and start a session to receive posture guidance.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page" id="live-analysis">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Exercise Selection</h2></div>
+                        <div class="exercise-selection">
+                            <button class="active" data-exercise="pushup">Push-Up</button>
+                            <button data-exercise="squat">Squat</button>
+                            <button data-exercise="plank">Plank</button>
+                            <button data-exercise="situp">Sit-Up</button>
+                            <button data-exercise="lunge">Lunge</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-card live-grid">
+                        <div class="camera-card">
+                            <div class="camera-panel">
+                                <div class="camera-feed">
+                                    <video id="cameraVideo" autoplay muted playsinline></video>
+                                    <canvas id="overlayCanvas"></canvas>
+                                </div>
+                                <div class="camera-overlay">
+                                    <div style="padding: 22px; display: grid; gap: 10px;">
+                                        <span class="camera-chip" id="liveExerciseLabel">Exercise: Push-Up</span>
+                                        <span class="camera-chip" id="liveCameraStatus">Tracking: Waiting</span>
+                                    </div>
+                                    <div class="camera-footer">
+                                        <div class="camera-stats">
+                                            <div class="camera-chip">Reps: <span id="liveRepCount">0</span></div>
+                                            <div class="camera-chip">Form: <span id="liveFormAccuracy">0%</span></div>
+                                        </div>
+                                        <button class="top-action" id="startStopButton" style="width:auto; padding: 12px 18px;" aria-label="Start workout">Start</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-card live-summary">
+                            <div class="card-header"><h2 class="card-title">Realtime Feedback</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Active duration</span><strong id="liveDuration">0s</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Primary issue</span><strong id="livePrimaryIssue">Waiting for movement</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="liveStability">-</strong></div>
+                            </div>
+                            <div class="error-panel" id="liveFeedbackList"><div class="error-item"><strong>Ready</strong><span>Choose an exercise and start your workout.</span></div></div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="margin-top:20px; padding:20px;">
+                        <div class="card-header"><h2 class="card-title">Debug Panel</h2><span class="small-chip">Diagnostics</span></div>
+                        <div class="metric-list">
+                            <div class="metric-bubble"><span class="bubble-label">Camera status</span><strong id="debugCameraStatus">Unknown</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">MediaPipe status</span><strong id="debugMediaPipeStatus">Not initialized</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">FPS</span><strong id="debugFPS">0</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Detection confidence</span><strong id="debugDetectionConfidence">0%</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Landmark count</span><strong id="debugLandmarkCount">0</strong></div>
+                        </div>
+                        <div class="error-panel" id="debugErrorLog"><div class="error-item"><strong>Log ready</strong><span>Camera and pose diagnostics appear here.</span></div></div>
+                    </div>
+
+                    <div class="layout-grid grid-3" style="margin-top: 20px;">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Angle Monitoring</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Left elbow</span><strong id="angleLeftElbow">0°</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Right elbow</span><strong id="angleRightElbow">0°</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Back alignment</span><strong id="angleBack">0°</strong></div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Lower Body</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Left knee</span><strong id="angleLeftKnee">0°</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Right knee</span><strong id="angleRightKnee">0°</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Hip alignment</span><strong id="angleHip">0°</strong></div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Neck & Core</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Neck</span><strong id="angleNeck">0°</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Core score</span><strong id="liveCoreScore">-</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page" id="progress-analytics">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Progress Analytics</h2></div>
+                        <div class="label-row"><span>Recent sessions</span><strong id="progressSummary">Tracking form and reps over completed workouts.</strong></div>
+                        <div class="bar-graph" id="progressBars"></div>
+                    </div>
+                    <div class="layout-grid grid-3" style="margin-top: 24px;">
+                        <div class="glass-card"><h2 class="card-title">Total minutes</h2><p id="progressMinutes">0</p></div>
+                        <div class="glass-card"><h2 class="card-title">Average rep rate</h2><p id="progressRepRate">0</p></div>
+                        <div class="glass-card"><h2 class="card-title">Most common issue</h2><p id="progressCommonIssue">None</p></div>
+                        <div class="glass-card"><h2 class="card-title">Weekly trend</h2><p id="progressWeeklyTrend">-</p></div>
+                        <div class="glass-card"><h2 class="card-title">Monthly trend</h2><p id="progressMonthlyTrend">-</p></div>
+                    </div>
+                </section>
+
+                <section class="page" id="exercise-history">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Exercise History</h2></div>
+                        <div class="label-row" style="flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+                            <div><label>Filter exercise</label><select id="historyFilterExercise"><option value="all">All</option><option value="pushup">Push-Up</option><option value="squat">Squat</option><option value="plank">Plank</option><option value="situp">Sit-Up</option><option value="lunge">Lunge</option></select></div>
+                            <div><label>Search date</label><input type="date" id="historyFilterDate"></div>
+                            <button class="tab-item" id="historyApplyFilterButton">Apply filters</button>
+                            <button class="tab-item" id="historyCompareButton">Compare selected</button>
+                        </div>
+                        <table>
+                            <thead><tr><th>Exercise</th><th>Duration</th><th>Reps</th><th>Avg Form</th><th>Top issue</th><th>Actions</th></tr></thead>
+                            <tbody id="historyTableBody"><tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr></tbody>
+                        </table>
+                        <div id="historyDetailsPanel" style="margin-top: 18px; padding: 18px; background: rgba(9,23,46,0.88); border-radius: 20px; display:none;"></div>
+                        <div style="margin-top: 18px; display: flex; gap: 12px;"><button class="tab-item" id="exportHistoryButton">Export summary</button><button class="tab-item" id="clearHistoryButton">Clear history</button></div>
+                    </div>
+                </section>
+
+                <section class="page" id="workout-reports">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Workout Reports</h2></div>
+                        <div class="label-row" style="margin-bottom: 16px; gap: 14px; flex-wrap: wrap;">
+                            <div><label>Select report</label><select id="reportSelect"></select></div>
+                            <div id="reportSummaryText" style="font-weight:600; color:var(--muted);">A detailed report is generated after every completed session.</div>
+                        </div>
+                        <div class="metric-list">
+                            <div class="metric-bubble"><span class="bubble-label">Exercise Type</span><strong id="reportExerciseType">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Duration</span><strong id="reportDuration">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="reportReps">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Form accuracy</span><strong id="reportFormAccuracy">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="reportStability">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Injury risk</span><strong id="reportInjuryRisk">-</strong></div>
+                        </div>
+                        <div class="glass-card" style="margin-top:20px;">
+                            <div class="card-header"><h2 class="card-title">Timeline analysis</h2></div>
+                            <div id="reportTimeline"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page" id="ai-coach">
+                    <div class="chat-panel">
+                        <div class="card-header"><h2 class="card-title">AI Coach Feedback</h2></div>
+                        <div class="chat-box" id="coachMessageList"></div>
+                        <div class="chat-action">
+                            <div class="action-chip">Real-time form guidance</div>
+                            <div class="action-chip">Stability recommendations</div>
+                            <div class="action-chip">Session summaries</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page" id="challenges">
+                    <div class="layout-grid grid-2">
+                        <div class="glass-card"><h2 class="card-title">Current Goal</h2><p id="challengeGoal">Complete three live sessions with form over 80%.</p></div>
+                        <div class="glass-card"><h2 class="card-title">Challenge Progress</h2><p id="challengeProgress">0/3 workouts completed.</p></div>
+                    </div>
+                    <div class="glass-card" style="margin-top: 20px;">
+                        <div class="card-header"><h2 class="card-title">Mission Status</h2></div>
+                        <div class="metric-list">
+                            <div class="metric-bubble"><strong id="challengeSessions">0</strong><span class="bubble-label">Completed workouts</span></div>
+                            <div class="metric-bubble"><strong id="challengeBestForm">-</strong><span class="bubble-label">Best form score</span></div>
+                            <div class="metric-bubble"><strong id="challengeConsistency">-</strong><span class="bubble-label">Consistency rating</span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page" id="achievements">
+                    <div class="layout-grid grid-2">
+                        <div class="glass-card"><h2 class="card-title">Achievements</h2><div id="achievementList" class="metric-list"></div></div>
+                        <div class="glass-card"><h2 class="card-title">Unlocked Milestones</h2><div id="achievementMilestones" class="metric-list"></div></div>
+                    </div>
+                </section>
+
+                <section class="page" id="profile">
+                    <div class="profile-grid">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">User Profile</h2></div>
+                            <div class="info-list" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                                <div class="info-item"><label>Name</label><input id="profileNameInput" type="text" value="Dev" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Height (cm)</label><input id="profileHeightInput" type="number" min="100" max="230" value="178" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Weight (kg)</label><input id="profileWeightInput" type="number" min="40" max="180" value="72" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Age</label><input id="profileAgeInput" type="number" min="16" max="80" value="30" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Fitness level</label><select id="profileFitnessLevelInput" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option></select></div>
+                                <div class="info-item"><label>Estimated calories</label><strong id="profileCalories">-</strong></div>
+                                <div class="info-item"><label>BMI</label><strong id="profileBMI">22.7</strong></div>
+                            </div>
+                            <div style="margin-top:16px; display:flex; gap:12px;"><button class="tab-item" id="saveProfileButton">Save profile</button><button class="tab-item" id="resetProfileButton">Reset profile</button></div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Camera & AI</h2></div>
+                            <div class="info-list">
+                                <div class="info-item"><strong id="profileCameraStatus">Waiting</strong><span>Camera status</span></div>
+                                <div class="info-item"><strong id="profileSessionCount">0</strong><span>Sessions recorded</span></div>
+                                <div class="info-item"><strong id="profileAverageForm">-</strong><span>Average form</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page" id="settings">
+                    <div class="glass-card" style="max-width: 900px; margin: 0 auto;">
+                        <div class="card-header"><h2 class="card-title">Settings</h2></div>
+                        <div class="settings-grid" style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px;">
+                            <div class="setting-item"><label>Camera</label><select id="settingsCameraSelect"></select></div>
+                            <div class="setting-item"><label>FPS target</label><input type="number" id="settingsFPS" min="15" max="60" step="5" value="30"></div>
+                            <div class="setting-item"><label>Detection sensitivity</label><input type="range" id="settingsSensitivity" min="0.3" max="0.9" step="0.05" value="0.5"></div>
+                            <div class="setting-item"><label>Notification alerts</label><select id="settingsNotifications"><option value="all">All</option><option value="form">Form only</option><option value="none">None</option></select></div>
+                            <div class="setting-item"><label>Language</label><select id="settingsLanguage"><option value="en">English</option><option value="th">Thai</option></select></div>
+                            <div class="setting-item"><label>Theme</label><select id="settingsTheme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+                        </div>
+                        <div style="margin-top:22px; display:flex; gap:12px;"><button class="tab-item" id="saveSettingsButton">Save settings</button><button class="tab-item" id="resetSettingsButton">Reset defaults</button></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-nav" aria-label="Mobile navigation">
+        <button class="tab-item active" data-page="dashboard">Dash</button>
+        <button class="tab-item" data-page="live-analysis">Live</button>
+        <button class="tab-item" data-page="exercise-history">History</button>
+        <button class="tab-item" data-page="workout-reports">Report</button>
+        <button class="tab-item" data-page="profile">Profile</button>
+        <button class="tab-item" data-page="settings">Settings</button>
+    </div>
 
     <script>
-        const workoutOptions = [
-            { key: 'pushup', label: 'Push Up', thai: 'วิดพื้น', thresholds: { kneeAngle: 90, torsoAngle: 90 } },
-            { key: 'situp', label: 'Sit Up', thai: 'ซิกอัพ', thresholds: { hipAngle: 50, torsoAngle: 45 } },
-            { key: 'squat', label: 'Squat', thai: 'สควอท', thresholds: { kneeAngle: 95, hipAngle: 110 } },
-            { key: 'plank', label: 'Plank', thai: 'แพลงก์', thresholds: { torsoAngle: 170, hipAngle: 170 } }
-        ];
+        const navItems = document.querySelectorAll('.nav-item');
+        const mobileButtons = document.querySelectorAll('.mobile-nav .tab-item');
+        const pages = document.querySelectorAll('.page');
+        const exerciseButtons = document.querySelectorAll('.exercise-selection button');
+        const startStopButton = document.getElementById('startStopButton');
 
-        const state = {
-            selected: null,
-            repCount: 0,
-            cameraActive: false,
-            poseThresholds: null,
-            lastPhase: 'up',
-            stablePhase: 'up',
-            phaseHoldCount: 0,
-            hasReachedDown: false,
-            readyToCount: false,
-            readyHoldCount: 0
+        const cameraVideo = document.getElementById('cameraVideo');
+        const overlayCanvas = document.getElementById('overlayCanvas');
+        const canvasCtx = overlayCanvas.getContext('2d');
+
+        const ids = {
+            dashboardFitnessScore: document.getElementById('dashboardFitnessScore'),
+            dashboardWorkoutCount: document.getElementById('dashboardWorkoutCount'),
+            dashboardFormAccuracy: document.getElementById('dashboardFormAccuracy'),
+            dashboardTopIssue: document.getElementById('dashboardTopIssue'),
+            dashboardStability: document.getElementById('dashboardStability'),
+            dashboardBestForm: document.getElementById('dashboardBestForm'),
+            dashboardStreak: document.getElementById('dashboardStreak'),
+            dashboardWarning: document.getElementById('dashboardWarning'),
+            dashboardProgressFill: document.getElementById('dashboardProgressFill'),
+            dashboardProgressLabel: document.getElementById('dashboardProgressLabel'),
+            dashboardProgressText: document.getElementById('dashboardProgressText'),
+            dashboardActiveMinutes: document.getElementById('dashboardActiveMinutes'),
+            dashboardTotalReps: document.getElementById('dashboardTotalReps'),
+            dashboardDrills: document.getElementById('dashboardDrills'),
+            dashboardCommonError: document.getElementById('dashboardCommonError'),
+            dashboardCoachTip: document.getElementById('dashboardCoachTip'),
+            summaryWorkoutCount: document.getElementById('summaryWorkoutCount'),
+            summaryAverageForm: document.getElementById('summaryAverageForm'),
+            liveExerciseLabel: document.getElementById('liveExerciseLabel'),
+            liveCameraStatus: document.getElementById('liveCameraStatus'),
+            liveRepCount: document.getElementById('liveRepCount'),
+            liveFormAccuracy: document.getElementById('liveFormAccuracy'),
+            liveDuration: document.getElementById('liveDuration'),
+            livePrimaryIssue: document.getElementById('livePrimaryIssue'),
+            liveStability: document.getElementById('liveStability'),
+            liveFeedbackList: document.getElementById('liveFeedbackList'),
+            debugCameraStatus: document.getElementById('debugCameraStatus'),
+            debugMediaPipeStatus: document.getElementById('debugMediaPipeStatus'),
+            debugFPS: document.getElementById('debugFPS'),
+            debugDetectionConfidence: document.getElementById('debugDetectionConfidence'),
+            debugLandmarkCount: document.getElementById('debugLandmarkCount'),
+            debugErrorLog: document.getElementById('debugErrorLog'),
+            angleLeftElbow: document.getElementById('angleLeftElbow'),
+            angleRightElbow: document.getElementById('angleRightElbow'),
+            angleBack: document.getElementById('angleBack'),
+            angleLeftKnee: document.getElementById('angleLeftKnee'),
+            angleRightKnee: document.getElementById('angleRightKnee'),
+            angleHip: document.getElementById('angleHip'),
+            angleNeck: document.getElementById('angleNeck'),
+            liveCoreScore: document.getElementById('liveCoreScore'),
+            progressBars: document.getElementById('progressBars'),
+            progressMinutes: document.getElementById('progressMinutes'),
+            progressRepRate: document.getElementById('progressRepRate'),
+            progressCommonIssue: document.getElementById('progressCommonIssue'),
+            progressWeeklyTrend: document.getElementById('progressWeeklyTrend'),
+            progressMonthlyTrend: document.getElementById('progressMonthlyTrend'),
+            historyTableBody: document.getElementById('historyTableBody'),
+            coachMessageList: document.getElementById('coachMessageList'),
+            challengeGoal: document.getElementById('challengeGoal'),
+            challengeProgress: document.getElementById('challengeProgress'),
+            challengeSessions: document.getElementById('challengeSessions'),
+            challengeBestForm: document.getElementById('challengeBestForm'),
+            challengeConsistency: document.getElementById('challengeConsistency'),
+            achievementList: document.getElementById('achievementList'),
+            achievementMilestones: document.getElementById('achievementMilestones'),
+            profileCameraStatus: document.getElementById('profileCameraStatus'),
+            profileSessionCount: document.getElementById('profileSessionCount'),
+            profileAverageForm: document.getElementById('profileAverageForm'),
+            historyFilterExercise: document.getElementById('historyFilterExercise'),
+            historyFilterDate: document.getElementById('historyFilterDate'),
+            historyApplyFilterButton: document.getElementById('historyApplyFilterButton'),
+            historyCompareButton: document.getElementById('historyCompareButton'),
+            historyDetailsPanel: document.getElementById('historyDetailsPanel'),
+            reportSelect: document.getElementById('reportSelect'),
+            reportSummaryText: document.getElementById('reportSummaryText'),
+            reportExerciseType: document.getElementById('reportExerciseType'),
+            reportDuration: document.getElementById('reportDuration'),
+            reportReps: document.getElementById('reportReps'),
+            reportFormAccuracy: document.getElementById('reportFormAccuracy'),
+            reportStability: document.getElementById('reportStability'),
+            reportInjuryRisk: document.getElementById('reportInjuryRisk'),
+            reportTimeline: document.getElementById('reportTimeline'),
+            profileName: document.getElementById('profileName'),
+            profileHeight: document.getElementById('profileHeight'),
+            profileWeight: document.getElementById('profileWeight'),
+            profileAge: document.getElementById('profileAge'),
+            profileBMI: document.getElementById('profileBMI'),
+            profileCalories: document.getElementById('profileCalories'),
+            profileFitnessLevel: document.getElementById('profileFitnessLevel'),
+            profileNameInput: document.getElementById('profileNameInput'),
+            profileHeightInput: document.getElementById('profileHeightInput'),
+            profileWeightInput: document.getElementById('profileWeightInput'),
+            profileAgeInput: document.getElementById('profileAgeInput'),
+            profileFitnessLevelInput: document.getElementById('profileFitnessLevelInput'),
+            settingsCameraSelect: document.getElementById('settingsCameraSelect'),
+            settingsFPS: document.getElementById('settingsFPS'),
+            settingsSensitivity: document.getElementById('settingsSensitivity'),
+            settingsNotifications: document.getElementById('settingsNotifications'),
+            settingsLanguage: document.getElementById('settingsLanguage'),
+            settingsTheme: document.getElementById('settingsTheme'),
+            saveSettingsButton: document.getElementById('saveSettingsButton'),
+            resetSettingsButton: document.getElementById('resetSettingsButton')
         };
 
-        const exerciseGrid = document.getElementById('exercise-grid');
-        const startWorkoutButton = document.getElementById('start-workout');
-        const selectedWorkoutEl = document.getElementById('selected-workout');
-        const formStatusEl = document.getElementById('form-status');
-        const repCounterEl = document.getElementById('rep-counter');
-        const cameraAdviceEl = document.getElementById('camera-advice');
-        const videoElement = document.getElementById('webcam');
-        const canvasElement = document.getElementById('output_canvas');
-        const canvasCtx = canvasElement.getContext('2d');
+        const exerciseNames = {
+            pushup: 'Push-Up',
+            squat: 'Squat',
+            plank: 'Plank',
+            situp: 'Sit-Up',
+            lunge: 'Lunge'
+        };
 
-        function buildExerciseCards() {
-            workoutOptions.forEach((workout) => {
-                const card = document.createElement('button');
-                card.type = 'button';
-                card.className = 'exercise-card';
-                card.innerHTML = `
-                    <div>
-                        <h3 class="exercise-name">${workout.label}</h3>
-                        <p class="exercise-subtitle">${workout.thai}</p>
-                    </div>
-                    <div class="exercise-badge">เลือก</div>
-                `;
-                card.addEventListener('click', () => selectWorkout(workout, card));
-                exerciseGrid.appendChild(card);
-            });
+        const defaultSettings = {
+            cameraId: null,
+            fps: 30,
+            sensitivity: 0.5,
+            notifications: 'all',
+            language: 'en',
+            theme: 'dark'
+        };
+
+        const profileData = {
+            name: 'Dev',
+            height: 178,
+            weight: 72,
+            age: 30,
+            fitnessLevel: 'Intermediate'
+        };
+
+        let cameraInstance = null;
+        let poseInstance = null;
+        const debugState = {
+            lastFpsTimestamp: performance.now(),
+            frameCount: 0
+        };
+
+        const state = {
+            selectedExercise: 'pushup',
+            sessionHistory: [],
+            currentSession: null,
+            trackingBuffer: [],
+            missingFrames: 0,
+            angleBuffers: {},
+            feedbackQueue: [],
+            coachMessages: [],
+            liveStatus: 'Waiting for landmarks',
+            lastFormScore: 0,
+            lastAngleReport: {},
+            lastProblem: 'Waiting for movement',
+            settings: { ...defaultSettings },
+            cameraDevices: []
+        };
+
+        function setPage(pageId) {
+            pages.forEach(page => page.classList.toggle('active', page.id === pageId));
+            navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageId));
+            mobileButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.page === pageId));
         }
 
-        function selectWorkout(workout, card) {
-            state.selected = workout;
-            state.poseThresholds = workout.thresholds;
-            state.repCount = 0;
-            state.lastPhase = 'up';
-            state.stablePhase = 'up';
-            state.phaseHoldCount = 0;
-            state.hasReachedDown = false;
-            state.readyToCount = false;
-            state.readyHoldCount = 0;
-            updateWorkoutSelectionUI(card);
+        navItems.forEach(item => {
+            item.addEventListener('click', () => setPage(item.dataset.page));
+        });
+
+        mobileButtons.forEach(btn => {
+            btn.addEventListener('click', () => setPage(btn.dataset.page));
+        });
+
+        exerciseButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                exerciseButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                selectExercise(button.dataset.exercise);
+            });
+        });
+
+        startStopButton.addEventListener('click', () => {
+            if (state.currentSession) {
+                stopWorkout();
+            } else {
+                startWorkout();
+            }
+        });
+
+        function selectExercise(exercise) {
+            state.selectedExercise = exercise;
+            ids.liveExerciseLabel.textContent = `Exercise: ${exerciseNames[exercise]}`;
+            if (!state.currentSession) {
+                ids.livePrimaryIssue.textContent = `Ready to analyze ${exerciseNames[exercise]}`;
+            }
             updateDashboard();
-            scrollToSection('section-dashboard');
-            initializeCamera();
         }
 
-        function updateWorkoutSelectionUI(activeCard) {
-            document.querySelectorAll('.exercise-card').forEach((card) => {
-                card.classList.toggle('active', card === activeCard);
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function average(values) {
+            if (!values.length) return 0;
+            return values.reduce((sum, value) => sum + value, 0) / values.length;
+        }
+
+        function roundOne(value) {
+            return Math.round(value * 10) / 10;
+        }
+
+        function smoothAngle(key, value) {
+            const history = state.angleBuffers[key] || [];
+            history.push(value || 0);
+            if (history.length > 12) history.shift();
+            state.angleBuffers[key] = history;
+            return average(history);
+        }
+
+        function pointFromLandmark(landmark) {
+            return landmark ? { x: landmark.x, y: landmark.y, z: landmark.z } : null;
+        }
+
+        function vectorSubtract(a, b) {
+            return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+        }
+
+        function vectorLength(v) {
+            return Math.hypot(v.x, v.y, v.z);
+        }
+
+        function dotProduct(a, b) {
+            return a.x * b.x + a.y * b.y + a.z * b.z;
+        }
+
+        function computeAngle(a, b, c) {
+            if (!a || !b || !c) return 0;
+            const ba = vectorSubtract(a, b);
+            const bc = vectorSubtract(c, b);
+            const dot = dotProduct(ba, bc);
+            const denom = vectorLength(ba) * vectorLength(bc);
+            if (!denom) return 0;
+            const ratio = clamp(dot / denom, -1, 1);
+            return Math.acos(ratio) * (180 / Math.PI);
+        }
+
+        function mixPoint(a, b) {
+            return {
+                x: (a.x + b.x) / 2,
+                y: (a.y + b.y) / 2,
+                z: (a.z + b.z) / 2
+            };
+        }
+
+        function normalizeAngle(value) {
+            return Number.isFinite(value) ? roundOne(value) : 0;
+        }
+
+        function getVisibilityScore(landmarks) {
+            if (!landmarks || !landmarks.length) return 0;
+            const visible = landmarks.filter(l => l && typeof l.visibility === 'number' ? l.visibility > 0.5 : l && typeof l.x === 'number');
+            return visible.length / landmarks.length;
+        }
+
+        function connectionColor(part, issues) {
+            if (issues.includes('High risk') && part === 'hip') return 'var(--danger)';
+            if (issues.includes('Elbow flare') && part.includes('elbow')) return 'var(--danger)';
+            if (issues.includes('Knee collapse') && part.includes('knee')) return 'var(--danger)';
+            if (issues.includes('Rounded back') && part === 'back') return 'var(--danger)';
+            if (issues.includes('Hip sagging') && part === 'hip') return 'var(--danger)';
+            if (issues.includes('Raised hips') && part === 'hip') return 'var(--warning)';
+            if (issues.includes('Too shallow') && part === 'knee') return 'var(--warning)';
+            if (issues.includes('Lower your hips') && part === 'hip') return 'var(--warning)';
+            return 'var(--green)';
+        }
+
+        function drawPoseSkeleton(landmarks, issues) {
+            canvasCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+            if (!landmarks || !landmarks.length) return;
+            const connections = [
+                [11, 13, 'elbow-left'],
+                [13, 15, 'elbow-left'],
+                [12, 14, 'elbow-right'],
+                [14, 16, 'elbow-right'],
+                [11, 23, 'hip-left'],
+                [12, 24, 'hip-right'],
+                [23, 25, 'knee-left'],
+                [24, 26, 'knee-right'],
+                [25, 27, 'ankle-left'],
+                [26, 28, 'ankle-right'],
+                [11, 12, 'shoulder'],
+                [23, 24, 'hip-center'],
+                [12, 14, 'back'],
+                [11, 13, 'back']
+            ];
+            connections.forEach(([start, end, part]) => {
+                const a = landmarks[start];
+                const b = landmarks[end];
+                if (!a || !b) return;
+                const x1 = a.x * overlayCanvas.width;
+                const y1 = a.y * overlayCanvas.height;
+                const x2 = b.x * overlayCanvas.width;
+                const y2 = b.y * overlayCanvas.height;
+                canvasCtx.strokeStyle = connectionColor(part, issues);
+                canvasCtx.lineWidth = 4;
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(x1, y1);
+                canvasCtx.lineTo(x2, y2);
+                canvasCtx.stroke();
             });
+            landmarks.forEach(landmark => {
+                if (!landmark) return;
+                const x = landmark.x * overlayCanvas.width;
+                const y = landmark.y * overlayCanvas.height;
+                canvasCtx.fillStyle = 'rgba(124, 255, 107, 0.9)';
+                canvasCtx.beginPath();
+                canvasCtx.arc(x, y, 4, 0, Math.PI * 2);
+                canvasCtx.fill();
+            });
+        }
+
+        function updateTrackingStatus(visibilityScore) {
+            state.trackingBuffer.push(visibilityScore);
+            if (state.trackingBuffer.length > 20) state.trackingBuffer.shift();
+            const averageScore = average(state.trackingBuffer);
+            if (averageScore < 0.35) {
+                state.missingFrames += 1;
+            } else {
+                state.missingFrames = 0;
+            }
+            if (state.missingFrames > 8) {
+                state.liveStatus = 'User Missing';
+                ids.liveCameraStatus.textContent = 'Tracking: Missing';
+                ids.profileCameraStatus.textContent = 'Missing';
+            } else if (averageScore < 0.65) {
+                state.liveStatus = 'Tracking Weak';
+                ids.liveCameraStatus.textContent = 'Tracking: Weak';
+                ids.profileCameraStatus.textContent = 'Weak';
+            } else {
+                state.liveStatus = 'Tracking Good';
+                ids.liveCameraStatus.textContent = 'Tracking: Good';
+                ids.profileCameraStatus.textContent = 'Good';
+            }
+        }
+
+        function buildFeedbackList(messages) {
+            ids.liveFeedbackList.innerHTML = '';
+            if (!messages.length) {
+                ids.liveFeedbackList.innerHTML = `<div class="error-item"><strong>No issues detected</strong><span>Your posture looks stable.</span></div>`;
+                return;
+            }
+            messages.slice(0, 4).forEach(message => {
+                const item = document.createElement('div');
+                item.className = 'error-item';
+                item.innerHTML = `<strong>${message.title}</strong><span>${message.text}</span>`;
+                ids.liveFeedbackList.appendChild(item);
+            });
+        }
+
+        function updateText(id, value) {
+            if (id) id.textContent = value;
+        }
+
+        function produceIssueSummary(issues) {
+            if (!issues.length) return 'No major issues';
+            return issues[0];
+        }
+
+        function getFormGrade(value) {
+            if (value >= 90) return 'Excellent';
+            if (value >= 75) return 'Good';
+            if (value >= 50) return 'Needs improvement';
+            return 'Poor';
+        }
+
+        function calculateStreak() {
+            const ordered = state.sessionHistory.slice().sort((a, b) => a.startTime - b.startTime);
+            if (!ordered.length) return 0;
+            let streak = 1;
+            let lastDate = new Date(ordered[ordered.length - 1].startTime);
+            lastDate.setHours(0,0,0,0);
+            for (let i = ordered.length - 2; i >= 0; i--) {
+                const date = new Date(ordered[i].startTime);
+                date.setHours(0,0,0,0);
+                const diffDays = (lastDate - date) / 86400000;
+                if (diffDays === 1) {
+                    streak += 1;
+                    lastDate = date;
+                } else if (diffDays > 1) {
+                    break;
+                }
+            }
+            return streak;
+        }
+
+        function determineInjuryWarning() {
+            if (!state.sessionHistory.length) return 'None';
+            const risky = state.sessionHistory.filter(s => s.instability > 15 || s.averageForm < 70);
+            if (!risky.length) return 'None';
+            const topIssue = risky.reduce((acc, item) => item.mistakes.length ? item.mistakes[0] : acc, risky[0].mistakes[0] || 'Form deviation');
+            return `${topIssue} risk`; 
         }
 
         function updateDashboard() {
-            selectedWorkoutEl.textContent = state.selected
-                ? `${state.selected.label} (${state.selected.thai})`
-                : 'ยังไม่ได้เลือกท่า';
-            repCounterEl.textContent = state.repCount;
-            formStatusEl.textContent = state.selected
-                ? 'กำลังเตรียมกล้องและเริ่มวิเคราะห์...'
-                : 'รอเลือกท่าและเปิดกล้อง';
+            const history = state.sessionHistory;
+            const totalSessions = history.length;
+            const averageForms = history.length ? average(history.map(s => s.averageForm)) : 0;
+            const bestForms = history.length ? Math.max(...history.map(s => s.bestForm)) : 0;
+            const totalDuration = history.length ? history.reduce((sum, item) => sum + item.duration, 0) : 0;
+            const totalReps = history.length ? history.reduce((sum, item) => sum + item.reps, 0) : 0;
+            const issueCounts = {};
+            history.forEach(session => {
+                session.mistakes.forEach(issue => {
+                    issueCounts[issue] = (issueCounts[issue] || 0) + 1;
+                });
+            });
+            const topIssue = Object.keys(issueCounts).length ? Object.entries(issueCounts).sort((a,b) => b[1]-a[1])[0][0] : 'None';
+            const stabilityScore = history.length ? roundOne(100 - Math.min(40, average(history.map(item => item.instability || 0)))) : '-';
+            const progressPercent = history.length ? clamp(averageForms, 0, 100) : 0;
+            const streak = calculateStreak();
+            const warning = determineInjuryWarning();
+            updateText(ids.dashboardWorkoutCount, totalSessions);
+            updateText(ids.summaryWorkoutCount, totalSessions);
+            updateText(ids.profileSessionCount, totalSessions);
+            updateText(ids.profileAverageForm, totalSessions ? `${roundOne(averageForms)}%` : '-');
+            updateText(ids.summaryAverageForm, totalSessions ? `${roundOne(averageForms)}%` : '-');
+            updateText(ids.dashboardFitnessScore, state.currentSession ? `${roundOne(state.lastFormScore)}%` : '-');
+            updateText(ids.dashboardFormAccuracy, totalSessions ? `${roundOne(averageForms)}%` : '-');
+            updateText(ids.dashboardTopIssue, topIssue);
+            updateText(ids.dashboardStability, stabilityScore === '-' ? '-' : `${stabilityScore}%`);
+            updateText(ids.dashboardBestForm, totalSessions ? `${roundOne(bestForms)}%` : '-');
+            updateText(ids.dashboardStreak, `${streak} day${streak === 1 ? '' : 's'}`);
+            updateText(ids.dashboardWarning, warning);
+            updateText(ids.dashboardActiveMinutes, `${Math.round(totalDuration / 60)} min`);
+            updateText(ids.dashboardTotalReps, totalReps);
+            updateText(ids.dashboardDrills, totalSessions);
+            updateText(ids.dashboardCommonError, topIssue);
+            updateText(ids.dashboardCoachTip, state.coachMessages.length ? state.coachMessages[state.coachMessages.length - 1].text : 'Workout details come from actual session analytics.');
+            const circumference = 314;
+            const offset = circumference - (circumference * progressPercent) / 100;
+            ids.dashboardProgressFill.style.strokeDashoffset = offset;
+            updateText(ids.dashboardProgressLabel, `${Math.round(progressPercent)}%`);
+            updateText(ids.dashboardProgressText, totalSessions ? `Based on ${totalSessions} actual workout${totalSessions === 1 ? '' : 's'}` : 'Complete a workout to generate real analytics.');
         }
 
-        function scrollToSection(id) {
-            document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        function updateProgressPage() {
+            const history = state.sessionHistory.slice(-10);
+            ids.progressBars.innerHTML = '';
+            if (!history.length) {
+                ids.progressBars.innerHTML = `<div style="color: var(--muted); padding: 18px; background: rgba(9,23,46,0.88); border-radius: 20px;">No progress data yet. Complete a session to populate analytics.</div>`;
+                ids.progressMinutes.textContent = '0';
+                ids.progressRepRate.textContent = '0';
+                ids.progressCommonIssue.textContent = 'None';
+                ids.progressWeeklyTrend.textContent = '-';
+                ids.progressMonthlyTrend.textContent = '-';
+                ids.progressSummary.textContent = 'Awaiting workout data.';
+                return;
+            }
+            let totalDuration = 0;
+            let totalReps = 0;
+            const issueCounts = {};
+            history.forEach(session => {
+                totalDuration += session.duration;
+                totalReps += session.reps;
+                session.mistakes.forEach(issue => {
+                    issueCounts[issue] = (issueCounts[issue] || 0) + 1;
+                });
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `<div class="label-row"><span>${exerciseNames[session.exercise]}</span><strong>${roundOne(session.averageForm)}%</strong></div>
+                    <div class="bar-track"><div class="bar-value" style="width:${clamp(session.averageForm, 0, 100)}%"></div></div>`;
+                ids.progressBars.appendChild(wrapper);
+            });
+            const avgRepRate = history.length ? roundOne(totalReps / history.length) : 0;
+            const commonIssue = Object.keys(issueCounts).length ? Object.entries(issueCounts).sort((a,b)=>b[1]-a[1])[0][0] : 'None';
+            const sevenDays = Date.now() - 7 * 86400000;
+            const monthlyDays = Date.now() - 30 * 86400000;
+            const weekly = state.sessionHistory.filter(s => s.startTime >= sevenDays);
+            const monthly = state.sessionHistory.filter(s => s.startTime >= monthlyDays);
+            const weekAvg = weekly.length ? average(weekly.map(s => s.averageForm)) : null;
+            const monthAvg = monthly.length ? average(monthly.map(s => s.averageForm)) : null;
+            const weeklyTrend = weekAvg ? `${weekAvg >= averageForms ? 'Up' : 'Down'} ${roundOne(Math.abs(weekAvg - averageForms))}%` : 'No weekly data';
+            const monthlyTrend = monthAvg ? `${monthAvg >= averageForms ? 'Up' : 'Down'} ${roundOne(Math.abs(monthAvg - averageForms))}%` : 'No monthly data';
+            ids.progressMinutes.textContent = `${Math.round(totalDuration / 60)} min`;
+            ids.progressRepRate.textContent = `${avgRepRate}`;
+            ids.progressCommonIssue.textContent = commonIssue;
+            ids.progressWeeklyTrend.textContent = weeklyTrend;
+            ids.progressMonthlyTrend.textContent = monthlyTrend;
+            ids.progressSummary.textContent = `Showing your ${history.length} most recent session${history.length === 1 ? '' : 's'}.`;
         }
 
-        startWorkoutButton.addEventListener('click', () => scrollToSection('section-exercises'));
+        function filterHistory() {
+            const exercise = ids.historyFilterExercise.value;
+            const date = ids.historyFilterDate.value;
+            return state.sessionHistory.filter(session => {
+                const matchesExercise = exercise === 'all' || session.exercise === exercise;
+                const matchesDate = !date || new Date(session.startTime).toISOString().slice(0, 10) === date;
+                return matchesExercise && matchesDate;
+            });
+        }
 
-        const pose = new Pose({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
+        function updateHistoryPage() {
+            const history = filterHistory();
+            ids.historyTableBody.innerHTML = '';
+            if (!history.length) {
+                ids.historyTableBody.innerHTML = `<tr><td colspan="6" style="color:var(--muted);">No matching sessions found.</td></tr>`;
+                ids.historyDetailsPanel.style.display = 'none';
+                return;
+            }
+            const visible = history.slice().reverse();
+            visible.forEach((session, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${exerciseNames[session.exercise]}</td><td>${Math.round(session.duration)}s</td><td>${session.reps}</td><td>${roundOne(session.averageForm)}%</td><td>${session.mistakes.length ? session.mistakes[0] : 'None'}</td><td><button class="tab-item" data-history-index="${index}">View</button></td>`;
+                ids.historyTableBody.appendChild(row);
+            });
+            ids.historyDetailsPanel.style.display = 'none';
+            ids.historyTableBody.querySelectorAll('button[data-history-index]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const index = Number(button.dataset.historyIndex);
+                    showHistoryDetails(visible[index]);
+                });
+            });
+        }
+
+        function showHistoryDetails(session) {
+            const issues = session.mistakes.length ? session.mistakes.join(', ') : 'None';
+            ids.historyDetailsPanel.style.display = 'block';
+            ids.historyDetailsPanel.innerHTML = `
+                <div class="label-row"><span>Exercise</span><strong>${exerciseNames[session.exercise]}</strong></div>
+                <div class="label-row"><span>Duration</span><strong>${Math.round(session.duration)}s</strong></div>
+                <div class="label-row"><span>Reps</span><strong>${session.reps}</strong></div>
+                <div class="label-row"><span>Avg form</span><strong>${roundOne(session.averageForm)}%</strong></div>
+                <div class="label-row"><span>Stability</span><strong>${Math.round(100 - session.instability)}%</strong></div>
+                <div class="label-row"><span>Common issues</span><strong>${issues}</strong></div>
+            `;
+        }
+
+        function updateCoachPage() {
+            ids.coachMessageList.innerHTML = '';
+            if (!state.coachMessages.length) {
+                ids.coachMessageList.innerHTML = `<div class="chat-message ai"><strong>AI Coach</strong><p>Live form guidance will appear here once a workout is active.</p></div>`;
+                return;
+            }
+            state.coachMessages.slice(-4).forEach(entry => {
+                const message = document.createElement('div');
+                message.className = `chat-message ${entry.role}`;
+                message.innerHTML = `<strong>${entry.role === 'ai' ? 'AI Coach' : 'You'}</strong><p>${entry.text}</p>`;
+                ids.coachMessageList.appendChild(message);
+            });
+        }
+
+        function updateChallengesPage() {
+            const count = state.sessionHistory.length;
+            const bestForm = state.sessionHistory.length ? Math.max(...state.sessionHistory.map(s => s.bestForm)) : 0;
+            const consistency = state.sessionHistory.length ? `${Math.round((state.sessionHistory.filter(s => s.averageForm >= 80).length / state.sessionHistory.length) * 100)}%` : '-';
+            const challengeComplete = state.sessionHistory.filter(s => s.averageForm >= 80).length >= 3;
+            ids.challengeGoal.textContent = challengeComplete ? 'Challenge complete: 3 strong-form sessions' : 'Complete three sessions with form score above 80%.';
+            ids.challengeProgress.textContent = `${Math.min(count, 3)}/3 workouts completed.`;
+            ids.challengeSessions.textContent = count;
+            ids.challengeBestForm.textContent = bestForm ? `${roundOne(bestForm)}%` : '-';
+            ids.challengeConsistency.textContent = consistency;
+        }
+
+        function updateAchievementsPage() {
+            ids.achievementList.innerHTML = '';
+            ids.achievementMilestones.innerHTML = '';
+            const achievements = [];
+            const history = state.sessionHistory;
+            if (history.length >= 1) achievements.push('First workout completed');
+            if (history.length >= 3) achievements.push('Consistency starter');
+            if (history.some(s => s.averageForm >= 90)) achievements.push('Form master');
+            if (history.some(s => s.reps >= 20)) achievements.push('High rep achiever');
+            if (!achievements.length) {
+                ids.achievementList.innerHTML = `<div class="metric-bubble"><strong>No achievements yet</strong><span>Complete workouts to unlock analytics milestones.</span></div>`;
+            } else {
+                achievements.forEach(name => {
+                    const card = document.createElement('div');
+                    card.className = 'metric-bubble';
+                    card.innerHTML = `<span>${name}</span><strong>Unlocked</strong>`;
+                    ids.achievementList.appendChild(card);
+                });
+            }
+            const milestones = [];
+            if (history.length >= 1) milestones.push('First session recorded');
+            if (history.length >= 5) milestones.push('Five sessions completed');
+            if (history.some(s => s.averageForm >= 95)) milestones.push('Exceptional form');
+            if (!milestones.length) {
+                ids.achievementMilestones.innerHTML = `<div class="metric-bubble"><strong>No milestones yet</strong><span>Keep training to collect achievements.</span></div>`;
+            } else {
+                milestones.forEach(name => {
+                    const card = document.createElement('div');
+                    card.className = 'metric-bubble';
+                    card.innerHTML = `<span>${name}</span><strong>Achieved</strong>`;
+                    ids.achievementMilestones.appendChild(card);
+                });
+            }
+        }
+
+        function startWorkout() {
+            state.currentSession = {
+                exercise: state.selectedExercise,
+                startTime: Date.now(),
+                duration: 0,
+                reps: 0,
+                formScores: [],
+                bestForm: 0,
+                mistakes: [],
+                mistakeCounts: {},
+                instability: 0,
+                feedback: [],
+                timeline: []
+            };
+            state.currentSession.phase = 'up';
+            state.currentSession.lastDown = false;
+            state.currentSession.lastUp = false;
+            state.currentSession.bestForm = 0;
+            startStopButton.textContent = 'Stop';
+            state.coachMessages.push({ role: 'ai', text: `Starting ${exerciseNames[state.selectedExercise]} analysis.` });
+            updateCoachPage();
+            updateDashboard();
+        }
+
+        function stopWorkout() {
+            if (!state.currentSession) return;
+            state.currentSession.endTime = Date.now();
+            state.currentSession.duration = (state.currentSession.endTime - state.currentSession.startTime) / 1000;
+            state.currentSession.averageForm = state.currentSession.formScores.length ? average(state.currentSession.formScores) : 0;
+            state.currentSession.bestForm = state.currentSession.bestForm;
+            state.currentSession.instability = state.currentSession.instability;
+            state.sessionHistory.push(state.currentSession);
+            saveAppState();
+            state.coachMessages.push({ role: 'ai', text: `Workout complete: ${state.currentSession.reps} reps, average form ${roundOne(state.currentSession.averageForm)}%.` });
+            state.currentSession = null;
+            startStopButton.textContent = 'Start';
+            updateDashboard();
+            updateHistoryPage();
+            updateProgressPage();
+            updateChallengesPage();
+            updateAchievementsPage();
+            updateCoachPage();
+            populateReportMenu();
+        }
+
+        function registerProblems(issues) {
+            if (!state.currentSession) return;
+            issues.forEach(issue => {
+                state.currentSession.mistakeCounts[issue] = (state.currentSession.mistakeCounts[issue] || 0) + 1;
+            });
+            const sorted = Object.entries(state.currentSession.mistakeCounts).sort((a, b) => b[1] - a[1]);
+            state.currentSession.mistakes = sorted.map(entry => entry[0]);
+        }
+
+        function recordTimelineEvent(note) {
+            if (!state.currentSession) return;
+            const last = state.currentSession.timeline[state.currentSession.timeline.length - 1];
+            const now = Date.now();
+            if (last && last.note === note && now - last.time < 2000) return;
+            state.currentSession.timeline.push({ time: now, note });
+        }
+
+        function analyzePose(landmarks) {
+            const leftShoulder = pointFromLandmark(landmarks[11]);
+            const rightShoulder = pointFromLandmark(landmarks[12]);
+            const leftElbow = pointFromLandmark(landmarks[13]);
+            const rightElbow = pointFromLandmark(landmarks[14]);
+            const leftWrist = pointFromLandmark(landmarks[15]);
+            const rightWrist = pointFromLandmark(landmarks[16]);
+            const leftHip = pointFromLandmark(landmarks[23]);
+            const rightHip = pointFromLandmark(landmarks[24]);
+            const leftKnee = pointFromLandmark(landmarks[25]);
+            const rightKnee = pointFromLandmark(landmarks[26]);
+            const leftAnkle = pointFromLandmark(landmarks[27]);
+            const rightAnkle = pointFromLandmark(landmarks[28]);
+            const nose = pointFromLandmark(landmarks[0]);
+            const midShoulder = mixPoint(leftShoulder, rightShoulder);
+            const midHip = mixPoint(leftHip, rightHip);
+            const leftElbowAngle = normalizeAngle(smoothAngle('leftElbow', computeAngle(leftShoulder, leftElbow, leftWrist)));
+            const rightElbowAngle = normalizeAngle(smoothAngle('rightElbow', computeAngle(rightShoulder, rightElbow, rightWrist)));
+            const leftKneeAngle = normalizeAngle(smoothAngle('leftKnee', computeAngle(leftHip, leftKnee, leftAnkle)));
+            const rightKneeAngle = normalizeAngle(smoothAngle('rightKnee', computeAngle(rightHip, rightKnee, rightAnkle)));
+            const leftHipAngle = normalizeAngle(smoothAngle('leftHip', computeAngle(leftShoulder, leftHip, leftKnee)));
+            const rightHipAngle = normalizeAngle(smoothAngle('rightHip', computeAngle(rightShoulder, rightHip, rightKnee)));
+            const backLeft = normalizeAngle(smoothAngle('backLeft', computeAngle(leftShoulder, leftHip, leftAnkle)));
+            const backRight = normalizeAngle(smoothAngle('backRight', computeAngle(rightShoulder, rightHip, rightAnkle)));
+            const backAngle = normalizeAngle((backLeft + backRight) / 2);
+            const neckAngle = normalizeAngle(smoothAngle('neck', computeAngle(midShoulder, nose, midHip)));
+            const hipAlignment = normalizeAngle(Math.abs(leftHipAngle - rightHipAngle));
+
+            ids.angleLeftElbow.textContent = `${leftElbowAngle}°`;
+            ids.angleRightElbow.textContent = `${rightElbowAngle}°`;
+            ids.angleLeftKnee.textContent = `${leftKneeAngle}°`;
+            ids.angleRightKnee.textContent = `${rightKneeAngle}°`;
+            ids.angleHip.textContent = `${Math.round((leftHipAngle + rightHipAngle) / 2)}°`;
+            ids.angleBack.textContent = `${backAngle}°`;
+            ids.angleNeck.textContent = `${neckAngle}°`;
+
+            const issues = [];
+            let formPenalty = 0;
+            let coreScore = 100;
+
+            if (state.selectedExercise === 'pushup') {
+                const downPosition = leftElbowAngle < 90 && rightElbowAngle < 90;
+                const upPosition = leftElbowAngle > 160 && rightElbowAngle > 160;
+                if (leftElbowAngle < 90 || rightElbowAngle < 90) {
+                    issues.push('Down position detected');
+                }
+                if (leftElbowAngle > 160 && rightElbowAngle > 160) {
+                    issues.push('Up position detected');
+                }
+                if (leftElbowAngle < 160 || rightElbowAngle < 160) {
+                    formPenalty += Math.max(0, 160 - Math.min(leftElbowAngle, rightElbowAngle));
+                }
+                if (Math.abs(leftElbowAngle - rightElbowAngle) > 18) {
+                    issues.push('Uneven arm movement');
+                    formPenalty += 12;
+                }
+                if (hipAlignment > 12) {
+                    issues.push('Hip sagging');
+                    formPenalty += 10;
+                }
+                if (leftElbowAngle < 90 && rightElbowAngle < 90 && state.currentSession && state.currentSession.phase === 'up') {
+                    state.currentSession.phase = 'down';
+                }
+                if (leftElbowAngle > 160 && rightElbowAngle > 160 && state.currentSession && state.currentSession.phase === 'down') {
+                    state.currentSession.phase = 'up';
+                    state.currentSession.reps += 1;
+                    recordTimelineEvent(`Rep ${state.currentSession.reps} completed`);
+                }
+                if (leftElbowAngle < 120 && rightElbowAngle < 120 && hipAlignment > 15) {
+                    issues.push('Raised hips');
+                    formPenalty += 10;
+                }
+                if (leftElbowAngle > 120 && rightElbowAngle > 120 && !upPosition) {
+                    issues.push('Incomplete repetition');
+                    formPenalty += 10;
+                }
+                coreScore = clamp(100 - hipAlignment, 0, 100);
+            }
+
+            if (state.selectedExercise === 'squat') {
+                const kneeAverage = (leftKneeAngle + rightKneeAngle) / 2;
+                if (kneeAverage > 120) {
+                    issues.push('Too shallow');
+                    formPenalty += (kneeAverage - 120) * 0.7;
+                }
+                if (kneeAverage < 70) {
+                    issues.push('Deep squat');
+                }
+                if (backAngle < 170) {
+                    issues.push('Rounded back');
+                    formPenalty += (170 - backAngle) * 0.8;
+                }
+                if ((leftKneeAngle < 80 && rightKneeAngle > 100) || (rightKneeAngle < 80 && leftKneeAngle > 100)) {
+                    issues.push('Weight imbalance');
+                    formPenalty += 10;
+                }
+                if (leftHipAngle < 75 || rightHipAngle < 75) {
+                    issues.push('Knee collapse');
+                    formPenalty += 12;
+                }
+                if (state.currentSession) {
+                    const isLow = kneeAverage < 110;
+                    const isHigh = kneeAverage > 150;
+                    if (isLow) state.currentSession.lastDown = true;
+                    if (isHigh && state.currentSession.lastDown) {
+                        state.currentSession.reps += 1;
+                        state.currentSession.lastDown = false;
+                        recordTimelineEvent(`Rep ${state.currentSession.reps} completed`);
+                    }
+                }
+                coreScore = clamp(backAngle, 0, 100);
+            }
+
+            if (state.selectedExercise === 'plank') {
+                if (backAngle < 160) {
+                    issues.push('Incorrect form');
+                    formPenalty += (160 - backAngle) * 0.8;
+                } else if (backAngle < 170) {
+                    issues.push('Acceptable');
+                } else {
+                    issues.push('Excellent');
+                }
+                if (hipAlignment > 10) {
+                    issues.push('Hip sagging');
+                    formPenalty += 10;
+                }
+                if (Math.abs(neckAngle - 180) > 12) {
+                    issues.push('Neck misalignment');
+                    formPenalty += 8;
+                }
+                coreScore = clamp((backAngle - Math.abs(neckAngle - 180)) / 1.2, 0, 100);
+            }
+
+            if (state.selectedExercise === 'situp') {
+                if (backAngle < 160) {
+                    issues.push('Rounded back');
+                    formPenalty += 12;
+                }
+                if (leftHipAngle < 70 || rightHipAngle < 70) {
+                    issues.push('Insufficient range');
+                    formPenalty += 10;
+                }
+                if (state.currentSession) {
+                    const torsoAngle = computeAngle(leftShoulder, leftHip, leftKnee);
+                    if (torsoAngle < 50) {
+                        state.currentSession.lastDown = true;
+                    }
+                    if (torsoAngle > 90 && state.currentSession.lastDown) {
+                        state.currentSession.reps += 1;
+                        state.currentSession.lastDown = false;
+                        recordTimelineEvent(`Rep ${state.currentSession.reps} completed`);
+                    }
+                }
+                coreScore = clamp(backAngle, 0, 100);
+            }
+
+            if (state.selectedExercise === 'lunge') {
+                if (leftKneeAngle < 80 && rightKneeAngle > 100) {
+                    issues.push('Front knee collapse');
+                    formPenalty += 12;
+                }
+                if (rightKneeAngle < 80 && leftKneeAngle > 100) {
+                    issues.push('Front knee collapse');
+                    formPenalty += 12;
+                }
+                if (backAngle < 170) {
+                    issues.push('Excessive forward lean');
+                    formPenalty += 10;
+                }
+                if (state.currentSession) {
+                    const leftFront = leftKneeAngle < 90 && leftHipAngle > 80;
+                    const rightFront = rightKneeAngle < 90 && rightHipAngle > 80;
+                    if ((leftFront || rightFront) && !state.currentSession.lastDown) {
+                        state.currentSession.lastDown = true;
+                    }
+                    if (!(leftFront || rightFront) && state.currentSession.lastDown) {
+                        state.currentSession.reps += 1;
+                        state.currentSession.lastDown = false;
+                        recordTimelineEvent(`Rep ${state.currentSession.reps} completed`);
+                    }
+                }
+                coreScore = clamp(100 - hipAlignment, 0, 100);
+            }
+
+            const formScore = clamp(100 - formPenalty, 0, 100);
+            state.lastFormScore = formScore;
+            state.lastProblem = issues.length ? produceIssueSummary(issues) : 'Great posture.';
+
+            if (state.currentSession) {
+                state.currentSession.formScores.push(formScore);
+                state.currentSession.bestForm = Math.max(state.currentSession.bestForm, formScore);
+                state.currentSession.instability = state.currentSession.instability + (100 - coreScore) * 0.01;
+                if (issues.length) {
+                    registerProblems(issues);
+                }
+            }
+
+            const feedbackList = issues.length ? issues : [{ title: 'Form', text: 'Good posture detected.' }];
+            const formattedFeedback = feedbackList.map(issue => ({ title: issue, text: issue }));
+            return { issues, formScore, coreScore, feedbackList, connectionIssues: issues };
+        }
+
+        function updateLivePanels(analysis) {
+            const duration = state.currentSession ? Math.round((Date.now() - state.currentSession.startTime) / 1000) : 0;
+            updateText(ids.liveDuration, `${duration}s`);
+            updateText(ids.liveRepCount, state.currentSession ? state.currentSession.reps : 0);
+            updateText(ids.liveFormAccuracy, `${Math.round(state.lastFormScore)}%`);
+            updateText(ids.liveStability, state.currentSession ? `${clamp(Math.round(100 - state.currentSession.instability), 0, 100)}%` : '-');
+            updateText(ids.livePrimaryIssue, state.lastProblem);
+            updateText(ids.liveCoreScore, `${Math.round(state.lastFormScore)}%`);
+            const feedback = analysis && analysis.feedbackList ? analysis.feedbackList : [{ title: 'Ready', text: 'Start a session to see live feedback.' }];
+            buildFeedbackList(feedback);
+            updateDashboard();
+        }
+
+        function exportSummary() {
+            const rows = [['Exercise', 'Duration (s)', 'Reps', 'Avg Form', 'Most Frequent Issue', 'Start Time']];
+            state.sessionHistory.forEach(session => {
+                rows.push([exerciseNames[session.exercise], `${Math.round(session.duration)}`, `${session.reps}`, `${roundOne(session.averageForm)}%`, session.mistakes[0] || 'None', new Date(session.startTime).toLocaleString()]);
+            });
+            const csv = rows.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'fitguard-session-history.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        ids.historyApplyFilterButton.addEventListener('click', () => {
+            updateHistoryPage();
         });
 
-        pose.setOptions({
-            modelComplexity: 0,
-            smoothLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
+        ids.historyCompareButton.addEventListener('click', () => {
+            const filtered = filterHistory();
+            if (filtered.length < 2) {
+                renderCoachMessage('Select at least two sessions to compare history.');
+                return;
+            }
+            const first = filtered[filtered.length - 1];
+            const second = filtered[0];
+            renderCoachMessage(`Comparing your most recent ${exerciseNames[first.exercise]} session with an older ${exerciseNames[second.exercise]} session. Average form changed from ${roundOne(second.averageForm)}% to ${roundOne(first.averageForm)}%.`);
         });
 
-        pose.onResults(onPoseResults);
+        ids.reportSelect.addEventListener('change', () => {
+            const selectedIndex = Number(ids.reportSelect.value);
+            renderReport(selectedIndex);
+        });
 
-        const poseConnections = [
-            [11, 13], [13, 15], [12, 14], [14, 16],
-            [11, 12], [11, 23], [12, 24], [23, 24],
-            [23, 25], [24, 26], [25, 27], [26, 28]
-        ];
+        ids.saveSettingsButton.addEventListener('click', saveSettings);
+        ids.resetSettingsButton.addEventListener('click', resetSettings);
 
-        const jointDots = [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28];
+        document.getElementById('exportHistoryButton').addEventListener('click', exportSummary);
+        document.getElementById('clearHistoryButton').addEventListener('click', () => {
+            state.sessionHistory = [];
+            updateDashboard();
+            updateHistoryPage();
+            updateProgressPage();
+            updateChallengesPage();
+            updateAchievementsPage();
+        });
 
-        let poseLoopStarted = false;
-        let isSending = false;
+        function renderCoachMessage(text) {
+            state.coachMessages.push({ role: 'ai', text });
+            updateCoachPage();
+        }
+
+        function populateReportMenu() {
+            ids.reportSelect.innerHTML = '';
+            if (!state.sessionHistory.length) {
+                ids.reportSelect.innerHTML = '<option value="">No reports available</option>';
+                ids.reportSummaryText.textContent = 'Complete a workout to generate detailed reports.';
+                return;
+            }
+            state.sessionHistory.forEach((session, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${new Date(session.startTime).toLocaleString()} - ${exerciseNames[session.exercise]}`;
+                ids.reportSelect.appendChild(option);
+            });
+            ids.reportSummaryText.textContent = 'Select a completed workout to view a detailed report.';
+            ids.reportSelect.selectedIndex = 0;
+            renderReport(0);
+        }
+
+        function renderReport(index) {
+            const session = state.sessionHistory[index];
+            if (!session) return;
+            const topIssue = session.mistakes[0] || 'None';
+            const injuryRisk = Math.min(100, Math.round((session.instability || 0) * 10 + (100 - session.averageForm) * 0.3));
+            ids.reportExerciseType.textContent = exerciseNames[session.exercise];
+            ids.reportDuration.textContent = `${Math.round(session.duration)}s`;
+            ids.reportReps.textContent = session.reps;
+            ids.reportFormAccuracy.textContent = `${roundOne(session.averageForm)}%`;
+            ids.reportStability.textContent = `${Math.max(0, Math.round(100 - session.instability))}%`;
+            ids.reportInjuryRisk.textContent = `${injuryRisk}%`;
+            ids.reportTimeline.innerHTML = '';
+            const timeline = session.timeline || [];
+            if (!timeline.length) {
+                ids.reportTimeline.innerHTML = '<div class="metric-bubble"><span class="bubble-label">No timeline data</span><strong>Real-time events not captured for this session.</strong></div>';
+                return;
+            }
+            timeline.forEach(event => {
+                const item = document.createElement('div');
+                item.className = 'metric-bubble';
+                item.innerHTML = `<span class="bubble-label">${new Date(event.time).toLocaleTimeString()}</span><strong>${event.note}</strong>`;
+                ids.reportTimeline.appendChild(item);
+            });
+        }
+
+        async function populateCameraOptions() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                ids.settingsCameraSelect.innerHTML = '<option value="">Camera unavailable</option>';
+                return;
+            }
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const cameras = devices.filter(device => device.kind === 'videoinput');
+            state.cameraDevices = cameras;
+            ids.settingsCameraSelect.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Default camera';
+            ids.settingsCameraSelect.appendChild(defaultOption);
+            cameras.forEach((camera, index) => {
+                const option = document.createElement('option');
+                option.value = camera.deviceId;
+                option.textContent = camera.label || `Camera ${index + 1}`;
+                ids.settingsCameraSelect.appendChild(option);
+            });
+            if (state.settings.cameraId) {
+                ids.settingsCameraSelect.value = state.settings.cameraId;
+            }
+            ids.settingsCameraSelect.addEventListener('change', async () => {
+                state.settings.cameraId = ids.settingsCameraSelect.value || null;
+                localStorage.setItem('fitguardSettings', JSON.stringify(state.settings));
+                saveAppState();
+                if (cameraInstance) {
+                    await restartCamera();
+                }
+            });
+        }
+
+        function saveAppState() {
+            const payload = {
+                sessionHistory: state.sessionHistory,
+                settings: state.settings,
+                profile: profileData
+            };
+            localStorage.setItem('fitguardAppState', JSON.stringify(payload));
+        }
+
+        function loadAppState() {
+            const saved = JSON.parse(localStorage.getItem('fitguardAppState') || 'null');
+            if (saved) {
+                state.sessionHistory = saved.sessionHistory || [];
+                state.settings = { ...state.settings, ...(saved.settings || {}) };
+                Object.assign(profileData, saved.profile || {});
+            }
+            ids.settingsFPS.value = state.settings.fps;
+            ids.settingsSensitivity.value = state.settings.sensitivity;
+            ids.settingsNotifications.value = state.settings.notifications;
+            ids.settingsLanguage.value = state.settings.language;
+            ids.settingsTheme.value = state.settings.theme;
+            ids.profileNameInput.value = profileData.name;
+            ids.profileHeightInput.value = profileData.height;
+            ids.profileWeightInput.value = profileData.weight;
+            ids.profileAgeInput.value = profileData.age;
+            ids.profileFitnessLevelInput.value = profileData.fitnessLevel;
+            document.body.classList.toggle('light-theme', state.settings.theme === 'light');
+        }
+
+        function saveSettings() {
+            state.settings = {
+                ...state.settings,
+                fps: Number(ids.settingsFPS.value),
+                sensitivity: Number(ids.settingsSensitivity.value),
+                notifications: ids.settingsNotifications.value,
+                language: ids.settingsLanguage.value,
+                theme: ids.settingsTheme.value,
+                cameraId: ids.settingsCameraSelect.value || null
+            };
+            localStorage.setItem('fitguardSettings', JSON.stringify(state.settings));
+            saveAppState();
+            renderCoachMessage('Settings saved. Changes take effect on the next workout session.');
+        }
+
+        function loadSettings() {
+            const saved = JSON.parse(localStorage.getItem('fitguardSettings') || 'null');
+            if (saved) {
+                state.settings = { ...state.settings, ...saved };
+            }
+            ids.settingsFPS.value = state.settings.fps;
+            ids.settingsSensitivity.value = state.settings.sensitivity;
+            ids.settingsNotifications.value = state.settings.notifications;
+            ids.settingsLanguage.value = state.settings.language;
+            ids.settingsTheme.value = state.settings.theme;
+            document.body.classList.toggle('light-theme', state.settings.theme === 'light');
+        }
+
+        function logDebugEntry(message, level = 'info') {
+            if (!ids.debugErrorLog) return;
+            const entry = document.createElement('div');
+            entry.className = 'error-item';
+            entry.innerHTML = `<strong>${level === 'error' ? 'Error' : level === 'warn' ? 'Warning' : 'Info'}</strong><span>${message}</span>`;
+            ids.debugErrorLog.prepend(entry);
+            while (ids.debugErrorLog.children.length > 6) {
+                ids.debugErrorLog.removeChild(ids.debugErrorLog.lastChild);
+            }
+        }
+
+        function updateDebugPanel({ cameraStatus, mediaPipeStatus, fps, detectionConfidence, landmarkCount }) {
+            if (cameraStatus) ids.debugCameraStatus.textContent = cameraStatus;
+            if (mediaPipeStatus) ids.debugMediaPipeStatus.textContent = mediaPipeStatus;
+            if (typeof fps === 'number') ids.debugFPS.textContent = `${Math.round(fps)}`;
+            if (typeof detectionConfidence === 'number') ids.debugDetectionConfidence.textContent = `${Math.round(detectionConfidence * 100)}%`;
+            if (typeof landmarkCount === 'number') ids.debugLandmarkCount.textContent = `${landmarkCount}`;
+        }
+
+        async function restartCamera() {
+            try {
+                await initializeCamera();
+                logDebugEntry('Camera restarted successfully.');
+            } catch (error) {
+                logDebugEntry(`Restart failed: ${error.message}`, 'error');
+            }
+        }
 
         async function initializeCamera() {
-            if (!state.selected || state.cameraActive) return;
-
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                formStatusEl.textContent = 'เบราว์เซอร์ไม่รองรับการเข้าถึงกล้อง';
-                return;
+                const errorMessage = 'Camera API unavailable in this browser.';
+                updateDebugPanel({ cameraStatus: 'Unavailable', mediaPipeStatus: 'Unavailable' });
+                logDebugEntry(errorMessage, 'error');
+                throw new Error(errorMessage);
             }
+
+            if (cameraInstance && cameraInstance.stop) {
+                try {
+                    await cameraInstance.stop();
+                } catch (error) {
+                    console.warn('Camera stop failed', error);
+                }
+                cameraInstance = null;
+            }
+
+            if (poseInstance && poseInstance.close) {
+                try {
+                    poseInstance.close();
+                } catch (error) {
+                    console.warn('Pose instance close failed', error);
+                }
+                poseInstance = null;
+            }
+
+            updateDebugPanel({ cameraStatus: 'Initializing', mediaPipeStatus: 'Loading model', fps: 0, detectionConfidence: 0, landmarkCount: 0 });
+            debugState.lastFpsTimestamp = performance.now();
+            debugState.frameCount = 0;
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 640, height: 480 },
-                    audio: false
+                poseInstance = new Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}` });
+                poseInstance.setOptions({
+                    modelComplexity: 1,
+                    smoothLandmarks: true,
+                    minDetectionConfidence: state.settings.sensitivity,
+                    minTrackingConfidence: state.settings.sensitivity
                 });
-                videoElement.srcObject = stream;
-                videoElement.muted = true;
-                await videoElement.play();
+                poseInstance.onResults(onResults);
 
-                startPoseLoop();
-                state.cameraActive = true;
-                formStatusEl.textContent = 'กำลังเช็กองศา...';
-            } catch (error) {
-                console.error('Camera init error:', error);
-                formStatusEl.textContent = 'เปิดกล้องไม่ได้ กรุณาตรวจสอบสิทธิ์และลองใหม่';
-            }
-        }
+                const cameraOptions = {
+                    onFrame: async () => {
+                        if (!cameraVideo.videoWidth || !cameraVideo.videoHeight) return;
+                        await poseInstance.send({ image: cameraVideo });
+                        debugState.frameCount += 1;
+                        const now = performance.now();
+                        if (now - debugState.lastFpsTimestamp >= 1000) {
+                            const fps = (debugState.frameCount * 1000) / (now - debugState.lastFpsTimestamp);
+                            updateDebugPanel({ fps });
+                            debugState.lastFpsTimestamp = now;
+                            debugState.frameCount = 0;
+                        }
+                    },
+                    width: 1280,
+                    height: 720,
+                    fps: state.settings.fps
+                };
 
-        function startPoseLoop() {
-            if (poseLoopStarted) return;
-            poseLoopStarted = true;
-
-            const loop = async () => {
-                if (videoElement.readyState >= 2 && !isSending) {
-                    isSending = true;
-                    try {
-                        await pose.send({ image: videoElement });
-                    } catch (error) {
-                        console.error('Pose send error:', error);
-                    }
-                    isSending = false;
+                if (state.settings.cameraId) {
+                    cameraOptions.video = { deviceId: { exact: state.settings.cameraId } };
                 }
-                requestAnimationFrame(loop);
-            };
 
-            requestAnimationFrame(loop);
+                cameraInstance = new Camera(cameraVideo, cameraOptions);
+                await cameraInstance.start();
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+                ids.profileCameraStatus.textContent = 'Ready';
+                updateDebugPanel({ cameraStatus: 'Started', mediaPipeStatus: 'Ready' });
+                logDebugEntry(`Camera started on ${state.settings.cameraId ? 'selected device' : 'default device'}.`);
+            } catch (error) {
+                updateDebugPanel({ cameraStatus: 'Error', mediaPipeStatus: 'Failed' });
+                ids.liveCameraStatus.textContent = 'Camera unavailable';
+                ids.profileCameraStatus.textContent = 'Unavailable';
+                logDebugEntry(error.message || 'Unknown camera error', 'error');
+                throw error;
+            }
         }
 
-        function onPoseResults(results) {
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        function calculateCalories() {
+            const { weight, height, age } = profileData;
+            const bmr = 88.36 + (13.4 * weight) + (4.8 * height) - (5.7 * age);
+            const activityFactor = profileData.fitnessLevel === 'Advanced' ? 1.55 : profileData.fitnessLevel === 'Intermediate' ? 1.35 : 1.2;
+            return Math.round(bmr * activityFactor);
+        }
 
-            if (results.image) {
-                canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        function updateProfileDisplay() {
+            ids.profileName.textContent = profileData.name;
+            ids.profileHeight.textContent = profileData.height;
+            ids.profileWeight.textContent = profileData.weight;
+            ids.profileAge.textContent = profileData.age;
+            const bmi = profileData.weight / ((profileData.height / 100) ** 2);
+            profileData.bmi = roundOne(bmi);
+            ids.profileBMI.textContent = profileData.bmi;
+            ids.profileCalories.textContent = `${calculateCalories()} kcal/day`;
+            ids.profileFitnessLevel.textContent = profileData.fitnessLevel;
+            ids.profileNameInput.value = profileData.name;
+            ids.profileHeightInput.value = profileData.height;
+            ids.profileWeightInput.value = profileData.weight;
+            ids.profileAgeInput.value = profileData.age;
+            ids.profileFitnessLevelInput.value = profileData.fitnessLevel;
+        }
+
+        function saveProfile() {
+            profileData.name = ids.profileNameInput.value || 'User';
+            profileData.height = Number(ids.profileHeightInput.value) || profileData.height;
+            profileData.weight = Number(ids.profileWeightInput.value) || profileData.weight;
+            profileData.age = Number(ids.profileAgeInput.value) || profileData.age;
+            profileData.fitnessLevel = ids.profileFitnessLevelInput.value;
+            localStorage.setItem('fitguardProfile', JSON.stringify(profileData));
+            saveAppState();
+            updateProfileDisplay();
+            renderCoachMessage('Profile saved. Nutrition and recommendations now reflect your latest personal data.');
+        }
+
+        function loadProfile() {
+            const saved = JSON.parse(localStorage.getItem('fitguardProfile') || 'null');
+            if (saved) {
+                Object.assign(profileData, saved);
             }
+        }
 
-            if (!results.poseLandmarks || !state.selected) {
-                canvasCtx.restore();
+        function resetProfile() {
+            profileData.name = 'Dev';
+            profileData.height = 178;
+            profileData.weight = 72;
+            profileData.age = 30;
+            profileData.fitnessLevel = 'Intermediate';
+            localStorage.removeItem('fitguardProfile');
+            saveAppState();
+            updateProfileDisplay();
+            renderCoachMessage('Profile reset to default values.');
+        }
+
+        function onResults(results) {
+            if (!results.poseLandmarks) {
+                updateDebugPanel({ mediaPipeStatus: 'No landmarks', detectionConfidence: 0, landmarkCount: 0 });
                 return;
             }
-
-            const evaluation = evaluatePose(results.poseLandmarks);
-            drawPose(results.poseLandmarks, evaluation.isCorrect);
-            cameraAdviceEl.textContent = evaluation.cameraAdvice;
-            formStatusEl.textContent = evaluation.formMessage;
-            canvasCtx.restore();
+            const landmarks = results.poseLandmarks;
+            const visibility = getVisibilityScore(landmarks);
+            updateTrackingStatus(visibility);
+            const detectionConfidence = landmarks.reduce((sum, landmark) => sum + (landmark && typeof landmark.visibility === 'number' ? landmark.visibility : 1), 0) / landmarks.length;
+            updateDebugPanel({ mediaPipeStatus: 'Landmarks tracked', detectionConfidence, landmarkCount: landmarks.length });
+            const analysis = analyzePose(landmarks);
+            drawPoseSkeleton(landmarks, analysis.connectionIssues);
+            if (state.currentSession) {
+                updateText(ids.livePrimaryIssue, produceIssueSummary(analysis.issues));
+                if (analysis.issues.length && analysis.issues[0] !== state.lastProblem) {
+                    renderCoachMessage(analysis.issues[0]);
+                    recordTimelineEvent(`Issue detected: ${analysis.issues[0]}`);
+                }
+            }
+            updateLivePanels(analysis);
         }
 
-        function drawPose(landmarks, isCorrect) {
-            canvasCtx.lineWidth = 4;
-            canvasCtx.strokeStyle = isCorrect === null
-                ? 'rgba(255, 255, 255, 0.9)'
-                : isCorrect
-                    ? 'rgba(20, 241, 149, 0.95)'
-                    : 'rgba(255, 80, 80, 0.95)';
-            canvasCtx.fillStyle = isCorrect === null
-                ? 'rgba(255, 255, 255, 0.95)'
-                : isCorrect
-                    ? 'rgba(20, 241, 149, 0.95)'
-                    : 'rgba(255, 80, 80, 0.95)';
-            canvasCtx.shadowColor = 'rgba(255, 255, 255, 0.55)';
-            canvasCtx.shadowBlur = 12;
-
-            poseConnections.forEach(([start, end]) => {
-                const a = landmarks[start];
-                const b = landmarks[end];
-                if (!a || !b || a.visibility < 0.5 || b.visibility < 0.5) return;
-                canvasCtx.beginPath();
-                canvasCtx.moveTo(a.x * canvasElement.width, a.y * canvasElement.height);
-                canvasCtx.lineTo(b.x * canvasElement.width, b.y * canvasElement.height);
-                canvasCtx.stroke();
-            });
-
-            jointDots.forEach((index) => {
-                const point = landmarks[index];
-                if (!point || point.visibility < 0.5) return;
-                canvasCtx.beginPath();
-                canvasCtx.arc(point.x * canvasElement.width, point.y * canvasElement.height, 7, 0, Math.PI * 2);
-                canvasCtx.fill();
-            });
-
-            canvasCtx.shadowBlur = 0;
+        function resizeCanvas() {
+            const rect = cameraVideo.getBoundingClientRect();
+            overlayCanvas.width = rect.width;
+            overlayCanvas.height = rect.height;
         }
 
-        function evaluatePose(landmarks) {
-            const leftShoulder = landmarks[11];
-            const rightShoulder = landmarks[12];
-            const leftElbow = landmarks[13];
-            const rightElbow = landmarks[14];
-            const leftHip = landmarks[23];
-            const rightHip = landmarks[24];
-            const leftKnee = landmarks[25];
-            const rightKnee = landmarks[26];
-            const leftAnkle = landmarks[27];
-            const rightAnkle = landmarks[28];
-
-            const leftWrist = landmarks[15];
-            const rightWrist = landmarks[16];
-
-            const torsoAngle = averageAngle(
-                calculateAngle(leftHip, leftShoulder, leftElbow),
-                calculateAngle(rightHip, rightShoulder, rightElbow)
-            );
-            const hipAngle = averageAngle(
-                calculateAngle(leftShoulder, leftHip, leftKnee),
-                calculateAngle(rightShoulder, rightHip, rightKnee)
-            );
-            const elbowAngle = averageAngle(
-                calculateAngle(leftShoulder, leftElbow, leftWrist),
-                calculateAngle(rightShoulder, rightElbow, rightWrist)
-            );
-            const kneeAngle = averageAngle(
-                calculateAngle(leftHip, leftKnee, leftAnkle),
-                calculateAngle(rightHip, rightKnee, rightAnkle)
-            );
-
-            const thresholds = state.poseThresholds;
-            const feedbackParts = [];
-
-            if (thresholds.kneeAngle) {
-                feedbackParts.push(`เข่า ${Math.round(kneeAngle)}° vs ${thresholds.kneeAngle}°`);
-            }
-            if (thresholds.hipAngle) {
-                feedbackParts.push(`สะโพก ${Math.round(hipAngle)}° vs ${thresholds.hipAngle}°`);
-            }
-            if (thresholds.torsoAngle) {
-                feedbackParts.push(`ลำตัว ${Math.round(torsoAngle)}° vs ${thresholds.torsoAngle}°`);
-            }
-
-            const cameraAdvice = getCameraAdvice(landmarks);
-            const cameraReady = isCameraAligned(landmarks);
-            const poseCorrect = cameraReady
-                ? checkPoseCorrectness({ torsoAngle, kneeAngle, hipAngle, elbowAngle })
-                : null;
-            const formMessage = feedbackParts.join(' | ');
-
-            const isReadyPose = isExerciseStartPose({ torsoAngle, kneeAngle, hipAngle, elbowAngle });
-            const requiredReadyHold = 10;
-            if (!state.readyToCount) {
-                if (isReadyPose && cameraReady) {
-                    state.readyHoldCount += 1;
-                } else {
-                    state.readyHoldCount = 0;
-                }
-
-                if (state.readyHoldCount >= requiredReadyHold) {
-                    state.readyToCount = true;
-                    state.stablePhase = 'up';
-                    state.lastPhase = 'up';
-                    state.phaseHoldCount = requiredReadyHold;
-                }
-
-                return {
-                    isCorrect: null,
-                    cameraAdvice: cameraAdvice || 'เลื่อนกล้องให้เห็นทั้งตัวตรงกลาง',
-                    formMessage: `${formMessage} | รอท่าเริ่ม`
-                };
-            }
-
-            const phase = detectPhase({ torsoAngle, kneeAngle, hipAngle, elbowAngle });
-            if (phase === state.lastPhase) {
-                state.phaseHoldCount += 1;
-            } else {
-                state.lastPhase = phase;
-                state.phaseHoldCount = 1;
-            }
-
-            const requiredHold = 5;
-            if (state.phaseHoldCount >= requiredHold && phase !== state.stablePhase) {
-                state.stablePhase = phase;
-                if (phase === 'down') {
-                    state.hasReachedDown = true;
-                }
-                if (phase === 'up' && state.hasReachedDown) {
-                    state.repCount += 1;
-                    repCounterEl.textContent = state.repCount;
-                    state.hasReachedDown = false;
-                }
-            }
-
-            return {
-                isCorrect: poseCorrect,
-                cameraAdvice: cameraAdvice,
-                formMessage: formMessage
+        async function initializeCamera() {
+            const pose = new Pose({ locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}` });
+            pose.setOptions({
+                modelComplexity: 1,
+                smoothLandmarks: true,
+                minDetectionConfidence: state.settings.sensitivity,
+                minTrackingConfidence: state.settings.sensitivity
+            });
+            pose.onResults(onResults);
+            const cameraOptions = {
+                onFrame: async () => {
+                    await pose.send({ image: cameraVideo });
+                },
+                width: 1280,
+                height: 720,
+                fps: state.settings.fps
             };
+            if (state.settings.cameraId) {
+                cameraOptions.video = { deviceId: { exact: state.settings.cameraId } };
+            }
+            const camera = new Camera(cameraVideo, cameraOptions);
+            await camera.start();
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            ids.profileCameraStatus.textContent = 'Ready';
         }
 
-        function calculateAngle(a, b, c) {
-            if (!a || !b || !c) return 0;
-            const ab = { x: a.x - b.x, y: a.y - b.y };
-            const cb = { x: c.x - b.x, y: c.y - b.y };
-            const dot = ab.x * cb.x + ab.y * cb.y;
-            const magAB = Math.hypot(ab.x, ab.y);
-            const magCB = Math.hypot(cb.x, cb.y);
-            if (!magAB || !magCB) return 0;
-            const angle = Math.acos(Math.min(1, Math.max(-1, dot / (magAB * magCB))));
-            return angle * (180 / Math.PI);
-        }
-
-        function averageAngle(...values) {
-            const valid = values.filter((x) => typeof x === 'number' && !Number.isNaN(x));
-            if (!valid.length) return 0;
-            return valid.reduce((sum, value) => sum + value, 0) / valid.length;
-        }
-
-        function detectPhase({ torsoAngle, kneeAngle, hipAngle, elbowAngle }) {
-            if (!state.selected) return 'up';
-
-            if (state.selected.key === 'pushup') {
-                if (elbowAngle < 95 && torsoAngle < 110) return 'down';
-                if (elbowAngle > 160 && torsoAngle > 150) return 'up';
-                return state.lastPhase;
-            }
-            if (state.selected.key === 'situp') {
-                if (hipAngle < 70 && torsoAngle < 80) return 'down';
-                if (hipAngle > 110 && torsoAngle > 110) return 'up';
-                return state.lastPhase;
-            }
-            if (state.selected.key === 'squat') {
-                if (kneeAngle < 100) return 'down';
-                if (kneeAngle > 120) return 'up';
-                return state.lastPhase;
-            }
-            if (state.selected.key === 'plank') {
-                if (torsoAngle > 165) return 'up';
-                if (torsoAngle < 150) return 'down';
-                return state.lastPhase;
-            }
-            return 'up';
-        }
-
-        function checkPoseCorrectness({ torsoAngle, kneeAngle, hipAngle, elbowAngle }) {
-            if (!state.selected) return null;
-            if (state.selected.key === 'pushup') {
-                return elbowAngle > 145 && torsoAngle > 145 && hipAngle > 135;
-            }
-            if (state.selected.key === 'situp') {
-                return hipAngle > 95 && torsoAngle > 95;
-            }
-            if (state.selected.key === 'squat') {
-                return kneeAngle > 105 && hipAngle > 125;
-            }
-            if (state.selected.key === 'plank') {
-                return torsoAngle > 155 && hipAngle > 145;
-            }
-            return null;
-        }
-
-        function getCameraAdvice(landmarks) {
-            const keyPoints = [11, 12, 23, 24, 25, 26].map((index) => landmarks[index]).filter(Boolean);
-            if (!keyPoints.length) return 'ยังมองไม่เห็นส่วนหลักของร่างกาย';
-
-            const avgX = keyPoints.reduce((sum, pt) => sum + pt.x, 0) / keyPoints.length;
-            const avgY = keyPoints.reduce((sum, pt) => sum + pt.y, 0) / keyPoints.length;
-            const xs = keyPoints.map((pt) => pt.x);
-            const ys = keyPoints.map((pt) => pt.y);
-            const width = Math.max(...xs) - Math.min(...xs);
-            const height = Math.max(...ys) - Math.min(...ys);
-
-            if (avgX < 0.35) return 'เลื่อนกล้องไปทางขวาเล็กน้อย';
-            if (avgX > 0.65) return 'เลื่อนกล้องไปทางซ้ายเล็กน้อย';
-            if (avgY < 0.3) return 'เลื่อนกล้องลงเล็กน้อย';
-            if (avgY > 0.75) return 'เลื่อนกล้องขึ้นเล็กน้อย';
-            if (width < 0.25 || height < 0.25) return 'เข้าใกล้กล้องอีกนิด';
-            if (width > 0.7 || height > 0.7) return 'ถอยห่างกล้องเล็กน้อย';
-            return 'กล้องมุมดีแล้ว';
-        }
-
-        function isCameraAligned(landmarks) {
-            const advice = getCameraAdvice(landmarks);
-            return advice === 'กล้องมุมดีแล้ว';
-        }
-
-        function isExerciseStartPose({ torsoAngle, kneeAngle, hipAngle, elbowAngle }) {
-            if (!state.selected) return false;
-            if (state.selected.key === 'pushup') {
-                return elbowAngle > 160 && torsoAngle > 150 && hipAngle > 145;
-            }
-            if (state.selected.key === 'situp') {
-                return hipAngle > 110 && torsoAngle > 110;
-            }
-            if (state.selected.key === 'squat') {
-                return kneeAngle > 130 && hipAngle > 145;
-            }
-            if (state.selected.key === 'plank') {
-                return torsoAngle > 165 && hipAngle > 160;
-            }
-            return false;
-        }
-
-        buildExerciseCards();
-        updateDashboard();
+        document.addEventListener('DOMContentLoaded', async () => {
+            setPage('dashboard');
+            selectExercise('pushup');
+            loadProfile();
+            loadSettings();
+            loadAppState();
+            updateDashboard();
+            updateHistoryPage();
+            updateProgressPage();
+            updateChallengesPage();
+            updateAchievementsPage();
+            updateCoachPage();
+            updateProfileDisplay();
+            await populateCameraOptions();
+            await initializeCamera().catch(error => {
+                ids.liveCameraStatus.textContent = 'Camera unavailable';
+                ids.profileCameraStatus.textContent = 'Unavailable';
+                logDebugEntry(error.message || 'Camera initialization failed', 'error');
+                console.error(error);
+            });
+            populateReportMenu();
+        });
     </script>
 </body>
 </html>
