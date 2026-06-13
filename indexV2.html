@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitGuard AI</title>
+    <style>
+        :root {
+            --bg: #071b35;
+            --panel: rgba(13, 43, 82, 0.88);
+            --panel-strong: rgba(7, 27, 53, 0.96);
+            --border: rgba(0, 212, 255, 0.12);
+            --border-strong: rgba(124, 255, 107, 0.18);
+            --text: #e8f6ff;
+            --muted: #9bb8d8;
+            --accent: #00d4ff;
+            --accent-2: #00e6c3;
+            --green: #7cff6b;
+            --danger: #ff6577;
+            --warning: #ffd56b;
+            --shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+            --radius: 28px;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; background: #071b35; color: var(--text); overflow-x: hidden; }
+        button, input, select, textarea { font: inherit; }
+
+        /* === ANIMATED BACKGROUND === */
+        #bgCanvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .particle-layer { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+        .particle { position: absolute; border-radius: 50%; opacity: 0; animation: floatUp linear infinite; }
+        @keyframes floatUp {
+            0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+            15%  { opacity: 0.7; }
+            85%  { opacity: 0.4; }
+            100% { opacity: 0; transform: translateY(-100vh) scale(1.2); }
+        }
+        .aurora { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; animation: auroraMove ease-in-out infinite alternate; }
+        .aurora-1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,212,255,0.18), transparent 70%); top: -200px; left: -100px; animation-duration: 12s; }
+        .aurora-2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(124,255,107,0.14), transparent 70%); bottom: -150px; right: -100px; animation-duration: 16s; animation-delay: -4s; }
+        .aurora-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(0,230,195,0.12), transparent 70%); top: 40%; left: 50%; animation-duration: 20s; animation-delay: -8s; }
+        @keyframes auroraMove {
+            0%   { transform: translate(0, 0) scale(1); }
+            50%  { transform: translate(40px, 30px) scale(1.1); }
+            100% { transform: translate(-30px, 50px) scale(0.95); }
+        }
+        .grid-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 0; background-image: linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px); background-size: 60px 60px; }
+
+        /* === APP SHELL === */
+        .app-shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; position: relative; z-index: 2; }
+        .sidebar { background: rgba(7, 27, 53, 0.96); border-right: 1px solid rgba(124, 255, 107, 0.08); padding: 32px 24px; display: flex; flex-direction: column; gap: 28px; backdrop-filter: blur(20px); }
+        .brand-block { display: flex; flex-direction: column; gap: 18px; }
+        .brand-title { display: inline-flex; align-items: center; gap: 12px; font-size: 1.7rem; font-weight: 800; }
+        .brand-dot { width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--green)); box-shadow: 0 0 18px rgba(0, 212, 255, 0.55); animation: pulse 2s ease-in-out infinite; }
+        .logo-svg { width: 32px; height: 32px; filter: drop-shadow(0 0 8px var(--accent)); }
+
+        /* === SPLASH SCREEN === */
+        #splashScreen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease, visibility 0.8s; }
+        #splashScreen.hidden { opacity: 0; visibility: hidden; }
+        .splash-content { text-align: center; max-width: 600px; padding: 40px; z-index: 1001; }
+        .splash-logo { width: 120px; height: 120px; margin-bottom: 30px; animation: logoFloat 3s ease-in-out infinite; }
+        @keyframes logoFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-15px) scale(1.05); } }
+        .splash-title { font-size: 3.5rem; font-weight: 900; margin: 0 0 16px; background: linear-gradient(135deg, var(--accent), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .splash-subtitle { font-size: 1.2rem; color: var(--muted); margin-bottom: 40px; line-height: 1.6; }
+        .splash-btn { padding: 18px 48px; font-size: 1.1rem; font-weight: 800; color: var(--bg); background: linear-gradient(135deg, var(--accent), var(--green)); border: none; border-radius: 20px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 20px 40px rgba(0, 212, 255, 0.3); }
+        .splash-btn:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 30px 60px rgba(0, 212, 255, 0.5); }
+        .splash-characters { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+        .floating-char { position: absolute; width: 100px; height: 100px; opacity: 0.6; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 18px rgba(0,212,255,0.55); } 50% { box-shadow: 0 0 32px rgba(0,212,255,0.9); } }
+        .brand-desc { color: var(--muted); line-height: 1.8; max-width: 220px; }
+        .sidebar-summary { background: rgba(13, 43, 82, 0.75); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: 24px; padding: 22px; display: grid; gap: 14px; }
+        .sidebar-summary h3 { margin: 0; font-size: 0.95rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
+        .metric-block { display: grid; gap: 12px; }
+        .metric-block strong { font-size: 1.9rem; color: var(--green); display: block; }
+        .metric-caption { color: rgba(255,255,255,0.7); font-size: 0.95rem; }
+        .nav-list { display: grid; gap: 10px; }
+        .nav-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid transparent; border-radius: 20px; padding: 14px 16px; background: rgba(9, 23, 46, 0.8); color: var(--text); cursor: pointer; transition: all 0.25s ease; }
+        .nav-item.active, .nav-item:hover { border-color: rgba(0, 212, 255, 0.22); background: rgba(0, 212, 255, 0.08); box-shadow: 0 14px 45px rgba(0, 212, 255, 0.08); }
+        .nav-item span { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; }
+        .nav-badge { min-width: 24px; text-align: center; font-size: 0.82rem; color: var(--bg); background: var(--green); border-radius: 999px; padding: 6px 10px; }
+        .sidebar-footer { margin-top: auto; background: rgba(9, 23, 46, 0.9); border: 1px solid rgba(0, 212, 255, 0.1); padding: 20px; border-radius: 24px; }
+        .footer-title { font-size: 0.95rem; color: var(--muted); margin: 0 0 10px; }
+        .footer-chip { display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 999px; background: rgba(0, 212, 255, 0.08); color: var(--text); font-size: 0.95rem; }
+        .main-panel { padding: 28px 34px; overflow-x: hidden; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 28px; }
+        .page-title { margin: 0; font-size: clamp(2rem, 2.6vw, 2.7rem); line-height: 1.05; }
+        .page-subtitle { margin: 10px 0 0; color: var(--muted); max-width: 720px; line-height: 1.8; }
+        .topbar-search { display: flex; align-items: center; gap: 14px; background: rgba(9, 23, 46, 0.88); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: 20px; padding: 12px 18px; min-width: 360px; color: var(--text); }
+        .topbar-search svg { width: 18px; height: 18px; opacity: 0.7; }
+        .topbar-search input { width: 100%; border: none; outline: none; background: transparent; color: var(--text); }
+        .topbar-actions { display: flex; align-items: center; gap: 16px; }
+        .lang-switch { display: flex; align-items: center; background: rgba(9, 23, 46, 0.88); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: 18px; padding: 4px; gap: 4px; }
+        .lang-btn { padding: 8px 12px; border-radius: 14px; border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: all 0.2s ease; }
+        .lang-btn.active { background: var(--accent); color: var(--bg); box-shadow: 0 4px 12px rgba(0, 212, 255, 0.25); }
+        .top-action { width: 52px; height: 52px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(124, 255, 107, 0.1); background: rgba(9, 23, 46, 0.88); cursor: pointer; transition: transform 0.25s ease; }
+        .top-action:hover { transform: translateY(-2px); }
+        .avatar { width: 52px; height: 52px; border-radius: 18px; background: linear-gradient(135deg, #00d4ff 0%, #00e6c3 100%); display: grid; place-items: center; color: #071b35; font-weight: 800; box-shadow: 0 16px 30px rgba(0, 212, 255, 0.18); }
+        .page-container { display: grid; gap: 24px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .layout-grid { display: grid; gap: 24px; }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .glass-card { background: rgba(7, 27, 53, 0.85); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px; position: relative; overflow: hidden; backdrop-filter: blur(18px); }
+        .glass-card::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 52%); }
+        .card-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
+        .card-title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+        .small-chip { padding: 8px 12px; border-radius: 999px; background: rgba(0, 212, 255, 0.12); color: var(--accent); font-size: 0.85rem; font-weight: 600; }
+        .stat-row { display: grid; gap: 18px; }
+        .stat-card { background: rgba(10, 24, 46, 0.88); border: 1px solid rgba(124, 255, 107, 0.1); border-radius: 24px; padding: 22px; transition: transform 0.25s ease; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-value { font-size: 2.2rem; font-weight: 800; margin: 0; }
+        .stat-secondary { margin-top: 10px; color: var(--muted); }
+        .metric-list { display: grid; gap: 18px; }
+        .metric-bubble { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: rgba(9, 23, 46, 0.88); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 22px; padding: 18px 20px; }
+        .bubble-left { display: grid; gap: 6px; }
+        .bubble-label { font-size: 0.95rem; color: var(--muted); }
+        .bubble-value { font-size: 1.35rem; font-weight: 700; }
+        .progress-ring { width: 115px; height: 115px; position: relative; }
+        .progress-ring circle { fill: none; stroke-width: 10; transform: rotate(-90deg); transform-origin: center; }
+        .progress-ring .track { stroke: rgba(255,255,255,0.08); }
+        .progress-ring .fill { stroke: var(--green); stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: 314; transition: stroke-dashoffset 0.5s ease; }
+        .progress-ring-label { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text); font-weight: 800; }
+        .status-pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; border: 1px solid rgba(0, 212, 255, 0.12); background: rgba(0, 212, 255, 0.08); color: var(--accent); font-weight: 700; }
+        .status-pill.missing { color: #ff8ea6; border-color: rgba(255, 101, 119, 0.15); }
+        .status-pill.weak { color: #ffd56b; border-color: rgba(255, 213, 107, 0.18); }
+        .live-grid { display: grid; gap: 24px; grid-template-columns: 1.6fr 1fr; }
+        .camera-card { min-height: 520px; position: relative; overflow: hidden; }
+        .camera-panel { position: relative; height: 100%; border-radius: 28px; background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 212, 255, 0.12); box-shadow: inset 0 0 80px rgba(0, 212, 255, 0.08); overflow: hidden; }
+        .camera-feed { width: 100%; height: 100%; position: relative; overflow: hidden; background: radial-gradient(circle at 30% 40%, rgba(0, 212, 255, 0.12), transparent 20%), linear-gradient(180deg, rgba(2, 16, 38, 0.95), rgba(0, 0, 0, 0.15)); }
+        .camera-feed video, .camera-feed canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .camera-feed canvas { pointer-events: none; }
+        .camera-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
+        .camera-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px; backdrop-filter: blur(10px); background: rgba(0, 0, 0, 0.25); }
+        .camera-stats { display: grid; gap: 10px; }
+        .camera-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: rgba(0, 0, 0, 0.4); color: #fff; font-size: 0.92rem; }
+        .exercise-selection { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 16px 0 0; }
+        .exercise-selection button { padding: 14px 16px; border-radius: 20px; border: 1px solid rgba(0, 212, 255, 0.12); background: rgba(9, 23, 46, 0.88); color: var(--text); cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
+        .exercise-selection button.active, .exercise-selection button:hover { background: rgba(0, 212, 255, 0.14); border-color: rgba(0, 212, 255, 0.25); transform: translateY(-2px); }
+        .live-summary { display: grid; gap: 16px; }
+        .section-card h3 { margin: 0 0 14px; }
+        .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .bar-graph { width: 100%; display: grid; gap: 12px; }
+        .bar-track { height: 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+        .bar-value { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--green)); }
+        .label-row { display: flex; align-items: center; justify-content: space-between; color: var(--muted); font-size: 0.95rem; }
+        .error-panel { display: grid; gap: 14px; }
+        .error-item { display: grid; gap: 6px; padding: 16px 18px; background: rgba(255, 101, 119, 0.08); border: 1px solid rgba(255, 101, 119, 0.12); border-radius: 20px; }
+        .error-item strong { color: #ffb0c0; }
+        .table-card { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; color: var(--text); min-width: 680px; }
+        th, td { text-align: left; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        th { color: var(--muted); font-size: 0.9rem; letter-spacing: 0.02em; }
+        .badge-pill { padding: 8px 12px; border-radius: 999px; font-size: 0.82rem; background: rgba(0, 212, 255, 0.08); color: var(--accent); display: inline-flex; align-items: center; }
+        .chat-panel { display: grid; gap: 18px; }
+        .chat-box { display: grid; gap: 14px; background: rgba(9, 23, 46, 0.88); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 26px; padding: 22px; }
+        .chat-message { padding: 16px 18px; border-radius: 22px; max-width: 86%; line-height: 1.75; position: relative; }
+        .chat-message.user { justify-self: end; background: rgba(0, 212, 255, 0.12); color: var(--text); }
+        .chat-message.ai { background: rgba(124, 255, 107, 0.12); color: var(--text); }
+        .chat-action { display: flex; gap: 10px; flex-wrap: wrap; }
+        .action-chip { padding: 10px 16px; border-radius: 999px; border: 1px solid rgba(0, 212, 255, 0.12); background: rgba(0, 212, 255, 0.08); color: var(--text); cursor: default; transition: transform 0.2s ease; }
+        .profile-grid { display: grid; gap: 22px; grid-template-columns: 1.3fr 0.7fr; }
+        .info-list { display: grid; gap: 14px; }
+        .info-item { display: grid; gap: 6px; padding: 18px; background: rgba(9, 23, 46, 0.88); border-radius: 20px; border: 1px solid rgba(0, 212, 255, 0.08); }
+        .info-item strong { color: var(--text); font-size: 1.1rem; }
+        .settings-grid { display: grid; gap: 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .setting-item { background: rgba(9, 23, 46, 0.88); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 24px; padding: 22px; display: grid; gap: 14px; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .setting-row label { color: var(--muted); }
+        .switch { width: 52px; height: 28px; border-radius: 999px; background: rgba(255,255,255,0.08); position: relative; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); }
+        .switch::after { content: ''; position: absolute; top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); transition: left 0.25s ease; }
+        .switch.active::after { left: 28px; background: var(--green); }
+        .tab-item { padding: 12px 20px; border-radius: 16px; border: 1px solid rgba(0, 212, 255, 0.18); background: rgba(0, 212, 255, 0.08); color: var(--text); cursor: pointer; font-weight: 600; transition: all 0.2s ease; }
+        .tab-item:hover, .tab-item.active { background: rgba(0, 212, 255, 0.18); border-color: rgba(0, 212, 255, 0.35); }
+        .mobile-nav { display: none; }
+
+        /* === MASCOT WIDGET === */
+        .mascot-widget { position: fixed; bottom: 32px; right: 32px; z-index: 100; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+        .mascot-bubble { background: rgba(7, 27, 53, 0.96); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 20px 20px 4px 20px; padding: 14px 18px; max-width: 260px; font-size: 0.9rem; line-height: 1.6; color: var(--text); box-shadow: 0 20px 60px rgba(0, 212, 255, 0.15); animation: bubblePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); backdrop-filter: blur(20px); }
+        .mascot-bubble strong { color: var(--accent); display: block; margin-bottom: 4px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+        @keyframes bubblePop { 0% { opacity: 0; transform: scale(0.7) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        .mascot-avatar { width: 80px; height: 80px; cursor: pointer; filter: drop-shadow(0 8px 24px rgba(0, 212, 255, 0.4)); animation: mascotBob 3s ease-in-out infinite; transition: transform 0.2s ease; }
+        .mascot-avatar:hover { transform: scale(1.1) !important; }
+        @keyframes mascotBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* === EXERCISE GUIDE === */
+        .exercise-guide-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
+        .exercise-guide-card { background: rgba(9, 23, 46, 0.88); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: 24px; padding: 20px 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .exercise-guide-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,212,255,0.06), transparent); pointer-events: none; }
+        .exercise-guide-card:hover { transform: translateY(-6px); border-color: rgba(0, 212, 255, 0.35); box-shadow: 0 20px 60px rgba(0, 212, 255, 0.15); }
+        .guide-character { width: 90px; height: 90px; }
+        .guide-name { font-size: 0.9rem; font-weight: 700; color: var(--text); text-align: center; }
+        .guide-tip { font-size: 0.78rem; color: var(--muted); text-align: center; line-height: 1.5; }
+        .guide-badge { padding: 5px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; background: rgba(0, 212, 255, 0.12); color: var(--accent); }
+
+        /* === EXERCISE MODAL === */
+        .exercise-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .exercise-modal-overlay.open { opacity: 1; pointer-events: all; }
+        .exercise-modal { background: rgba(7, 27, 53, 0.98); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 32px; padding: 36px; max-width: 640px; width: 90%; box-shadow: 0 40px 120px rgba(0, 0, 0, 0.5); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
+        .exercise-modal-overlay.open .exercise-modal { transform: scale(1); }
+        .modal-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; display: grid; place-items: center; font-size: 1.2rem; transition: background 0.2s ease; }
+        .modal-close:hover { background: rgba(255,255,255,0.12); }
+        .modal-header { display: flex; align-items: center; gap: 20px; margin-bottom: 24px; }
+        .modal-character { width: 100px; height: 100px; }
+        .modal-title { font-size: 1.6rem; font-weight: 800; }
+        .modal-subtitle { color: var(--muted); margin-top: 4px; }
+        .modal-steps { display: grid; gap: 12px; margin-top: 20px; }
+        .modal-step { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; background: rgba(0, 212, 255, 0.06); border: 1px solid rgba(0, 212, 255, 0.1); border-radius: 16px; }
+        .step-num { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--green)); color: #071b35; font-weight: 800; font-size: 0.85rem; display: grid; place-items: center; flex-shrink: 0; }
+        .step-text { font-size: 0.9rem; line-height: 1.6; color: var(--text); }
+        .modal-tips { margin-top: 20px; padding: 16px; background: rgba(124, 255, 107, 0.06); border: 1px solid rgba(124, 255, 107, 0.15); border-radius: 16px; }
+        .modal-tips strong { color: var(--green); display: block; margin-bottom: 8px; }
+        .modal-tips p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+        /* === DASHBOARD BANNER === */
+        .mascot-banner { background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,255,107,0.08)); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: var(--radius); padding: 24px 28px; display: flex; align-items: center; gap: 24px; margin-bottom: 24px; position: relative; overflow: hidden; }
+        .mascot-banner::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%); }
+        .banner-character { width: 100px; height: 100px; flex-shrink: 0; }
+        .banner-content { flex: 1; }
+        .banner-title { font-size: 1.3rem; font-weight: 800; margin: 0 0 8px; }
+        .banner-text { color: var(--muted); font-size: 0.95rem; line-height: 1.7; margin: 0; }
+        .banner-cta { padding: 12px 22px; border-radius: 16px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #071b35; font-weight: 700; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; white-space: nowrap; }
+        .banner-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0, 212, 255, 0.35); }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 1230px) {
+            .app-shell { grid-template-columns: 1fr; }
+            .sidebar { flex-direction: row; overflow-x: auto; padding: 20px; min-height: auto; position: sticky; top: 0; z-index: 20; }
+            .brand-block { display: none; }
+            .sidebar-summary { display: none; }
+            .nav-list { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; padding-bottom: 6px; }
+            .nav-item { min-width: 180px; }
+            .sidebar-footer { display: none; }
+            .exercise-guide-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+        @media (max-width: 960px) {
+            .main-panel { padding: 20px 18px 100px; }
+            .topbar { flex-direction: column; align-items: stretch; }
+            .topbar-search { min-width: auto; width: 100%; }
+            .live-grid, .page-grid, .profile-grid, .settings-grid, .chart-row, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+            .camera-card { min-height: 420px; }
+            .sidebar { padding: 16px; }
+            .nav-item { min-width: 150px; }
+            .exercise-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .mascot-widget { bottom: 90px; right: 16px; }
+        }
+        @media (max-width: 720px) {
+            .topbar-actions { justify-content: space-between; }
+            .topbar-search { padding: 12px 14px; }
+            .nav-item { padding: 12px 14px; }
+            .page-title { font-size: 2rem; }
+            .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 16px; gap: 10px; background: rgba(7, 27, 53, 0.96); border-top: 1px solid rgba(0, 212, 255, 0.1); z-index: 30; }
+            .mobile-nav button { flex: 1; border-radius: 18px; }
+            .page-container { padding-bottom: 120px; }
+            .exercise-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .mascot-banner { flex-direction: column; text-align: center; }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.5/camera_utils.js"></script>
+</head>
+<body>
+    <!-- SPLASH SCREEN -->
+    <div id="splashScreen">
+        <div class="splash-characters" id="splashChars"></div>
+        <div class="splash-content">
+            <svg class="splash-logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:var(--accent);stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:var(--green);stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle cx="60" cy="60" r="55" fill="none" stroke="url(#logoGrad)" stroke-width="2" stroke-dasharray="10 5">
+                    <animateTransform attributeName="transform" type="rotate" from="0 60 60" to="360 60 60" dur="20s" repeatCount="indefinite" />
+                </circle>
+                <path d="M40 80 L60 40 L80 80" fill="none" stroke="url(#logoGrad)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+                    <animate attributeName="d" values="M40 80 L60 40 L80 80;M40 70 L60 50 L80 70;M40 80 L60 40 L80 80" dur="2s" repeatCount="indefinite" />
+                </path>
+                <circle cx="60" cy="30" r="8" fill="url(#logoGrad)">
+                    <animate attributeName="cy" values="30;25;30" dur="2s" repeatCount="indefinite" />
+                </circle>
+            </svg>
+            <h1 class="splash-title" id="splashTitle">FitGuard AI</h1>
+            <p class="splash-subtitle" id="splashSubtitle">Experience the next generation of AI-powered fitness analysis. Your personal coach, powered by computer vision.</p>
+            <button class="splash-btn" id="enterBtn" onclick="enterSite()">Enter Website →</button>
+        </div>
+    </div>
+
+    <canvas id="bgCanvas"></canvas>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="aurora aurora-3"></div>
+    <div class="grid-overlay"></div>
+    <div class="particle-layer" id="particleLayer"></div>
+
+    <!-- MASCOT WIDGET -->
+    <div class="mascot-widget" id="mascotWidget">
+        <div class="mascot-bubble" id="mascotBubble">
+            <strong>FitBot says:</strong>
+            <span id="mascotTipText">Ready to crush your workout? Let's go! 💪</span>
+        </div>
+        <svg class="mascot-avatar" id="mascotAvatarBtn" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="60" cy="85" rx="28" ry="22" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
+            <path d="M32 75 Q18 65 22 55" stroke="#00d4ff" stroke-width="5" stroke-linecap="round" fill="none">
+                <animateTransform attributeName="transform" type="rotate" from="0 32 75" to="15 32 75" dur="0.8s" repeatCount="indefinite" values="0 32 75;15 32 75;0 32 75" keyTimes="0;0.5;1"/>
+            </path>
+            <path d="M88 75 Q102 65 98 55" stroke="#00d4ff" stroke-width="5" stroke-linecap="round" fill="none">
+                <animateTransform attributeName="transform" type="rotate" from="0 88 75" to="-15 88 75" dur="0.8s" repeatCount="indefinite" values="0 88 75;-15 88 75;0 88 75" keyTimes="0;0.5;1"/>
+            </path>
+            <line x1="50" y1="105" x2="44" y2="118" stroke="#00d4ff" stroke-width="5" stroke-linecap="round"/>
+            <line x1="70" y1="105" x2="76" y2="118" stroke="#00d4ff" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="60" cy="48" r="26" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
+            <ellipse cx="60" cy="50" rx="18" ry="10" fill="rgba(0,212,255,0.15)" stroke="rgba(0,212,255,0.4)" stroke-width="1.5"/>
+            <circle cx="52" cy="48" r="5" fill="#00d4ff"><animate attributeName="r" values="5;4;5" dur="3s" repeatCount="indefinite"/></circle>
+            <circle cx="68" cy="48" r="5" fill="#00d4ff"><animate attributeName="r" values="5;4;5" dur="3s" repeatCount="indefinite"/></circle>
+            <path d="M50 57 Q60 64 70 57" stroke="#7cff6b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            <line x1="60" y1="22" x2="60" y2="10" stroke="#00d4ff" stroke-width="2"/>
+            <circle cx="60" cy="8" r="4" fill="#7cff6b"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        </svg>
+    </div>
+
+    <!-- EXERCISE MODAL -->
+    <div class="exercise-modal-overlay" id="exerciseModal">
+        <div class="exercise-modal">
+            <button class="modal-close" id="modalClose">✕</button>
+            <div class="modal-header">
+                <svg class="modal-character" id="modalCharacter" viewBox="0 0 120 120"></svg>
+                <div>
+                    <h2 class="modal-title" id="modalTitle">Exercise</h2>
+                    <p class="modal-subtitle" id="modalSubtitle">How to perform correctly</p>
+                </div>
+            </div>
+            <div class="modal-steps" id="modalSteps"></div>
+            <div class="modal-tips" id="modalTips"></div>
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-block">
+                <div class="brand-title">
+                    <svg class="logo-svg" viewBox="0 0 120 120">
+                        <path d="M40 80 L60 40 L80 80" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="60" cy="30" r="10" fill="var(--green)" />
+                    </svg>
+                    FitGuard AI
+                </div>
+                <p class="brand-desc">AI-driven workout analysis and injury prevention using live camera posture intelligence.</p>
+            </div>
+            <div class="sidebar-summary">
+                <h3>Session Summary</h3>
+                <div class="metric-block"><strong id="summaryWorkoutCount">0</strong><span class="metric-caption">Workouts completed</span></div>
+                <div class="metric-block"><strong id="summaryAverageForm">-</strong><span class="metric-caption">Average form score</span></div>
+            </div>
+            <nav class="nav-list" aria-label="Primary navigation">
+                <button class="nav-item active" data-page="dashboard"><span>🏠 Dashboard</span><span class="nav-badge">01</span></button>
+                <button class="nav-item" data-page="live-analysis"><span>🎯 Live Workout</span><span class="nav-badge">02</span></button>
+                <button class="nav-item" data-page="exercise-guide"><span>🏋️ Exercise Guide</span><span class="nav-badge">03</span></button>
+                <button class="nav-item" data-page="progress-analytics"><span>📈 Progress</span><span class="nav-badge">04</span></button>
+                <button class="nav-item" data-page="exercise-history"><span>📋 History</span><span class="nav-badge">05</span></button>
+                <button class="nav-item" data-page="workout-reports"><span>📊 Reports</span><span class="nav-badge">06</span></button>
+                <button class="nav-item" data-page="ai-coach"><span>🤖 AI Coach</span><span class="nav-badge">07</span></button>
+                <button class="nav-item" data-page="challenges"><span>🏆 Challenges</span><span class="nav-badge">08</span></button>
+                <button class="nav-item" data-page="achievements"><span>⭐ Achievements</span><span class="nav-badge">09</span></button>
+                <button class="nav-item" data-page="profile"><span>👤 Profile</span><span class="nav-badge">10</span></button>
+                <button class="nav-item" data-page="settings"><span>⚙️ Settings</span><span class="nav-badge">11</span></button>
+            </nav>
+            <div class="sidebar-footer">
+                <p class="footer-title">Pro tip</p>
+                <div class="footer-chip">Click any exercise character to learn proper form!</div>
+            </div>
+        </aside>
+
+        <div class="main-panel">
+            <header class="topbar">
+                <div>
+                    <h1 class="page-title">FitGuard AI Control Center</h1>
+                    <p class="page-subtitle">Every insight is generated from live pose landmarks, joint angles, and exercise analysis.</p>
+                </div>
+                <div class="topbar-actions">
+                    <label class="topbar-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="search" placeholder="Search workouts, analytics, tips…" />
+                    </label>
+                    <button class="top-action" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></button>
+                    <div class="lang-switch">
+                        <button class="lang-btn active" id="langEn" onclick="setLanguage('en')">EN</button>
+                        <button class="lang-btn" id="langTh" onclick="setLanguage('th')">TH</button>
+                    </div>
+                    <div class="avatar">AG</div>
+                </div>
+            </header>
+
+            <div class="page-container">
+
+                <!-- DASHBOARD -->
+                <section class="page active" id="dashboard">
+                    <div class="mascot-banner">
+                        <svg class="banner-character" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="60" cy="28" r="18" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
+                            <circle cx="54" cy="24" r="3.5" fill="#00d4ff"/>
+                            <circle cx="66" cy="24" r="3.5" fill="#00d4ff"/>
+                            <path d="M53 33 Q60 39 67 33" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                            <rect x="46" y="46" width="28" height="28" rx="8" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
+                            <path d="M46 56 L28 46" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                                <animateTransform attributeName="transform" type="rotate" values="0 46 56;-20 46 56;0 46 56" dur="0.6s" repeatCount="indefinite"/>
+                            </path>
+                            <path d="M74 56 L92 46" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                                <animateTransform attributeName="transform" type="rotate" values="0 74 56;20 74 56;0 74 56" dur="0.6s" repeatCount="indefinite"/>
+                            </path>
+                            <path d="M52 74 L40 100" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                                <animateTransform attributeName="transform" type="rotate" values="0 52 74;-25 52 74;0 52 74" dur="0.6s" repeatCount="indefinite"/>
+                            </path>
+                            <path d="M68 74 L80 100" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                                <animateTransform attributeName="transform" type="rotate" values="0 68 74;25 68 74;0 68 74" dur="0.6s" repeatCount="indefinite"/>
+                            </path>
+                        </svg>
+                        <div class="banner-content">
+                            <h2 class="banner-title">Welcome back, Athlete! 🔥</h2>
+                            <p class="banner-text">Your AI fitness companion is ready. Start a live workout session to get real-time posture analysis and personalized coaching tips.</p>
+                        </div>
+                        <button class="banner-cta" onclick="navigateTo('live-analysis')">Start Workout →</button>
+                    </div>
+                    <div class="layout-grid grid-3">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Workout Performance</h2><span class="small-chip">Live</span></div>
+                            <div class="stat-row">
+                                <div class="stat-card"><p class="stat-value" id="dashboardFitnessScore">-</p><p class="stat-secondary">Current session form</p></div>
+                                <div class="stat-card"><p class="stat-value" id="dashboardWorkoutCount">0</p><p class="stat-secondary">Workout sessions</p></div>
+                                <div class="stat-card"><p class="stat-value" id="dashboardFormAccuracy">-</p><p class="stat-secondary">Average accuracy</p></div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Risk Insights</h2><span class="small-chip">Analysis</span></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Most frequent issue</span><strong id="dashboardTopIssue">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Current streak</span><strong id="dashboardStreak">0 days</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Injury warning</span><strong id="dashboardWarning">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Best form score</span><strong id="dashboardBestForm">-</strong></div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Live Session</h2><span class="small-chip">Status</span></div>
+                            <div class="progress-ring">
+                                <svg viewBox="0 0 120 120" aria-hidden="true">
+                                    <circle class="track" cx="60" cy="60" r="50"></circle>
+                                    <circle class="fill" cx="60" cy="60" r="50" id="dashboardProgressFill"></circle>
+                                </svg>
+                                <div class="progress-ring-label" id="dashboardProgressLabel">0%</div>
+                            </div>
+                            <p class="stat-secondary" style="margin-top: 18px;" id="dashboardProgressText">Start a workout to populate metrics.</p>
+                        </div>
+                    </div>
+                    <div class="layout-grid grid-2" style="margin-top: 24px;">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Session Summary</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Total active minutes</span><strong id="dashboardActiveMinutes">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="dashboardTotalReps">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Completed drills</span><strong id="dashboardDrills">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Most common error</span><strong id="dashboardCommonError">None</strong></div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">AI Coach Tip</h2></div>
+                            <p id="dashboardCoachTip">Select Live Workout and start a session to receive posture guidance.</p>
+                            <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
+                                <span class="small-chip">💡 Keep core tight</span>
+                                <span class="small-chip">🎯 Form first</span>
+                                <span class="small-chip">💧 Stay hydrated</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="margin-top:24px;">
+                        <div class="card-header"><h2 class="card-title">Stability Score</h2><span class="small-chip">Metrics</span></div>
+                        <div class="layout-grid grid-3">
+                            <div class="stat-card"><p class="stat-value" id="dashboardStability">-</p><p class="stat-secondary">Stability score</p></div>
+                            <div class="stat-card"><p class="stat-value" id="dashboardActiveMinutes2">0 min</p><p class="stat-secondary">Active minutes</p></div>
+                            <div class="stat-card"><p class="stat-value" id="dashboardCommonError2">None</p><p class="stat-secondary">Top error</p></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- LIVE ANALYSIS -->
+                <section class="page" id="live-analysis">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Exercise Selection</h2></div>
+                        <div class="exercise-selection">
+                            <button class="active" data-exercise="pushup">💪 Push-Up</button>
+                            <button data-exercise="squat">🦵 Squat</button>
+                            <button data-exercise="plank">🧘 Plank</button>
+                            <button data-exercise="situp">🔥 Sit-Up</button>
+                            <button data-exercise="lunge">⚡ Lunge</button>
+                        </div>
+                    </div>
+                    <div class="glass-card live-grid" style="margin-top:24px;">
+                        <div class="camera-card">
+                            <div class="camera-panel">
+                                <div class="camera-feed">
+                                    <video id="cameraVideo" autoplay muted playsinline></video>
+                                    <canvas id="overlayCanvas"></canvas>
+                                </div>
+                                <div class="camera-overlay">
+                                    <div style="padding:22px; display:grid; gap:10px;">
+                                        <span class="camera-chip" id="liveExerciseLabel">Exercise: Push-Up</span>
+                                        <span class="camera-chip" id="liveCameraStatus">Tracking: Waiting</span>
+                                    </div>
+                                    <div class="camera-footer">
+                                        <div class="camera-stats">
+                                            <div class="camera-chip">Reps: <span id="liveRepCount">0</span></div>
+                                            <div class="camera-chip">Form: <span id="liveFormAccuracy">0%</span></div>
+                                        </div>
+                                        <button class="top-action" id="startStopButton" style="width:auto; padding:12px 18px;" aria-label="Start workout">Start</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section-card live-summary">
+                            <div class="card-header"><h2 class="card-title">Realtime Feedback</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Active duration</span><strong id="liveDuration">0s</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Primary issue</span><strong id="livePrimaryIssue">Waiting for movement</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="liveStability">-</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Core score</span><strong id="liveCoreScore">-</strong></div>
+                            </div>
+                            <div class="error-panel" id="liveFeedbackList"><div class="error-item"><strong>Ready</strong><span>Choose an exercise and start your workout.</span></div></div>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="margin-top:20px; padding:20px;">
+                        <div class="card-header"><h2 class="card-title">Debug Panel</h2><span class="small-chip">Diagnostics</span></div>
+                        <div class="metric-list">
+                            <div class="metric-bubble"><span class="bubble-label">Camera status</span><strong id="debugCameraStatus">Unknown</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">MediaPipe</span><strong id="debugMediaPipeStatus">Idle</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">FPS</span><strong id="debugFPS">0</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Detection confidence</span><strong id="debugDetectionConfidence">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Landmarks</span><strong id="debugLandmarkCount">0</strong></div>
+                        </div>
+                        <div class="error-panel" id="debugErrorLog" style="margin-top:16px;"></div>
+                    </div>
+                    <div class="glass-card" style="margin-top:20px;">
+                        <div class="card-header"><h2 class="card-title">Joint Angles</h2></div>
+                        <div class="layout-grid grid-3">
+                            <div class="glass-card">
+                                <div class="card-header"><h2 class="card-title">Shoulders</h2></div>
+                                <div class="metric-list">
+                                    <div class="metric-bubble"><span class="bubble-label">Left shoulder</span><strong id="angleLeftShoulder">0°</strong></div>
+                                    <div class="metric-bubble"><span class="bubble-label">Right shoulder</span><strong id="angleRightShoulder">0°</strong></div>
+                                </div>
+                            </div>
+                            <div class="glass-card">
+                                <div class="card-header"><h2 class="card-title">Knees</h2></div>
+                                <div class="metric-list">
+                                    <div class="metric-bubble"><span class="bubble-label">Left knee</span><strong id="angleLeftKnee">0°</strong></div>
+                                    <div class="metric-bubble"><span class="bubble-label">Right knee</span><strong id="angleRightKnee">0°</strong></div>
+                                    <div class="metric-bubble"><span class="bubble-label">Hip alignment</span><strong id="angleHip">0°</strong></div>
+                                </div>
+                            </div>
+                            <div class="glass-card">
+                                <div class="card-header"><h2 class="card-title">Neck & Core</h2></div>
+                                <div class="metric-list">
+                                    <div class="metric-bubble"><span class="bubble-label">Neck</span><strong id="angleNeck">0°</strong></div>
+                                    <div class="metric-bubble"><span class="bubble-label">Core score</span><strong id="liveCoreScore2">-</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- EXERCISE GUIDE (NEW) -->
+                <section class="page" id="exercise-guide">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">🏋️ Exercise Guide with Characters</h2><span class="small-chip">Interactive</span></div>
+                        <p style="color:var(--muted); margin:0;">Click on any exercise character to learn the correct form, steps, and safety tips.</p>
+                    </div>
+                    <div class="exercise-guide-grid" id="exerciseGuideGrid"></div>
+                    <div class="glass-card" style="margin-top:24px;" id="exerciseDetailPanel">
+                        <div style="display:flex; align-items:center; gap:20px;">
+                            <svg id="detailCharacter" style="width:80px;height:80px;" viewBox="0 0 120 120"></svg>
+                            <div>
+                                <h2 id="detailTitle" style="margin:0; font-size:1.4rem;">Select an exercise above</h2>
+                                <p id="detailDesc" style="margin:8px 0 0; color:var(--muted);">Click any character card to see detailed instructions and tips.</p>
+                            </div>
+                        </div>
+                        <div id="detailSteps" style="margin-top:20px;"></div>
+                    </div>
+                </section>
+
+                <!-- PROGRESS -->
+                <section class="page" id="progress-analytics">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Progress Analytics</h2></div>
+                        <div class="label-row"><span>Recent sessions</span><strong id="progressSummary">Tracking form and reps over completed workouts.</strong></div>
+                        <div class="bar-graph" id="progressBars"></div>
+                    </div>
+                    <div class="layout-grid grid-3" style="margin-top:24px;">
+                        <div class="glass-card"><h2 class="card-title">Total minutes</h2><p id="progressMinutes">0</p></div>
+                        <div class="glass-card"><h2 class="card-title">Average rep rate</h2><p id="progressRepRate">0</p></div>
+                        <div class="glass-card"><h2 class="card-title">Most common issue</h2><p id="progressCommonIssue">None</p></div>
+                        <div class="glass-card"><h2 class="card-title">Weekly trend</h2><p id="progressWeeklyTrend">-</p></div>
+                        <div class="glass-card"><h2 class="card-title">Monthly trend</h2><p id="progressMonthlyTrend">-</p></div>
+                    </div>
+                </section>
+
+                <!-- HISTORY -->
+                <section class="page" id="exercise-history">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Exercise History</h2></div>
+                        <div class="label-row" style="flex-wrap:wrap; gap:14px; margin-bottom:16px;">
+                            <div><label>Filter exercise</label><select id="historyFilterExercise"><option value="all">All</option><option value="pushup">Push-Up</option><option value="squat">Squat</option><option value="plank">Plank</option><option value="situp">Sit-Up</option><option value="lunge">Lunge</option></select></div>
+                            <div><label>Search date</label><input type="date" id="historyFilterDate"></div>
+                            <button class="tab-item" id="historyApplyFilterButton">Apply filters</button>
+                            <button class="tab-item" id="historyCompareButton">Compare selected</button>
+                        </div>
+                        <table><thead><tr><th>Exercise</th><th>Duration</th><th>Reps</th><th>Avg Form</th><th>Top issue</th><th>Actions</th></tr></thead>
+                        <tbody id="historyTableBody"><tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr></tbody></table>
+                        <div id="historyDetailsPanel" style="margin-top:18px; padding:18px; background:rgba(9,23,46,0.88); border-radius:20px; display:none;"></div>
+                        <div style="margin-top:18px; display:flex; gap:12px;"><button class="tab-item" id="exportHistoryButton">Export summary</button><button class="tab-item" id="clearHistoryButton">Clear history</button></div>
+                    </div>
+                </section>
+
+                <!-- REPORTS -->
+                <section class="page" id="workout-reports">
+                    <div class="glass-card">
+                        <div class="card-header"><h2 class="card-title">Workout Reports</h2></div>
+                        <div class="label-row" style="margin-bottom:16px; gap:14px; flex-wrap:wrap;">
+                            <div><label>Select report</label><select id="reportSelect"></select></div>
+                            <div id="reportSummaryText" style="font-weight:600; color:var(--muted);">A detailed report is generated after every completed session.</div>
+                        </div>
+                        <div class="metric-list">
+                            <div class="metric-bubble"><span class="bubble-label">Exercise Type</span><strong id="reportExerciseType">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Duration</span><strong id="reportDuration">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="reportReps">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Form accuracy</span><strong id="reportFormAccuracy">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="reportStability">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Injury risk</span><strong id="reportInjuryRisk">-</strong></div>
+                        </div>
+                        <div class="glass-card" style="margin-top:20px;"><div class="card-header"><h2 class="card-title">Timeline analysis</h2></div><div id="reportTimeline"></div></div>
+                    </div>
+                </section>
+
+                <!-- AI COACH -->
+                <section class="page" id="ai-coach">
+                    <div class="chat-panel">
+                        <div class="card-header"><h2 class="card-title">AI Coach Feedback</h2></div>
+                        <div class="chat-box" id="coachMessageList"></div>
+                        <div class="chat-action">
+                            <div class="action-chip">Real-time form guidance</div>
+                            <div class="action-chip">Stability recommendations</div>
+                            <div class="action-chip">Session summaries</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CHALLENGES -->
+                <section class="page" id="challenges">
+                    <div class="layout-grid grid-2">
+                        <div class="glass-card"><h2 class="card-title">Current Goal</h2><p id="challengeGoal">Complete three live sessions with form over 80%.</p></div>
+                        <div class="glass-card"><h2 class="card-title">Challenge Progress</h2><p id="challengeProgress">0/3 workouts completed.</p></div>
+                    </div>
+                    <div class="glass-card" style="margin-top:20px;">
+                        <div class="card-header"><h2 class="card-title">Mission Status</h2></div>
+                        <div class="metric-list">
+                            <div class="metric-bubble"><strong id="challengeSessions">0</strong><span class="bubble-label">Completed workouts</span></div>
+                            <div class="metric-bubble"><strong id="challengeBestForm">-</strong><span class="bubble-label">Best form score</span></div>
+                            <div class="metric-bubble"><strong id="challengeConsistency">-</strong><span class="bubble-label">Consistency rating</span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ACHIEVEMENTS -->
+                <section class="page" id="achievements">
+                    <div class="layout-grid grid-2">
+                        <div class="glass-card"><h2 class="card-title">Achievements</h2><div id="achievementList" class="metric-list"></div></div>
+                        <div class="glass-card"><h2 class="card-title">Unlocked Milestones</h2><div id="achievementMilestones" class="metric-list"></div></div>
+                    </div>
+                </section>
+
+                <!-- PROFILE -->
+                <section class="page" id="profile">
+                    <div class="profile-grid">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">User Profile</h2></div>
+                            <div class="info-list" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                                <div class="info-item"><label>Name</label><input id="profileNameInput" type="text" value="Dev" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Height (cm)</label><input id="profileHeightInput" type="number" min="100" max="230" value="178" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Weight (kg)</label><input id="profileWeightInput" type="number" min="40" max="180" value="72" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Age</label><input id="profileAgeInput" type="number" min="16" max="80" value="30" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"></div>
+                                <div class="info-item"><label>Fitness level</label><select id="profileFitnessLevelInput" style="width:100%; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(7,27,53,0.95); color:white;"><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option></select></div>
+                                <div class="info-item"><label>Estimated calories</label><strong id="profileCalories">-</strong></div>
+                                <div class="info-item"><label>BMI</label><strong id="profileBMI">22.7</strong></div>
+                            </div>
+                            <div style="margin-top:16px; display:flex; gap:12px;"><button class="tab-item" id="saveProfileButton">Save profile</button><button class="tab-item" id="resetProfileButton">Reset profile</button></div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">Camera & AI</h2></div>
+                            <div class="info-list">
+                                <div class="info-item"><strong id="profileCameraStatus">Waiting</strong><span>Camera status</span></div>
+                                <div class="info-item"><strong id="profileSessionCount">0</strong><span>Sessions recorded</span></div>
+                                <div class="info-item"><strong id="profileAverageForm">-</strong><span>Average form</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SETTINGS -->
+                <section class="page" id="settings">
+                    <div class="glass-card" style="max-width:900px; margin:0 auto;">
+                        <div class="card-header"><h2 class="card-title">Settings</h2></div>
+                        <div class="settings-grid" style="display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px;">
+                            <div class="setting-item"><label>Camera</label><select id="settingsCameraSelect"></select></div>
+                            <div class="setting-item"><label>FPS target</label><input type="number" id="settingsFPS" min="15" max="60" step="5" value="30"></div>
+                            <div class="setting-item"><label>Detection sensitivity</label><input type="range" id="settingsSensitivity" min="0.3" max="0.9" step="0.05" value="0.5"></div>
+                            <div class="setting-item"><label>Notification alerts</label><select id="settingsNotifications"><option value="all">All</option><option value="form">Form only</option><option value="none">None</option></select></div>
+                            <div class="setting-item"><label>Language</label><select id="settingsLanguage"><option value="en">English</option><option value="th">Thai</option></select></div>
+                            <div class="setting-item"><label>Theme</label><select id="settingsTheme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+                        </div>
+                        <div style="margin-top:22px; display:flex; gap:12px;"><button class="tab-item" id="saveSettingsButton">Save settings</button><button class="tab-item" id="resetSettingsButton">Reset defaults</button></div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-nav" aria-label="Mobile navigation">
+        <button class="tab-item active" data-page="dashboard">Dash</button>
+        <button class="tab-item" data-page="live-analysis">Live</button>
+        <button class="tab-item" data-page="exercise-guide">Guide</button>
+        <button class="tab-item" data-page="exercise-history">History</button>
+        <button class="tab-item" data-page="profile">Profile</button>
+    </div>
+
+<script>
+// ===================== ANIMATED BACKGROUND =====================
+(function() {
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, stars = [], shootingStars = [];
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    resize(); window.addEventListener('resize', resize);
+    for (let i = 0; i < 180; i++) {
+        stars.push({ x: Math.random() * 2000, y: Math.random() * 1200, r: Math.random() * 1.8 + 0.3, a: Math.random(), da: (Math.random() * 0.008 + 0.002) * (Math.random() < 0.5 ? 1 : -1) });
+    }
+    function spawnShootingStar() {
+        shootingStars.push({ x: Math.random() * W, y: Math.random() * H * 0.5, vx: (Math.random() * 6 + 4), vy: (Math.random() * 3 + 2), life: 1, len: Math.random() * 80 + 40 });
+    }
+    setInterval(spawnShootingStar, 3000);
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        stars.forEach(s => {
+            s.a += s.da;
+            if (s.a > 1 || s.a < 0.1) s.da *= -1;
+            ctx.beginPath();
+            ctx.arc(s.x % W, s.y % H, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(200, 230, 255, ${s.a})`;
+            ctx.fill();
+        });
+        shootingStars = shootingStars.filter(ss => ss.life > 0);
+        shootingStars.forEach(ss => {
+            ctx.beginPath();
+            ctx.moveTo(ss.x, ss.y);
+            ctx.lineTo(ss.x - ss.vx * ss.len / 10, ss.y - ss.vy * ss.len / 10);
+            const grad = ctx.createLinearGradient(ss.x - ss.vx * ss.len / 10, ss.y - ss.vy * ss.len / 10, ss.x, ss.y);
+            grad.addColorStop(0, 'transparent');
+            grad.addColorStop(1, `rgba(0, 212, 255, ${ss.life * 0.9})`);
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ss.x += ss.vx; ss.y += ss.vy; ss.life -= 0.025;
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// ===================== FLOATING PARTICLES =====================
+(function() {
+    const layer = document.getElementById('particleLayer');
+    const colors = ['rgba(0,212,255,0.6)', 'rgba(124,255,107,0.5)', 'rgba(0,230,195,0.5)', 'rgba(255,213,107,0.4)'];
+    for (let i = 0; i < 28; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 8 + 3;
+        p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;bottom:-20px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${Math.random()*12+8}s;animation-delay:${Math.random()*10}s;`;
+        layer.appendChild(p);
+    }
+})();
+
+// ===================== EXERCISE DATA =====================
+const EXERCISES = {
+    pushup: {
+        name: 'Push-Up', emoji: '💪', badge: 'Upper Body',
+        desc: 'Classic upper body exercise targeting chest, shoulders, and triceps.',
+        steps: ['Start in a high plank position with hands slightly wider than shoulder-width.', 'Keep your body in a straight line from head to heels.', 'Lower your chest toward the floor by bending your elbows.', 'Push back up to the starting position, fully extending your arms.', 'Repeat for desired reps, keeping core engaged throughout.'],
+        tips: 'Keep your hips level — do not let them sag or rise. Breathe in on the way down, out on the way up.',
+        color: '#00d4ff',
+        character: `<circle cx="60" cy="28" r="18" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
+            <circle cx="54" cy="24" r="3.5" fill="#00d4ff"/><circle cx="66" cy="24" r="3.5" fill="#00d4ff"/>
+            <path d="M53 33 Q60 39 67 33" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <rect x="46" y="46" width="28" height="28" rx="8" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
+            <path d="M46 56 L28 46" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 46 56;-20 46 56;0 46 56" dur="0.6s" repeatCount="indefinite"/></path>
+            <path d="M74 56 L92 46" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 74 56;20 74 56;0 74 56" dur="0.6s" repeatCount="indefinite"/></path>
+            <path d="M52 74 L40 100" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"/>
+            <path d="M68 74 L80 100" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"/>`,
+    },
+    squat: {
+        name: 'Squat', emoji: '🦵', badge: 'Lower Body',
+        desc: 'Fundamental lower body exercise for quads, glutes, and hamstrings.',
+        steps: ['Stand with feet shoulder-width apart, toes slightly turned out.', 'Brace your core and keep your chest up.', 'Push your hips back and bend your knees to lower down.', 'Lower until thighs are parallel to the floor (or as low as comfortable).', 'Drive through your heels to return to standing.'],
+        tips: 'Keep knees tracking over your toes. Do not let your knees cave inward. Keep weight in your heels.',
+        color: '#7cff6b',
+        character: `<circle cx="60" cy="22" r="16" fill="#0d2b52" stroke="#7cff6b" stroke-width="2"/>
+            <circle cx="55" cy="19" r="3" fill="#7cff6b"/><circle cx="65" cy="19" r="3" fill="#7cff6b"/>
+            <path d="M54 27 Q60 33 66 27" stroke="#00d4ff" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <rect x="48" y="38" width="24" height="22" rx="6" fill="#0d2b52" stroke="#7cff6b" stroke-width="2"/>
+            <path d="M48 50 L34 46" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"/>
+            <path d="M72 50 L86 46" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"/>
+            <path d="M52 60 L40 85 L34 100" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 52 60;-25 52 60;0 52 60" dur="0.8s" repeatCount="indefinite"/></path>
+            <path d="M68 60 L80 85 L86 100" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 68 60;25 68 60;0 68 60" dur="0.8s" repeatCount="indefinite"/></path>`,
+    },
+    plank: {
+        name: 'Plank', emoji: '🧘', badge: 'Core',
+        desc: 'Isometric core exercise that builds stability and endurance.',
+        steps: ['Start in a forearm plank position with elbows under shoulders.', 'Keep your body in a straight line from head to heels.', 'Engage your core, glutes, and quads throughout.', 'Hold the position for the target duration.', 'Breathe steadily — do not hold your breath.'],
+        tips: 'Avoid letting your hips sag or pike up. Keep your neck neutral — look at the floor.',
+        color: '#00e6c3',
+        character: `<circle cx="60" cy="20" r="15" fill="#0d2b52" stroke="#00e6c3" stroke-width="2"/>
+            <circle cx="55" cy="17" r="3" fill="#00e6c3"/><circle cx="65" cy="17" r="3" fill="#00e6c3"/>
+            <path d="M54 25 Q60 30 66 25" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <rect x="30" y="42" width="60" height="18" rx="8" fill="#0d2b52" stroke="#00e6c3" stroke-width="2">
+                <animate attributeName="y" values="42;40;42" dur="2s" repeatCount="indefinite"/>
+            </rect>
+            <line x1="30" y1="51" x2="18" y2="65" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <line x1="90" y1="51" x2="102" y2="65" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <line x1="55" y1="60" x2="42" y2="90" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <line x1="65" y1="60" x2="78" y2="90" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>`,
+    },
+    situp: {
+        name: 'Sit-Up', emoji: '🔥', badge: 'Abs',
+        desc: 'Classic abdominal exercise targeting the rectus abdominis.',
+        steps: ['Lie on your back with knees bent and feet flat on the floor.', 'Place hands behind your head or across your chest.', 'Engage your core and lift your upper body toward your knees.', 'Pause briefly at the top, then slowly lower back down.', 'Repeat for desired reps with controlled movement.'],
+        tips: 'Do not pull on your neck with your hands. Focus on using your abs, not momentum.',
+        color: '#ffd56b',
+        character: `<circle cx="60" cy="18" r="15" fill="#0d2b52" stroke="#ffd56b" stroke-width="2"/>
+            <circle cx="55" cy="15" r="3" fill="#ffd56b"/><circle cx="65" cy="15" r="3" fill="#ffd56b"/>
+            <path d="M54 23 Q60 29 66 23" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M60 33 Q40 55 38 75" stroke="#ffd56b" stroke-width="5" stroke-linecap="round" fill="none">
+                <animate attributeName="d" values="M60 33 Q40 55 38 75;M60 33 Q55 50 54 68;M60 33 Q40 55 38 75" dur="1s" repeatCount="indefinite"/>
+            </path>
+            <path d="M60 33 Q80 55 82 75" stroke="#ffd56b" stroke-width="5" stroke-linecap="round" fill="none">
+                <animate attributeName="d" values="M60 33 Q80 55 82 75;M60 33 Q65 50 66 68;M60 33 Q80 55 82 75" dur="1s" repeatCount="indefinite"/>
+            </path>
+            <line x1="38" y1="75" x2="22" y2="100" stroke="#ffd56b" stroke-width="4" stroke-linecap="round"/>
+            <line x1="82" y1="75" x2="98" y2="100" stroke="#ffd56b" stroke-width="4" stroke-linecap="round"/>`,
+    },
+    lunge: {
+        name: 'Lunge', emoji: '⚡', badge: 'Legs',
+        desc: 'Unilateral lower body exercise for balance, strength, and coordination.',
+        steps: ['Stand tall with feet hip-width apart.', 'Step one foot forward and lower your hips.', 'Lower until both knees are at approximately 90 degrees.', 'Keep your front knee above your ankle, not past your toes.', 'Push back to starting position and alternate legs.'],
+        tips: 'Keep your torso upright. Do not let your front knee collapse inward.',
+        color: '#ff8ea6',
+        character: `<circle cx="60" cy="18" r="15" fill="#0d2b52" stroke="#ff8ea6" stroke-width="2"/>
+            <circle cx="55" cy="15" r="3" fill="#ff8ea6"/><circle cx="65" cy="15" r="3" fill="#ff8ea6"/>
+            <path d="M54 23 Q60 29 66 23" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <line x1="60" y1="33" x2="60" y2="60" stroke="#ff8ea6" stroke-width="5" stroke-linecap="round"/>
+            <line x1="60" y1="40" x2="42" y2="54" stroke="#ff8ea6" stroke-width="4" stroke-linecap="round"/>
+            <line x1="60" y1="40" x2="78" y2="54" stroke="#ff8ea6" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 60 L40 85 L36 105" stroke="#ff8ea6" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 60;-20 60 60;0 60 60" dur="1s" repeatCount="indefinite"/>
+            </path>
+            <path d="M60 60 L80 80" stroke="#ff8ea6" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 60;15 60 60;0 60 60" dur="1s" repeatCount="indefinite"/>
+            </path>`,
+    },
+    jumpingjack: {
+        name: 'Jumping Jack', emoji: '🌟', badge: 'Cardio',
+        desc: 'Full-body cardio exercise that raises heart rate and improves coordination.',
+        steps: ['Stand upright with feet together and arms at your sides.', 'Jump up while spreading your legs shoulder-width apart.', 'Simultaneously raise your arms above your head.', 'Jump back to starting position with feet together and arms down.', 'Repeat rapidly for desired reps or duration.'],
+        tips: 'Land softly on the balls of your feet to reduce joint impact. Keep a steady rhythm.',
+        color: '#00d4ff',
+        character: `<circle cx="60" cy="18" r="15" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
+            <circle cx="55" cy="15" r="3" fill="#00d4ff"/><circle cx="65" cy="15" r="3" fill="#00d4ff"/>
+            <path d="M54 23 Q60 29 66 23" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <line x1="60" y1="33" x2="60" y2="65" stroke="#00d4ff" stroke-width="5" stroke-linecap="round"/>
+            <line x1="60" y1="42" x2="30" y2="28" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 42;-30 60 42;0 60 42" dur="0.6s" repeatCount="indefinite"/>
+            </line>
+            <line x1="60" y1="42" x2="90" y2="28" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 42;30 60 42;0 60 42" dur="0.6s" repeatCount="indefinite"/>
+            </line>
+            <line x1="60" y1="65" x2="35" y2="95" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 65;-25 60 65;0 60 65" dur="0.6s" repeatCount="indefinite"/>
+            </line>
+            <line x1="60" y1="65" x2="85" y2="95" stroke="#00d4ff" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 65;25 60 65;0 60 65" dur="0.6s" repeatCount="indefinite"/>
+            </line>`,
+    },
+    burpee: {
+        name: 'Burpee', emoji: '🔥', badge: 'Full Body',
+        desc: 'High-intensity full-body exercise combining squat, plank, and jump.',
+        steps: ['Stand with feet shoulder-width apart.', 'Drop into a squat and place hands on the floor.', 'Jump feet back into a plank position.', 'Perform a push-up (optional).', 'Jump feet forward to hands, then explosively jump up with arms overhead.'],
+        tips: 'Focus on form over speed. Keep core braced throughout the movement.',
+        color: '#ff6577',
+        character: `<circle cx="60" cy="16" r="13" fill="#0d2b52" stroke="#ff6577" stroke-width="2"/>
+            <circle cx="56" cy="13" r="2.5" fill="#ff6577"/><circle cx="64" cy="13" r="2.5" fill="#ff6577"/>
+            <path d="M55 20 Q60 25 65 20" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M60 29 L60 55 L40 75 L35 100" stroke="#ff6577" stroke-width="4" stroke-linecap="round" fill="none">
+                <animate attributeName="d" values="M60 29 L60 55 L40 75 L35 100;M60 29 L60 50 L45 65 L40 90;M60 29 L60 55 L40 75 L35 100" dur="1s" repeatCount="indefinite"/>
+            </path>
+            <path d="M60 29 L42 40" stroke="#ff6577" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 29;-30 60 29;0 60 29" dur="1s" repeatCount="indefinite"/>
+            </path>
+            <path d="M60 29 L78 40" stroke="#ff6577" stroke-width="4" stroke-linecap="round">
+                <animateTransform attributeName="transform" type="rotate" values="0 60 29;30 60 29;0 60 29" dur="1s" repeatCount="indefinite"/>
+            </path>
+            <path d="M60 55 L80 75 L85 100" stroke="#ff6577" stroke-width="4" stroke-linecap="round" fill="none"/>`,
+    },
+    mountainclimber: {
+        name: 'Mountain Climber', emoji: '🏔️', badge: 'Core+Cardio',
+        desc: 'Dynamic core exercise combining plank stability with running motion.',
+        steps: ['Start in a high plank position with arms straight.', 'Keep your core engaged and hips level.', 'Drive one knee toward your chest.', 'Quickly switch legs in a running motion.', 'Maintain a steady pace for the target duration.'],
+        tips: 'Keep hips down — do not let them rise. The faster you go, the more cardio benefit.',
+        color: '#00e6c3',
+        character: `<circle cx="60" cy="16" r="13" fill="#0d2b52" stroke="#00e6c3" stroke-width="2"/>
+            <circle cx="56" cy="13" r="2.5" fill="#00e6c3"/><circle cx="64" cy="13" r="2.5" fill="#00e6c3"/>
+            <path d="M55 20 Q60 25 65 20" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M20 60 L100 60" stroke="#00e6c3" stroke-width="3" stroke-dasharray="6 4" opacity="0.4"/>
+            <path d="M60 29 L30 55" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 29 L90 55" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <path d="M30 55 L18 80" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <path d="M90 55 L102 80" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 29 L50 55 L42 75" stroke="#00e6c3" stroke-width="4" stroke-linecap="round">
+                <animate attributeName="d" values="M60 29 L50 55 L42 75;M60 29 L55 50 L60 70;M60 29 L50 55 L42 75" dur="0.5s" repeatCount="indefinite"/>
+            </path>
+            <path d="M60 29 L70 55 L78 75" stroke="#00e6c3" stroke-width="4" stroke-linecap="round">
+                <animate attributeName="d" values="M60 29 L70 55 L78 75;M60 29 L65 50 L60 70;M60 29 L70 55 L78 75" dur="0.5s" repeatCount="indefinite"/>
+            </path>`,
+    },
+    hipbridge: {
+        name: 'Hip Bridge', emoji: '🌉', badge: 'Glutes',
+        desc: 'Glute activation exercise that also strengthens the lower back and hamstrings.',
+        steps: ['Lie on your back with knees bent and feet flat on the floor.', 'Place arms at your sides with palms down.', 'Squeeze your glutes and lift your hips toward the ceiling.', 'Hold at the top for 1-2 seconds.', 'Slowly lower back down and repeat.'],
+        tips: 'Drive through your heels, not your toes. Keep your core braced to protect your lower back.',
+        color: '#ffd56b',
+        character: `<circle cx="60" cy="16" r="13" fill="#0d2b52" stroke="#ffd56b" stroke-width="2"/>
+            <circle cx="56" cy="13" r="2.5" fill="#ffd56b"/><circle cx="64" cy="13" r="2.5" fill="#ffd56b"/>
+            <path d="M55 20 Q60 25 65 20" stroke="#7cff6b" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M20 80 L100 80" stroke="#ffd56b" stroke-width="3" opacity="0.3"/>
+            <path d="M20 80 L35 80 L50 55 L70 45 L85 55 L100 80" stroke="#ffd56b" stroke-width="4" stroke-linecap="round" fill="none">
+                <animate attributeName="d" values="M20 80 L35 80 L50 55 L70 45 L85 55 L100 80;M20 80 L35 80 L50 65 L70 60 L85 65 L100 80;M20 80 L35 80 L50 55 L70 45 L85 55 L100 80" dur="1.2s" repeatCount="indefinite"/>
+            </path>
+            <circle cx="60" cy="29" r="8" fill="#ffd56b" opacity="0.2">
+                <animate attributeName="cy" values="29;24;29" dur="1.2s" repeatCount="indefinite"/>
+            </circle>`,
+    },
+    deadlift: {
+        name: 'Deadlift', emoji: '🏋️', badge: 'Strength',
+        desc: 'Compound strength movement targeting the posterior chain.',
+        steps: ['Stand with feet hip-width apart, bar over mid-foot.', 'Hinge at the hips and grip the bar just outside your legs.', 'Keep your back flat and chest up.', 'Drive through your heels and extend your hips and knees simultaneously.', 'Lock out at the top, then hinge back down with control.'],
+        tips: 'Never round your lower back. Keep the bar close to your body throughout the lift.',
+        color: '#7cff6b',
+        character: `<circle cx="60" cy="16" r="13" fill="#0d2b52" stroke="#7cff6b" stroke-width="2"/>
+            <circle cx="56" cy="13" r="2.5" fill="#7cff6b"/><circle cx="64" cy="13" r="2.5" fill="#7cff6b"/>
+            <path d="M55 20 Q60 25 65 20" stroke="#00d4ff" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M60 29 L60 62" stroke="#7cff6b" stroke-width="5" stroke-linecap="round">
+                <animate attributeName="d" values="M60 29 L60 62;M60 29 L55 58;M60 29 L60 62" dur="1.5s" repeatCount="indefinite"/>
+            </path>
+            <path d="M60 40 L38 50" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 40 L82 50" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 62 L45 90 L40 108" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"/>
+            <path d="M60 62 L75 90 L80 108" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"/>
+            <rect x="28" y="60" width="64" height="8" rx="4" fill="#7cff6b" opacity="0.5">
+                <animate attributeName="y" values="60;55;60" dur="1.5s" repeatCount="indefinite"/>
+            </rect>
+            <circle cx="28" cy="64" r="10" fill="none" stroke="#7cff6b" stroke-width="3" opacity="0.6"/>
+            <circle cx="92" cy="64" r="10" fill="none" stroke="#7cff6b" stroke-width="3" opacity="0.6"/>`,
+    },
+};
+
+// ===================== MASCOT TIPS =====================
+const MASCOT_TIPS = [
+    'Ready to crush your workout? Let\'s go! 💪',
+    'Remember: form over speed, always!',
+    'Stay hydrated — drink water every 15 minutes.',
+    'Warm up for 5 minutes before intense exercise.',
+    'Keep your core engaged throughout every movement.',
+    'Rest 60-90 seconds between sets for best results.',
+    'Consistency beats perfection. Show up every day!',
+    'Listen to your body — pain is different from discomfort.',
+    'Breathe out on the exertion phase of every rep.',
+    'Great posture prevents injury and improves performance!',
+    'Click any exercise character to learn proper form!',
+    'You\'re doing amazing — keep it up! 🌟',
+];
+let mascotTipIndex = 0;
+function rotateMascotTip() {
+    mascotTipIndex = (mascotTipIndex + 1) % MASCOT_TIPS.length;
+    const el = document.getElementById('mascotTipText');
+    if (el) { el.style.opacity = '0'; setTimeout(() => { el.textContent = MASCOT_TIPS[mascotTipIndex]; el.style.opacity = '1'; el.style.transition = 'opacity 0.4s'; }, 300); }
+}
+setInterval(rotateMascotTip, 5000);
+document.getElementById('mascotAvatarBtn').addEventListener('click', rotateMascotTip);
+
+// ===================== EXERCISE GUIDE PAGE =====================
+function buildExerciseGuide() {
+    const grid = document.getElementById('exerciseGuideGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    Object.entries(EXERCISES).forEach(([key, ex]) => {
+        const card = document.createElement('div');
+        card.className = 'exercise-guide-card';
+        card.innerHTML = `
+            <svg class="guide-character" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${ex.character}</svg>
+            <div class="guide-name">${ex.emoji} ${ex.name}</div>
+            <div class="guide-badge" style="background:rgba(${hexToRgb(ex.color)},0.12); color:${ex.color};">${ex.badge}</div>
+            <div class="guide-tip">${ex.desc.substring(0, 60)}…</div>`;
+        card.addEventListener('click', () => openExerciseModal(key));
+        grid.appendChild(card);
+    });
+}
+function hexToRgb(hex) {
+    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r ? `${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}` : '0,212,255';
+}
+function openExerciseModal(key) {
+    const ex = EXERCISES[key];
+    if (!ex) return;
+    document.getElementById('modalTitle').textContent = `${ex.emoji} ${ex.name}`;
+    document.getElementById('modalSubtitle').textContent = ex.desc;
+    document.getElementById('modalCharacter').innerHTML = ex.character;
+    document.getElementById('modalSteps').innerHTML = ex.steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+    document.getElementById('modalTips').innerHTML = `<strong>Pro Tip</strong><p>${ex.tips}</p>`;
+    document.getElementById('exerciseModal').classList.add('open');
+    // Also update detail panel
+    document.getElementById('detailTitle').textContent = `${ex.emoji} ${ex.name}`;
+    document.getElementById('detailDesc').textContent = ex.desc;
+    document.getElementById('detailCharacter').innerHTML = ex.character;
+    document.getElementById('detailSteps').innerHTML = ex.steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+}
+document.getElementById('modalClose').addEventListener('click', () => document.getElementById('exerciseModal').classList.remove('open'));
+document.getElementById('exerciseModal').addEventListener('click', (e) => { if (e.target === document.getElementById('exerciseModal')) document.getElementById('exerciseModal').classList.remove('open'); });
+
+// ===================== NAVIGATION =====================
+function navigateTo(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.mobile-nav .tab-item').forEach(n => n.classList.remove('active'));
+    const page = document.getElementById(pageId);
+    if (page) page.classList.add('active');
+    document.querySelectorAll(`[data-page="${pageId}"]`).forEach(n => n.classList.add('active'));
+    if (pageId === 'exercise-guide') buildExerciseGuide();
+}
+document.querySelectorAll('[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => navigateTo(btn.dataset.page));
+});
+
+// ===================== WORKOUT STATE =====================
+let workoutActive = false, workoutTimer = null, workoutSeconds = 0, repCount = 0;
+let formScores = [], sessionHistory = [], currentExercise = 'pushup';
+let lastRepState = 'up', fpsCounter = 0, lastFpsTime = Date.now();
+
+document.querySelectorAll('.exercise-selection button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.exercise-selection button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentExercise = btn.dataset.exercise;
+        document.getElementById('liveExerciseLabel').textContent = `Exercise: ${EXERCISES[currentExercise]?.name || currentExercise}`;
+    });
+});
+
+const startStopButton = document.getElementById('startStopButton');
+startStopButton.addEventListener('click', () => {
+    if (workoutActive) stopWorkout(); else startWorkout();
+});
+
+function startWorkout() {
+    workoutActive = true; workoutSeconds = 0; repCount = 0; formScores = [];
+    startStopButton.textContent = 'Stop';
+    document.getElementById('liveCameraStatus').textContent = 'Tracking: Active';
+    workoutTimer = setInterval(() => {
+        workoutSeconds++;
+        document.getElementById('liveDuration').textContent = formatTime(workoutSeconds);
+    }, 1000);
+    startCamera();
+}
+
+function stopWorkout() {
+    workoutActive = false;
+    clearInterval(workoutTimer);
+    startStopButton.textContent = 'Start';
+    document.getElementById('liveCameraStatus').textContent = 'Tracking: Stopped';
+    const avgForm = formScores.length ? Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length) : 0;
+    const session = { exercise: currentExercise, duration: workoutSeconds, reps: repCount, avgForm, date: new Date().toISOString(), issues: [] };
+    sessionHistory.push(session);
+    updateDashboard();
+    updateHistory();
+    updateReports();
+    addCoachMessage(`Session complete! ${repCount} reps in ${formatTime(workoutSeconds)}. Average form: ${avgForm}%.`);
+}
+
+function formatTime(s) { return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; }
+
+// ===================== CAMERA & POSE =====================
+let videoEl, canvasEl, ctxCanvas, pose, camera;
+function startCamera() {
+    videoEl = document.getElementById('cameraVideo');
+    canvasEl = document.getElementById('overlayCanvas');
+    ctxCanvas = canvasEl.getContext('2d');
+    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false })
+        .then(stream => {
+            videoEl.srcObject = stream;
+            videoEl.onloadedmetadata = () => {
+                canvasEl.width = videoEl.videoWidth;
+                canvasEl.height = videoEl.videoHeight;
+                document.getElementById('debugCameraStatus').textContent = 'Active';
+                document.getElementById('profileCameraStatus').textContent = 'Active';
+                initPose();
+            };
+        })
+        .catch(err => {
+            document.getElementById('debugCameraStatus').textContent = 'Error: ' + err.message;
+            addDebugError('Camera error: ' + err.message);
+        });
+}
+
+function initPose() {
+    if (typeof Pose === 'undefined') {
+        document.getElementById('debugMediaPipeStatus').textContent = 'Not loaded';
+        addDebugError('MediaPipe Pose not loaded. Simulating data.');
+        simulateData(); return;
+    }
+    pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${f}` });
+    pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    pose.onResults(onPoseResults);
+    document.getElementById('debugMediaPipeStatus').textContent = 'Active';
+    camera = new Camera(videoEl, {
+        onFrame: async () => { if (workoutActive) await pose.send({ image: videoEl }); },
+        width: 640, height: 480
+    });
+    camera.start();
+}
+
+function onPoseResults(results) {
+    if (!ctxCanvas) return;
+    ctxCanvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    fpsCounter++;
+    const now = Date.now();
+    if (now - lastFpsTime >= 1000) {
+        document.getElementById('debugFPS').textContent = fpsCounter;
+        fpsCounter = 0; lastFpsTime = now;
+    }
+    if (!results.poseLandmarks) { document.getElementById('debugLandmarkCount').textContent = '0'; return; }
+    const lm = results.poseLandmarks;
+    document.getElementById('debugLandmarkCount').textContent = lm.length;
+    document.getElementById('debugDetectionConfidence').textContent = (lm[0]?.visibility * 100 || 0).toFixed(0) + '%';
+    drawSkeleton(lm);
+    analyzeForm(lm);
+}
+
+function drawSkeleton(lm) {
+    const W = canvasEl.width, H = canvasEl.height;
+    const connections = [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
+    ctxCanvas.strokeStyle = 'rgba(0,212,255,0.8)'; ctxCanvas.lineWidth = 3;
+    connections.forEach(([a,b]) => {
+        if (lm[a] && lm[b] && lm[a].visibility > 0.5 && lm[b].visibility > 0.5) {
+            ctxCanvas.beginPath();
+            ctxCanvas.moveTo(lm[a].x * W, lm[a].y * H);
+            ctxCanvas.lineTo(lm[b].x * W, lm[b].y * H);
+            ctxCanvas.stroke();
+        }
+    });
+    lm.forEach((p, i) => {
+        if (p.visibility > 0.5) {
+            ctxCanvas.beginPath();
+            ctxCanvas.arc(p.x * W, p.y * H, 5, 0, Math.PI * 2);
+            ctxCanvas.fillStyle = '#7cff6b'; ctxCanvas.fill();
+        }
+    });
+}
+
+function calcAngle(a, b, c) {
+    const ab = { x: a.x - b.x, y: a.y - b.y };
+    const cb = { x: c.x - b.x, y: c.y - b.y };
+    const dot = ab.x * cb.x + ab.y * cb.y;
+    const cross = ab.x * cb.y - ab.y * cb.x;
+    return Math.abs(Math.atan2(Math.abs(cross), dot) * 180 / Math.PI);
+}
+
+function analyzeForm(lm) {
+    const lShoulder = lm[11], rShoulder = lm[12], lElbow = lm[13], rElbow = lm[14];
+    const lWrist = lm[15], rWrist = lm[16], lHip = lm[23], rHip = lm[24];
+    const lKnee = lm[25], rKnee = lm[26], lAnkle = lm[27], rAnkle = lm[28];
+    const lShoulderAngle = lShoulder && lElbow && lHip ? calcAngle(lElbow, lShoulder, lHip) : 0;
+    const rShoulderAngle = rShoulder && rElbow && rHip ? calcAngle(rElbow, rShoulder, rHip) : 0;
+    const lKneeAngle = lHip && lKnee && lAnkle ? calcAngle(lHip, lKnee, lAnkle) : 0;
+    const rKneeAngle = rHip && rKnee && rAnkle ? calcAngle(rHip, rKnee, rAnkle) : 0;
+    const hipAngle = lShoulder && lHip && lKnee ? calcAngle(lShoulder, lHip, lKnee) : 0;
+    document.getElementById('angleLeftShoulder').textContent = lShoulderAngle.toFixed(0) + '°';
+    document.getElementById('angleRightShoulder').textContent = rShoulderAngle.toFixed(0) + '°';
+    document.getElementById('angleLeftKnee').textContent = lKneeAngle.toFixed(0) + '°';
+    document.getElementById('angleRightKnee').textContent = rKneeAngle.toFixed(0) + '°';
+    document.getElementById('angleHip').textContent = hipAngle.toFixed(0) + '°';
+    let formScore = 85, issues = [];
+    if (currentExercise === 'pushup') {
+        if (lShoulderAngle < 60 || lShoulderAngle > 120) { issues.push('Shoulder angle off'); formScore -= 15; }
+        const hipDiff = lHip && rHip ? Math.abs(lHip.y - rHip.y) : 0;
+        if (hipDiff > 0.05) { issues.push('Hips not level'); formScore -= 10; }
+        if (lKneeAngle < 160) { issues.push('Knees bent'); formScore -= 8; }
+        if (lShoulderAngle < 90 && lastRepState === 'up') { lastRepState = 'down'; }
+        else if (lShoulderAngle > 150 && lastRepState === 'down') { lastRepState = 'up'; repCount++; document.getElementById('liveRepCount').textContent = repCount; }
+    } else if (currentExercise === 'squat') {
+        if (lKneeAngle < 80 || lKneeAngle > 170) { issues.push('Knee angle off'); formScore -= 12; }
+        if (hipAngle < 60) { issues.push('Lean too far forward'); formScore -= 10; }
+        if (lKneeAngle < 100 && lastRepState === 'up') { lastRepState = 'down'; }
+        else if (lKneeAngle > 160 && lastRepState === 'down') { lastRepState = 'up'; repCount++; document.getElementById('liveRepCount').textContent = repCount; }
+    }
+    formScore = Math.max(0, Math.min(100, formScore));
+    formScores.push(formScore);
+    document.getElementById('liveFormAccuracy').textContent = formScore + '%';
+    document.getElementById('liveStability').textContent = formScore > 75 ? 'Good' : formScore > 50 ? 'Fair' : 'Poor';
+    document.getElementById('liveCoreScore').textContent = formScore > 80 ? 'Strong' : 'Needs work';
+    document.getElementById('liveCoreScore2').textContent = formScore > 80 ? 'Strong' : 'Needs work';
+    const feedbackList = document.getElementById('liveFeedbackList');
+    if (issues.length) {
+        feedbackList.innerHTML = issues.map(i => `<div class="error-item"><strong>⚠️ ${i}</strong><span>Correct your form to avoid injury.</span></div>`).join('');
+        document.getElementById('livePrimaryIssue').textContent = issues[0];
+    } else {
+        feedbackList.innerHTML = '<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">✅ Great form!</strong><span>Keep it up!</span></div>';
+        document.getElementById('livePrimaryIssue').textContent = 'None — great form!';
+    }
+}
+
+function simulateData() {
+    let simAngle = 90, simDir = 1;
+    setInterval(() => {
+        if (!workoutActive) return;
+        simAngle += simDir * 8;
+        if (simAngle > 170) simDir = -1;
+        if (simAngle < 60) simDir = 1;
+        const score = Math.round(70 + Math.random() * 25);
+        formScores.push(score);
+        document.getElementById('liveFormAccuracy').textContent = score + '%';
+        document.getElementById('angleLeftShoulder').textContent = simAngle.toFixed(0) + '°';
+        document.getElementById('angleRightShoulder').textContent = (simAngle + 5).toFixed(0) + '°';
+        document.getElementById('angleLeftKnee').textContent = (160 + Math.random() * 15).toFixed(0) + '°';
+        document.getElementById('angleRightKnee').textContent = (160 + Math.random() * 15).toFixed(0) + '°';
+        document.getElementById('liveStability').textContent = score > 80 ? 'Good' : 'Fair';
+        document.getElementById('liveCoreScore').textContent = score > 80 ? 'Strong' : 'Needs work';
+        document.getElementById('liveCoreScore2').textContent = score > 80 ? 'Strong' : 'Needs work';
+        if (simAngle < 80 && lastRepState === 'up') { lastRepState = 'down'; }
+        else if (simAngle > 150 && lastRepState === 'down') { lastRepState = 'up'; repCount++; document.getElementById('liveRepCount').textContent = repCount; }
+        document.getElementById('liveFeedbackList').innerHTML = '<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">✅ Simulating pose data</strong><span>Camera or MediaPipe unavailable.</span></div>';
+        document.getElementById('livePrimaryIssue').textContent = 'Simulation mode';
+    }, 200);
+}
+
+function addDebugError(msg) {
+    const log = document.getElementById('debugErrorLog');
+    if (!log) return;
+    const item = document.createElement('div');
+    item.className = 'error-item';
+    item.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong><span>${msg}</span>`;
+    log.prepend(item);
+}
+
+// ===================== DASHBOARD UPDATE =====================
+function updateDashboard() {
+    const totalSessions = sessionHistory.length;
+    const allForms = sessionHistory.flatMap(s => [s.avgForm]).filter(Boolean);
+    const avgForm = allForms.length ? Math.round(allForms.reduce((a,b)=>a+b,0)/allForms.length) : 0;
+    const bestForm = allForms.length ? Math.max(...allForms) : 0;
+    const totalReps = sessionHistory.reduce((a,s)=>a+s.reps,0);
+    const totalMins = Math.round(sessionHistory.reduce((a,s)=>a+s.duration,0)/60);
+    document.getElementById('dashboardWorkoutCount').textContent = totalSessions;
+    document.getElementById('summaryWorkoutCount').textContent = totalSessions;
+    document.getElementById('dashboardFormAccuracy').textContent = avgForm ? avgForm + '%' : '-';
+    document.getElementById('summaryAverageForm').textContent = avgForm ? avgForm + '%' : '-';
+    document.getElementById('dashboardBestForm').textContent = bestForm ? bestForm + '%' : '-';
+    document.getElementById('dashboardTotalReps').textContent = totalReps;
+    document.getElementById('dashboardActiveMinutes').textContent = totalMins + ' min';
+    document.getElementById('dashboardActiveMinutes2').textContent = totalMins + ' min';
+    document.getElementById('dashboardDrills').textContent = totalSessions;
+    document.getElementById('profileSessionCount').textContent = totalSessions;
+    document.getElementById('profileAverageForm').textContent = avgForm ? avgForm + '%' : '-';
+    const pct = Math.min(100, avgForm);
+    const offset = 314 - (314 * pct / 100);
+    const fill = document.getElementById('dashboardProgressFill');
+    if (fill) { fill.style.strokeDashoffset = offset; }
+    document.getElementById('dashboardProgressLabel').textContent = pct + '%';
+    document.getElementById('dashboardProgressText').textContent = totalSessions ? `${totalSessions} session(s) completed.` : 'Start a workout to populate metrics.';
+    document.getElementById('dashboardFitnessScore').textContent = avgForm ? avgForm + '%' : '-';
+    document.getElementById('dashboardStability').textContent = avgForm > 80 ? 'Excellent' : avgForm > 60 ? 'Good' : avgForm ? 'Fair' : '-';
+    document.getElementById('challengeSessions').textContent = totalSessions;
+    document.getElementById('challengeBestForm').textContent = bestForm ? bestForm + '%' : '-';
+    document.getElementById('challengeProgress').textContent = `${Math.min(totalSessions, 3)}/3 workouts completed.`;
+    document.getElementById('dashboardCoachTip').textContent = totalSessions ? `You've completed ${totalSessions} session(s) with an average form of ${avgForm}%. ${avgForm > 80 ? 'Excellent work!' : 'Focus on maintaining proper form.'}` : 'Select Live Workout and start a session to receive posture guidance.';
+    updateAchievements(totalSessions, bestForm, totalReps);
+}
+
+function updateAchievements(sessions, bestForm, totalReps) {
+    const list = document.getElementById('achievementList');
+    const milestones = document.getElementById('achievementMilestones');
+    const achievements = [
+        { name: 'First Workout', unlocked: sessions >= 1, icon: '🏅' },
+        { name: '5 Sessions', unlocked: sessions >= 5, icon: '🥈' },
+        { name: '10 Sessions', unlocked: sessions >= 10, icon: '🥇' },
+        { name: 'Perfect Form', unlocked: bestForm >= 95, icon: '⭐' },
+        { name: '100 Reps', unlocked: totalReps >= 100, icon: '💪' },
+        { name: 'Consistency', unlocked: sessions >= 3, icon: '🔥' },
+    ];
+    list.innerHTML = achievements.filter(a => a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong>${a.icon} Unlocked</strong></div>`).join('') || '<p style="color:var(--muted)">Complete workouts to unlock achievements.</p>';
+    milestones.innerHTML = achievements.filter(a => !a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong style="color:var(--muted)">🔒 Locked</strong></div>`).join('');
+}
+
+// ===================== HISTORY =====================
+function updateHistory() {
+    const tbody = document.getElementById('historyTableBody');
+    if (!tbody) return;
+    if (!sessionHistory.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr>'; return; }
+    tbody.innerHTML = sessionHistory.map((s, i) => `<tr>
+        <td>${EXERCISES[s.exercise]?.emoji || ''} ${EXERCISES[s.exercise]?.name || s.exercise}</td>
+        <td>${formatTime(s.duration)}</td>
+        <td>${s.reps}</td>
+        <td>${s.avgForm}%</td>
+        <td>${s.issues?.join(', ') || 'None'}</td>
+        <td><button class="badge-pill" onclick="viewSessionDetail(${i})">View</button></td>
+    </tr>`).join('');
+}
+
+function viewSessionDetail(i) {
+    const s = sessionHistory[i];
+    const panel = document.getElementById('historyDetailsPanel');
+    panel.style.display = 'block';
+    panel.innerHTML = `<h3>${EXERCISES[s.exercise]?.name} — ${new Date(s.date).toLocaleString()}</h3>
+        <p>Duration: ${formatTime(s.duration)} | Reps: ${s.reps} | Form: ${s.avgForm}%</p>`;
+}
+
+document.getElementById('clearHistoryButton').addEventListener('click', () => { sessionHistory = []; updateHistory(); updateDashboard(); });
+document.getElementById('exportHistoryButton').addEventListener('click', () => {
+    const data = sessionHistory.map(s => `${EXERCISES[s.exercise]?.name},${formatTime(s.duration)},${s.reps},${s.avgForm}%`).join('\n');
+    const blob = new Blob([`Exercise,Duration,Reps,Form\n${data}`], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fitguard_history.csv'; a.click();
+});
+
+// ===================== REPORTS =====================
+function updateReports() {
+    const select = document.getElementById('reportSelect');
+    select.innerHTML = sessionHistory.map((s, i) => `<option value="${i}">Session ${i+1} — ${EXERCISES[s.exercise]?.name}</option>`).join('');
+    if (sessionHistory.length) loadReport(sessionHistory.length - 1);
+}
+function loadReport(i) {
+    const s = sessionHistory[i];
+    if (!s) return;
+    document.getElementById('reportExerciseType').textContent = EXERCISES[s.exercise]?.name || s.exercise;
+    document.getElementById('reportDuration').textContent = formatTime(s.duration);
+    document.getElementById('reportReps').textContent = s.reps;
+    document.getElementById('reportFormAccuracy').textContent = s.avgForm + '%';
+    document.getElementById('reportStability').textContent = s.avgForm > 80 ? 'Excellent' : s.avgForm > 60 ? 'Good' : 'Fair';
+    document.getElementById('reportInjuryRisk').textContent = s.avgForm > 80 ? 'Low' : s.avgForm > 60 ? 'Moderate' : 'High';
+    document.getElementById('reportTimeline').innerHTML = `<div class="bar-graph"><div class="label-row"><span>Form accuracy</span><span>${s.avgForm}%</span></div><div class="bar-track"><div class="bar-value" style="width:${s.avgForm}%"></div></div></div>`;
+}
+document.getElementById('reportSelect').addEventListener('change', (e) => loadReport(parseInt(e.target.value)));
+
+// ===================== AI COACH =====================
+const coachMessages = [
+    { role: 'ai', text: 'Hello! I\'m your AI Coach. Complete a workout session and I\'ll provide personalized feedback on your form and performance.' },
+    { role: 'ai', text: 'Tip: Focus on controlled movements rather than speed. Quality reps build strength safely.' },
+];
+function renderCoachMessages() {
+    const list = document.getElementById('coachMessageList');
+    list.innerHTML = coachMessages.map(m => `<div class="chat-message ${m.role}">${m.text}</div>`).join('');
+    list.scrollTop = list.scrollHeight;
+}
+function addCoachMessage(text) {
+    coachMessages.push({ role: 'ai', text });
+    renderCoachMessages();
+}
+renderCoachMessages();
+
+// ===================== PROFILE =====================
+document.getElementById('saveProfileButton').addEventListener('click', () => {
+    const h = parseFloat(document.getElementById('profileHeightInput').value);
+    const w = parseFloat(document.getElementById('profileWeightInput').value);
+    const bmi = (w / ((h/100) ** 2)).toFixed(1);
+    document.getElementById('profileBMI').textContent = bmi;
+    document.getElementById('profileCalories').textContent = Math.round(w * 24 * 1.3) + ' kcal/day';
+    addCoachMessage('Profile updated! BMI: ' + bmi + '. Keep tracking your progress!');
+});
+document.getElementById('resetProfileButton').addEventListener('click', () => {
+    document.getElementById('profileNameInput').value = 'Dev';
+    document.getElementById('profileHeightInput').value = 178;
+    document.getElementById('profileWeightInput').value = 72;
+    document.getElementById('profileAgeInput').value = 30;
+});
+
+// ===================== SETTINGS =====================
+navigator.mediaDevices?.enumerateDevices().then(devices => {
+    const sel = document.getElementById('settingsCameraSelect');
+    devices.filter(d => d.kind === 'videoinput').forEach(d => {
+        const opt = document.createElement('option'); opt.value = d.deviceId; opt.textContent = d.label || 'Camera'; sel.appendChild(opt);
+    });
+});
+document.getElementById('saveSettingsButton').addEventListener('click', () => { addCoachMessage('Settings saved successfully!'); });
+document.getElementById('resetSettingsButton').addEventListener('click', () => { document.getElementById('settingsFPS').value = 30; document.getElementById('settingsSensitivity').value = 0.5; });
+
+// ===================== PROGRESS PAGE =====================
+function updateProgress() {
+    const bars = document.getElementById('progressBars');
+    if (!bars || !sessionHistory.length) return;
+    bars.innerHTML = sessionHistory.slice(-8).map((s, i) => `<div class="bar-graph"><div class="label-row"><span>Session ${i+1} — ${EXERCISES[s.exercise]?.name}</span><span>${s.avgForm}%</span></div><div class="bar-track"><div class="bar-value" style="width:${s.avgForm}%"></div></div></div>`).join('');
+    document.getElementById('progressMinutes').textContent = Math.round(sessionHistory.reduce((a,s)=>a+s.duration,0)/60) + ' min';
+    document.getElementById('progressRepRate').textContent = (sessionHistory.reduce((a,s)=>a+s.reps,0)/sessionHistory.length).toFixed(1) + ' reps/session';
+}
+
+// ===================== MULTI-LANGUAGE =====================
+const TRANSLATIONS = {
+    en: {
+        splashTitle: 'Welcome to FitGuard AI',
+        splashSubtitle: 'Experience the next generation of AI-powered fitness analysis. Your personal coach, powered by computer vision.',
+        enterBtn: 'Enter Website →',
+        brand: 'FitGuard AI',
+        dashboard: 'Dashboard',
+        live: 'Live Workout',
+        guide: 'Exercise Guide',
+        progress: 'Progress',
+        history: 'History',
+        reports: 'Reports',
+        coach: 'AI Coach',
+        challenges: 'Challenges',
+        achievements: 'Achievements',
+        profile: 'Profile',
+        settings: 'Settings',
+        controlCenter: 'FitGuard AI Control Center',
+        subtitle: 'Every insight is generated from live pose landmarks, joint angles, and exercise analysis.',
+        welcome: 'Welcome back, Athlete! 🔥',
+        bannerText: 'Your AI fitness companion is ready. Start a live workout session to get real-time posture analysis and personalized coaching tips.',
+        startWorkout: 'Start Workout →',
+        workoutPerf: 'Workout Performance',
+        riskInsights: 'Risk Insights',
+        liveSession: 'Live Session',
+        sessionSum: 'Session Summary',
+        stability: 'Stability Score',
+        activeMins: 'Active minutes',
+        totalReps: 'Total reps',
+        completedDrills: 'Completed drills',
+        commonError: 'Most common error',
+        searchPlaceholder: 'Search workouts, analytics, tips…',
+        proTip: 'Pro tip',
+        proTipText: 'Click any exercise character to learn proper form!',
+        mascotName: 'FitBot says:',
+    },
+    th: {
+        splashTitle: 'ยินดีต้อนรับสู่ FitGuard AI',
+        splashSubtitle: 'สัมผัสประสบการณ์การวิเคราะห์ฟิตเนสยุคใหม่ด้วย AI โค้ชส่วนตัวของคุณที่ขับเคลื่อนด้วยระบบวิเคราะห์ท่าทางอัจฉริยะ',
+        enterBtn: 'เข้าสู่เว็บไซต์ →',
+        brand: 'FitGuard AI',
+        dashboard: 'แดชบอร์ด',
+        live: 'ออกกำลังกายสด',
+        guide: 'คู่มือท่าทาง',
+        progress: 'ความคืบหน้า',
+        history: 'ประวัติ',
+        reports: 'รายงาน',
+        coach: 'โค้ช AI',
+        challenges: 'ความท้าทาย',
+        achievements: 'ความสำเร็จ',
+        profile: 'โปรไฟล์',
+        settings: 'ตั้งค่า',
+        controlCenter: 'ศูนย์ควบคุม FitGuard AI',
+        subtitle: 'ทุกข้อมูลวิเคราะห์จากตำแหน่งร่างกาย มุมข้อต่อ และการวิเคราะห์ท่าทางแบบเรียลไทม์',
+        welcome: 'ยินดีต้อนรับกลับมา, นักกีฬา! 🔥',
+        bannerText: 'เพื่อนร่วมทางฟิตเนส AI ของคุณพร้อมแล้ว เริ่มเซสชันออกกำลังกายเพื่อรับการวิเคราะห์ท่าทางและคำแนะนำส่วนตัวได้ทันที',
+        startWorkout: 'เริ่มออกกำลังกาย →',
+        workoutPerf: 'ประสิทธิภาพการออกกำลังกาย',
+        riskInsights: 'วิเคราะห์ความเสี่ยง',
+        liveSession: 'เซสชันปัจจุบัน',
+        sessionSum: 'สรุปเซสชัน',
+        stability: 'คะแนนความมั่นคง',
+        activeMins: 'นาทีที่ออกกำลัง',
+        totalReps: 'จำนวนครั้งรวม',
+        completedDrills: 'ท่าที่ทำสำเร็จ',
+        commonError: 'ข้อผิดพลาดที่พบบ่อย',
+        searchPlaceholder: 'ค้นหาการออกกำลังกาย, ข้อมูลวิเคราะห์, เคล็ดลับ...',
+        proTip: 'เคล็ดลับ',
+        proTipText: 'คลิกที่ตัวการ์ตูนเพื่อเรียนรู้ท่าทางที่ถูกต้อง!',
+        mascotName: 'FitBot บอกว่า:',
+    }
+};
+
+let currentLang = 'en';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.getElementById('langEn').classList.toggle('active', lang === 'en');
+    document.getElementById('langTh').classList.toggle('active', lang === 'th');
+    
+    const t = TRANSLATIONS[lang];
+    
+    // Update Sidebar & Nav
+    document.querySelector('.brand-title').innerHTML = `<span class="brand-dot"></span>${t.brand}`;
+    const updateNav = (selector, isMobile = false) => {
+        document.querySelectorAll(selector).forEach(item => {
+            const page = item.dataset.page;
+            const span = item.querySelector('span') || item;
+            let text = '';
+            if (page === 'dashboard') text = t.dashboard;
+            if (page === 'live-analysis') text = t.live;
+            if (page === 'exercise-guide') text = t.guide;
+            if (page === 'progress-analytics') text = t.progress;
+            if (page === 'exercise-history') text = t.history;
+            if (page === 'workout-reports') text = t.reports;
+            if (page === 'ai-coach') text = t.coach;
+            if (page === 'challenges') text = t.challenges;
+            if (page === 'achievements') text = t.achievements;
+            if (page === 'profile') text = t.profile;
+            if (page === 'settings') text = t.settings;
+            
+            if (isMobile) {
+                span.textContent = text.substring(0, 5);
+            } else if (item.querySelector('span')) {
+                const icon = span.textContent.split(' ')[0];
+                span.textContent = icon + ' ' + text;
+            }
+        });
+    };
+    updateNav('.nav-list .nav-item');
+    updateNav('.mobile-nav .tab-item', true);
+
+    // Update Topbar
+    document.querySelector('.page-title').textContent = t.controlCenter;
+    document.querySelector('.page-subtitle').textContent = t.subtitle;
+    document.querySelector('.topbar-search input').placeholder = t.searchPlaceholder;
+    document.querySelector('.footer-title').textContent = t.proTip;
+    document.querySelector('.footer-chip').textContent = t.proTipText;
+
+    // Update Dashboard
+    document.querySelector('.banner-title').textContent = t.welcome;
+    document.querySelector('.banner-text').textContent = t.bannerText;
+    document.querySelector('.banner-cta').textContent = t.startWorkout;
+    
+    const cards = document.querySelectorAll('.glass-card .card-title');
+    cards.forEach(card => {
+        if (card.textContent.includes('Workout Performance')) card.textContent = t.workoutPerf;
+        if (card.textContent.includes('Risk Insights')) card.textContent = t.riskInsights;
+        if (card.textContent.includes('Live Session')) card.textContent = t.liveSession;
+        if (card.textContent.includes('Session Summary')) card.textContent = t.sessionSum;
+        if (card.textContent.includes('Stability Score')) card.textContent = t.stability;
+    });
+
+    document.getElementById('mascotBubble').querySelector('strong').textContent = t.mascotName;
+    
+    // Update Splash
+    document.getElementById('splashTitle').textContent = t.splashTitle;
+    document.getElementById('splashSubtitle').textContent = t.splashSubtitle;
+    document.getElementById('enterBtn').textContent = t.enterBtn;
+
+    // Refresh guide if on that page
+    if (document.getElementById('exercise-guide').classList.contains('active')) {
+        buildExerciseGuide();
+    }
+}
+
+function enterSite() {
+    document.getElementById('splashScreen').classList.add('hidden');
+    addCoachMessage(currentLang === 'en' ? 'Welcome to FitGuard AI! How can I help you today?' : 'ยินดีต้อนรับสู่ FitGuard AI! วันนี้ให้ผมช่วยดูแลการออกกำลังกายของคุณยังไงดีครับ?');
+}
+
+function initSplashCharacters() {
+    const container = document.getElementById('splashChars');
+    const keys = Object.keys(EXERCISES);
+    for (let i = 0; i < 6; i++) {
+        const char = document.createElement('div');
+        char.className = 'floating-char';
+        const ex = EXERCISES[keys[i % keys.length]];
+        char.innerHTML = `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">${ex.character}</svg>`;
+        char.style.left = Math.random() * 80 + 10 + '%';
+        char.style.top = Math.random() * 80 + 10 + '%';
+        char.style.animation = `logoFloat ${Math.random() * 2 + 2}s ease-in-out infinite`;
+        char.style.animationDelay = Math.random() * 2 + 's';
+        container.appendChild(char);
+    }
+}
+
+// ===================== INIT =====================
+updateDashboard();
+buildExerciseGuide();
+initSplashCharacters();
+// Default to Thai if browser language is Thai
+if (navigator.language.startsWith('th')) setLanguage('th');
+</script>
+</body>
+</html>
