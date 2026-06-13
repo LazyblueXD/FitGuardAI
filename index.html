@@ -2197,6 +2197,14 @@
             renderCoachMessage('Settings saved. Changes take effect on the next workout session.');
         }
 
+        function resetSettings() {
+            state.settings = { ...defaultSettings };
+            localStorage.removeItem('fitguardSettings');
+            saveAppState();
+            loadSettings();
+            renderCoachMessage('Settings reset to defaults.');
+        }
+
         function loadSettings() {
             const saved = JSON.parse(localStorage.getItem('fitguardSettings') || 'null');
             if (saved) {
@@ -2300,11 +2308,29 @@
                     cameraOptions.video = { deviceId: { exact: state.settings.cameraId } };
                 }
 
-                cameraInstance = new Camera(cameraVideo, cameraOptions);
-                await cameraInstance.start();
+                try {
+                    cameraInstance = new Camera(cameraVideo, cameraOptions);
+                    await cameraInstance.start();
+                } catch (cameraError) {
+                    if (state.settings.cameraId) {
+                        logDebugEntry(`Selected camera failed: ${cameraError.message}. Falling back to default device.`, 'warn');
+                        updateDebugPanel({ cameraStatus: 'Fallback default' });
+                        delete cameraOptions.video;
+                        cameraInstance = new Camera(cameraVideo, cameraOptions);
+                        await cameraInstance.start();
+                    } else {
+                        throw cameraError;
+                    }
+                }
+
+                if (!cameraVideo.autoplay) {
+                    cameraVideo.autoplay = true;
+                }
+                cameraVideo.addEventListener('loadedmetadata', resizeCanvas);
                 resizeCanvas();
                 window.addEventListener('resize', resizeCanvas);
                 ids.profileCameraStatus.textContent = 'Ready';
+                ids.liveCameraStatus.textContent = 'Tracking: Ready';
                 updateDebugPanel({ cameraStatus: 'Started', mediaPipeStatus: 'Ready' });
                 logDebugEntry(`Camera started on ${state.settings.cameraId ? 'selected device' : 'default device'}.`);
             } catch (error) {
