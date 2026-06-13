@@ -1517,6 +1517,9 @@ function navigateTo(pageId) {
     if (page) page.classList.add('active');
     document.querySelectorAll(`[data-page="${pageId}"]`).forEach(n => n.classList.add('active'));
     if (pageId === 'exercise-guide') buildExerciseGuide();
+    if (pageId === 'live-analysis' && !videoEl) {
+        startCamera();
+    }
 }
 document.querySelectorAll('[data-page]').forEach(btn => {
     btn.addEventListener('click', () => navigateTo(btn.dataset.page));
@@ -1524,7 +1527,7 @@ document.querySelectorAll('[data-page]').forEach(btn => {
 
 // ===================== WORKOUT STATE =====================
 let workoutActive = false, workoutTimer = null, workoutSeconds = 0, repCount = 0;
-let formScores = [], sessionHistory = [], currentExercise = 'pushup';
+let formScores = [], currentExercise = 'pushup';
 let lastRepState = 'up', fpsCounter = 0, lastFpsTime = Date.now();
 
 document.querySelectorAll('.exercise-selection button').forEach(btn => {
@@ -1574,6 +1577,18 @@ function startCamera() {
     videoEl = document.getElementById('cameraVideo');
     canvasEl = document.getElementById('overlayCanvas');
     ctxCanvas = canvasEl.getContext('2d');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const errorMsg = 'Your browser does not support camera access. Please use a modern browser (Chrome, Safari, Firefox) and ensure you are using HTTPS.';
+        document.getElementById('debugCameraStatus').textContent = 'Error: Not supported';
+        document.getElementById('liveCameraStatus').textContent = 'Camera: Not Supported';
+        addDebugError(errorMsg);
+        addCoachMessage(errorMsg);
+        simulateData();
+        return;
+    }
+
+    document.getElementById('liveCameraStatus').textContent = 'Tracking: Requesting Permission...';
+    
     navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false })
         .then(stream => {
             videoEl.srcObject = stream;
@@ -1582,30 +1597,57 @@ function startCamera() {
                 canvasEl.height = videoEl.videoHeight;
                 document.getElementById('debugCameraStatus').textContent = 'Active';
                 document.getElementById('profileCameraStatus').textContent = 'Active';
+                document.getElementById('liveCameraStatus').textContent = 'Tracking: Active';
                 initPose();
             };
         })
         .catch(err => {
+            const errorMsg = 'Camera permission denied or camera not found. Please check your browser settings and try again.';
             document.getElementById('debugCameraStatus').textContent = 'Error: ' + err.message;
+            document.getElementById('liveCameraStatus').textContent = 'Camera: Error';
             addDebugError('Camera error: ' + err.message);
+            addCoachMessage(errorMsg);
+            simulateData();
         });
 }
 
 function initPose() {
-    if (typeof Pose === 'undefined') {
+    if (typeof Pose === 'undefined' || typeof Camera === 'undefined') {
+        const missing = typeof Pose === 'undefined' ? 'Pose' : 'Camera';
         document.getElementById('debugMediaPipeStatus').textContent = 'Not loaded';
-        addDebugError('MediaPipe Pose not loaded. Simulating data.');
+        addDebugError(`MediaPipe ${missing} not loaded. Check internet connection.`);
+        addCoachMessage(`MediaPipe ${missing} library failed to load. Please refresh the page or check your connection.`);
         simulateData(); return;
     }
     pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${f}` });
     pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
     pose.onResults(onPoseResults);
     document.getElementById('debugMediaPipeStatus').textContent = 'Active';
-    camera = new Camera(videoEl, {
-        onFrame: async () => { if (workoutActive) await pose.send({ image: videoEl }); },
-        width: 640, height: 480
-    });
-    camera.start();
+    try {
+        camera = new Camera(videoEl, {
+            onFrame: async () => { 
+                if (workoutActive) {
+                    await pose.send({ image: videoEl }); 
+                }
+            },
+            width: 640, height: 480
+        });
+        camera.start().catch(err => {
+            console.error('Camera start error:', err);
+            addDebugError('MediaPipe Camera start error: ' + err.message);
+        });
+    } catch (err) {
+        console.error('MediaPipe Camera init error:', err);
+        addDebugError('MediaPipe Camera init error: ' + err.message);
+        // Fallback: use manual loop if Camera class fails
+        async function manualLoop() {
+            if (videoEl && workoutActive) {
+                await pose.send({ image: videoEl });
+            }
+            requestAnimationFrame(manualLoop);
+        }
+        manualLoop();
+    }
 }
 
 function onPoseResults(results) {
@@ -1834,9 +1876,11 @@ function updateSessionHistory() {
     `).join('');
 }
 
+let simulationInterval = null;
 function simulateData() {
+    if (simulationInterval) return;
     let simAngle = 90, simDir = 1;
-    setInterval(() => {
+    simulationInterval = setInterval(() => {
         if (!workoutActive) return;
         simAngle += simDir * 8;
         if (simAngle > 170) simDir = -1;
