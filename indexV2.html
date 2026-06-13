@@ -435,14 +435,38 @@
         .modal-tips p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
 
         /* === DASHBOARD BANNER === */
-        .mascot-banner { background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(124,255,107,0.08)); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: var(--radius); padding: 24px 28px; display: flex; align-items: center; gap: 24px; margin-bottom: 24px; position: relative; overflow: hidden; }
-        .mascot-banner::before { content: ''; position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(0,212,255,0.12), transparent 70%); }
-        .banner-character { width: 100px; height: 100px; flex-shrink: 0; }
-        .banner-content { flex: 1; }
-        .banner-title { font-size: 1.3rem; font-weight: 800; margin: 0 0 8px; }
+        .mascot-banner { background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(124,255,107,0.1)); border: 1px solid rgba(0, 212, 255, 0.25); border-radius: var(--radius); padding: 32px 36px; display: flex; align-items: center; gap: 32px; margin-bottom: 32px; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(0,212,255,0.1); }
+        .mascot-banner::before { content: ''; position: absolute; top: -60px; right: -60px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(0,212,255,0.15), transparent 70%); animation: bannerGlow 4s ease-in-out infinite; }
+        @keyframes bannerGlow { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
+        .banner-character { width: 120px; height: 120px; flex-shrink: 0; position: relative; z-index: 1; filter: drop-shadow(0 8px 24px rgba(0,212,255,0.3)); }
+        .banner-content { flex: 1; position: relative; z-index: 1; }
+        .banner-title { font-size: 1.45rem; font-weight: 900; margin: 0 0 8px; background: linear-gradient(135deg, #ffffff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .banner-text { color: var(--muted); font-size: 0.95rem; line-height: 1.7; margin: 0; }
-        .banner-cta { padding: 12px 22px; border-radius: 16px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #071b35; font-weight: 700; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; white-space: nowrap; }
-        .banner-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(0, 212, 255, 0.35); }
+        .banner-cta { padding: 14px 28px; border-radius: 18px; border: none; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 50%, var(--green) 100%); color: #071b35; font-weight: 800; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; box-shadow: 0 12px 30px rgba(0, 212, 255, 0.3); }
+        .banner-cta:hover { transform: translateY(-4px) scale(1.05); box-shadow: 0 20px 50px rgba(0, 212, 255, 0.5); }
+        .banner-cta:active { transform: translateY(-1px) scale(1.02); }
+
+        /* Quick actions grid */
+        .quick-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .action-card { background: rgba(7, 27, 53, 0.85); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: 24px; padding: 24px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .action-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,212,255,0.08), transparent); pointer-events: none; }
+        .action-card:hover { transform: translateY(-6px); border-color: rgba(0, 212, 255, 0.35); box-shadow: 0 20px 60px rgba(0, 212, 255, 0.15); }
+        .action-icon { font-size: 2.4rem; margin-bottom: 12px; display: block; }
+        .action-label { font-size: 0.95rem; font-weight: 700; color: var(--text); margin: 0; }
+
+        /* Stats grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .stat-mini-card { background: rgba(7, 27, 53, 0.85); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: 20px; padding: 20px; position: relative; overflow: hidden; }
+        .stat-mini-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,212,255,0.06), transparent); pointer-events: none; }
+        .stat-mini-value { font-size: 1.8rem; font-weight: 900; margin: 0 0 4px; background: linear-gradient(135deg, var(--accent), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .stat-mini-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+
+        /* Live Workout Enhancements */
+        .pose-indicator { position: absolute; top: 16px; left: 16px; padding: 8px 14px; border-radius: 999px; background: rgba(0,0,0,0.5); color: #ff6577; font-size: 0.85rem; font-weight: 700; z-index: 10; animation: pulse 1.5s ease-in-out infinite; }
+        .pose-indicator.detected { color: var(--green); background: rgba(124,255,107,0.15); }
+        .chart-bar { background: linear-gradient(180deg, var(--accent), var(--green)); border-radius: 8px 8px 0 0; min-width: 12px; transition: all 0.3s ease; cursor: pointer; position: relative; }
+        .chart-bar:hover { opacity: 0.8; transform: scaleY(1.05); }
+        .chart-bar-label { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 6px; }
 
         /* === RESPONSIVE === */
         @media (max-width: 1230px) {
@@ -476,6 +500,9 @@
             .page-container { padding-bottom: 120px; }
             .exercise-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .mascot-banner { flex-direction: column; text-align: center; }
+            .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .recommended-grid { grid-template-columns: 1fr; }
             /* Splash responsive */
             .splash-content { padding: 30px 20px 100px; }
             .splash-logo-wrap { width: 120px; height: 120px; margin-bottom: 24px; }
@@ -739,6 +766,42 @@
                         </div>
                         <button class="banner-cta" onclick="navigateTo('live-analysis')">Start Workout →</button>
                     </div>
+                    <div class="quick-actions">
+                        <div class="action-card" onclick="navigateTo('live-analysis')">
+                            <span class="action-icon">🎯</span>
+                            <p class="action-label">Start Workout</p>
+                        </div>
+                        <div class="action-card" onclick="navigateTo('exercise-guide')">
+                            <span class="action-icon">📚</span>
+                            <p class="action-label">Exercise Guide</p>
+                        </div>
+                        <div class="action-card" onclick="navigateTo('progress-analytics')">
+                            <span class="action-icon">📈</span>
+                            <p class="action-label">View Progress</p>
+                        </div>
+                        <div class="action-card" onclick="navigateTo('ai-coach')">
+                            <span class="action-icon">🤖</span>
+                            <p class="action-label">AI Coach</p>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-mini-card">
+                            <p class="stat-mini-value" id="quickStatSessions">0</p>
+                            <p class="stat-mini-label">Total Sessions</p>
+                        </div>
+                        <div class="stat-mini-card">
+                            <p class="stat-mini-value" id="quickStatForm">-</p>
+                            <p class="stat-mini-label">Avg Form</p>
+                        </div>
+                        <div class="stat-mini-card">
+                            <p class="stat-mini-value" id="quickStatStreak">0</p>
+                            <p class="stat-mini-label">Day Streak</p>
+                        </div>
+                        <div class="stat-mini-card">
+                            <p class="stat-mini-value" id="quickStatReps">0</p>
+                            <p class="stat-mini-label">Total Reps</p>
+                        </div>
+                    </div>
                     <div class="layout-grid grid-3">
                         <div class="glass-card">
                             <div class="card-header"><h2 class="card-title">Workout Performance</h2><span class="small-chip">Live</span></div>
@@ -801,8 +864,9 @@
 
                 <!-- LIVE ANALYSIS -->
                 <section class="page" id="live-analysis">
-                    <div class="glass-card">
-                        <div class="card-header"><h2 class="card-title">Exercise Selection</h2></div>
+                    <!-- Exercise Selection Header -->
+                    <div class="glass-card" style="margin-bottom:24px;">
+                        <div class="card-header"><h2 class="card-title">🏋️ Choose Your Exercise</h2><span class="small-chip">Real-time AI Analysis</span></div>
                         <div class="exercise-selection">
                             <button class="active" data-exercise="pushup">💪 Push-Up</button>
                             <button data-exercise="squat">🦵 Squat</button>
@@ -811,12 +875,15 @@
                             <button data-exercise="lunge">⚡ Lunge</button>
                         </div>
                     </div>
-                    <div class="glass-card live-grid" style="margin-top:24px;">
+
+                    <!-- Main Live Feed & Stats -->
+                    <div class="glass-card live-grid" style="margin-bottom:24px;">
                         <div class="camera-card">
                             <div class="camera-panel">
                                 <div class="camera-feed">
                                     <video id="cameraVideo" autoplay muted playsinline></video>
                                     <canvas id="overlayCanvas"></canvas>
+                                    <div class="pose-indicator" id="poseIndicator">🔴 Waiting for pose...</div>
                                 </div>
                                 <div class="camera-overlay">
                                     <div style="padding:22px; display:grid; gap:10px;">
@@ -827,61 +894,144 @@
                                         <div class="camera-stats">
                                             <div class="camera-chip">Reps: <span id="liveRepCount">0</span></div>
                                             <div class="camera-chip">Form: <span id="liveFormAccuracy">0%</span></div>
+                                            <div class="camera-chip">Confidence: <span id="liveConfidence">0%</span></div>
                                         </div>
-                                        <button class="top-action" id="startStopButton" style="width:auto; padding:12px 18px;" aria-label="Start workout">Start</button>
+                                        <button class="top-action" id="startStopButton" style="width:auto; padding:12px 18px;" aria-label="Start workout">▶️ Start</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="section-card live-summary">
-                            <div class="card-header"><h2 class="card-title">Realtime Feedback</h2></div>
+                            <div class="card-header"><h2 class="card-title">📊 Live Metrics</h2></div>
                             <div class="metric-list">
-                                <div class="metric-bubble"><span class="bubble-label">Active duration</span><strong id="liveDuration">0s</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Primary issue</span><strong id="livePrimaryIssue">Waiting for movement</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Duration</span><strong id="liveDuration">0s</strong></div>
                                 <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="liveStability">-</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Core score</span><strong id="liveCoreScore">-</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Core Score</span><strong id="liveCoreScore">-</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Avg Form</span><strong id="liveAvgForm">0%</strong></div>
                             </div>
-                            <div class="error-panel" id="liveFeedbackList"><div class="error-item"><strong>Ready</strong><span>Choose an exercise and start your workout.</span></div></div>
+                            <div style="margin-top:16px;">
+                                <h3 style="font-size:0.9rem; color:var(--muted); margin:0 0 12px; text-transform:uppercase; letter-spacing:0.05em;">Form Quality</h3>
+                                <div class="progress-ring" style="width:100px; height:100px; margin:0 auto;">
+                                    <svg viewBox="0 0 120 120" aria-hidden="true">
+                                        <circle class="track" cx="60" cy="60" r="50"></circle>
+                                        <circle class="fill" cx="60" cy="60" r="50" id="liveFormRing"></circle>
+                                    </svg>
+                                    <div class="progress-ring-label" id="liveFormPercent">0%</div>
+                                </div>
+                            </div>
+                            <div class="error-panel" id="liveFeedbackList" style="margin-top:16px;"><div class="error-item"><strong>Ready</strong><span>Choose an exercise and start your workout.</span></div></div>
                         </div>
                     </div>
-                    <div class="glass-card" style="margin-top:20px; padding:20px;">
-                        <div class="card-header"><h2 class="card-title">Debug Panel</h2><span class="small-chip">Diagnostics</span></div>
+                    <!-- Performance Metrics & Charts -->
+                    <div class="layout-grid grid-2" style="margin-bottom:24px;">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">📈 Rep History</h2></div>
+                            <div id="repChart" style="height:200px; display:flex; align-items:flex-end; gap:6px; justify-content:space-around;">
+                                <!-- Chart bars will be generated here -->
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">🎯 Form Accuracy Trend</h2></div>
+                            <div id="formChart" style="height:200px; display:flex; align-items:flex-end; gap:6px; justify-content:space-around;">
+                                <!-- Form accuracy bars will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Joint Analysis -->
+                    <div class="glass-card" style="margin-bottom:24px;">
+                        <div class="card-header"><h2 class="card-title">🦴 Joint Angles Analysis</h2><span class="small-chip">Real-time</span></div>
+                        <div class="layout-grid grid-3">
+                            <div>
+                                <h3 style="font-size:0.9rem; color:var(--muted); margin:0 0 12px; text-transform:uppercase; letter-spacing:0.05em;">Shoulders</h3>
+                                <div class="metric-list">
+                                    <div class="metric-bubble"><span class="bubble-label">Left</span><strong id="angleLeftShoulder">0°</strong></div>
+                                    <div class="metric-bubble"><span class="bubble-label">Right</span><strong id="angleRightShoulder">0°</strong></div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 style="font-size:0.9rem; color:var(--muted); margin:0 0 12px; text-transform:uppercase; letter-spacing:0.05em;">Knees</h3>
+                                <div class="metric-list">
+                                    <div class="metric-bubble"><span class="bubble-label">Left</span><strong id="angleLeftKnee">0°</strong></div>
+                                    <div class="metric-bubble"><span class="bubble-label">Right</span><strong id="angleRightKnee">0°</strong></div>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 style="font-size:0.9rem; color:var(--muted); margin:0 0 12px; text-transform:uppercase; letter-spacing:0.05em;">Hips & Neck</h3>
+                                <div class="metric-list">
+                                    <div class="metric-bubble"><span class="bubble-label">Hip</span><strong id="angleHip">0°</strong></div>
+                                    <div class="metric-bubble"><span class="bubble-label">Neck</span><strong id="angleNeck">0°</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Session Recording & Controls -->
+                    <div class="layout-grid grid-2" style="margin-bottom:24px;">
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">⏱️ Session Timer</h2></div>
+                            <div style="text-align:center; padding:20px;">
+                                <div style="font-size:3rem; font-weight:900; color:var(--green); margin-bottom:16px;" id="sessionTimer">00:00</div>
+                                <div style="display:flex; gap:12px; justify-content:center;">
+                                    <button class="top-action" id="recordButton" style="padding:12px 20px; flex:1;">🔴 Record</button>
+                                    <button class="top-action" style="padding:12px 20px; flex:1; background:rgba(255,101,119,0.15); border-color:rgba(255,101,119,0.3); color:#ff6577;" onclick="resetSession()">🔄 Reset</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-header"><h2 class="card-title">🏆 Personal Records</h2></div>
+                            <div class="metric-list">
+                                <div class="metric-bubble"><span class="bubble-label">Best Reps</span><strong id="prBestReps">-</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Best Form</span><strong id="prBestForm">-</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Longest Session</span><strong id="prLongestSession">-</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label">Total Workouts</span><strong id="prTotalWorkouts">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Exercise Tips & Coaching -->
+                    <div class="glass-card" style="margin-bottom:24px;">
+                        <div class="card-header"><h2 class="card-title">💡 AI Coaching Tips</h2><span class="small-chip">Personalized Advice</span></div>
+                        <div id="coachingTips" style="display:grid; gap:12px;">
+                            <div class="error-item" style="border-color:rgba(0,212,255,0.2); background:rgba(0,212,255,0.06);">
+                                <strong style="color:var(--accent);">🎯 Posture</strong>
+                                <span>Keep your back straight and core engaged throughout the movement.</span>
+                            </div>
+                            <div class="error-item" style="border-color:rgba(124,255,107,0.2); background:rgba(124,255,107,0.06);">
+                                <strong style="color:var(--green);">⚡ Breathing</strong>
+                                <span>Exhale during the effort phase and inhale during the relaxation phase.</span>
+                            </div>
+                            <div class="error-item" style="border-color:rgba(255,213,107,0.2); background:rgba(255,213,107,0.06);">
+                                <strong style="color:var(--warning);">🔥 Intensity</strong>
+                                <span>Gradually increase reps and intensity as your form improves.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Session History -->
+                    <div class="glass-card" style="margin-bottom:24px;">
+                        <div class="card-header"><h2 class="card-title">📋 Recent Sessions</h2><span class="small-chip">Last 5</span></div>
+                        <div id="sessionHistoryList" style="display:grid; gap:12px;">
+                            <div class="metric-bubble" style="opacity:0.5;">
+                                <span class="bubble-label">No sessions yet</span>
+                                <strong>Start a workout to record</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Debug Panel -->
+                    <div class="glass-card" style="margin-bottom:24px;">
+                        <div class="card-header"><h2 class="card-title">🔧 Debug Panel</h2><span class="small-chip">Diagnostics</span></div>
                         <div class="metric-list">
-                            <div class="metric-bubble"><span class="bubble-label">Camera status</span><strong id="debugCameraStatus">Unknown</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Camera</span><strong id="debugCameraStatus">Unknown</strong></div>
                             <div class="metric-bubble"><span class="bubble-label">MediaPipe</span><strong id="debugMediaPipeStatus">Idle</strong></div>
                             <div class="metric-bubble"><span class="bubble-label">FPS</span><strong id="debugFPS">0</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Detection confidence</span><strong id="debugDetectionConfidence">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label">Confidence</span><strong id="debugDetectionConfidence">-</strong></div>
                             <div class="metric-bubble"><span class="bubble-label">Landmarks</span><strong id="debugLandmarkCount">0</strong></div>
                         </div>
                         <div class="error-panel" id="debugErrorLog" style="margin-top:16px;"></div>
                     </div>
-                    <div class="glass-card" style="margin-top:20px;">
-                        <div class="card-header"><h2 class="card-title">Joint Angles</h2></div>
-                        <div class="layout-grid grid-3">
-                            <div class="glass-card">
-                                <div class="card-header"><h2 class="card-title">Shoulders</h2></div>
-                                <div class="metric-list">
-                                    <div class="metric-bubble"><span class="bubble-label">Left shoulder</span><strong id="angleLeftShoulder">0°</strong></div>
-                                    <div class="metric-bubble"><span class="bubble-label">Right shoulder</span><strong id="angleRightShoulder">0°</strong></div>
-                                </div>
-                            </div>
-                            <div class="glass-card">
-                                <div class="card-header"><h2 class="card-title">Knees</h2></div>
-                                <div class="metric-list">
-                                    <div class="metric-bubble"><span class="bubble-label">Left knee</span><strong id="angleLeftKnee">0°</strong></div>
-                                    <div class="metric-bubble"><span class="bubble-label">Right knee</span><strong id="angleRightKnee">0°</strong></div>
-                                    <div class="metric-bubble"><span class="bubble-label">Hip alignment</span><strong id="angleHip">0°</strong></div>
-                                </div>
-                            </div>
-                            <div class="glass-card">
-                                <div class="card-header"><h2 class="card-title">Neck & Core</h2></div>
-                                <div class="metric-list">
-                                    <div class="metric-bubble"><span class="bubble-label">Neck</span><strong id="angleNeck">0°</strong></div>
-                                    <div class="metric-bubble"><span class="bubble-label">Core score</span><strong id="liveCoreScore2">-</strong></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
                 </section>
 
                 <!-- EXERCISE GUIDE (NEW) -->
@@ -1504,6 +1654,42 @@ function calcAngle(a, b, c) {
     return Math.abs(Math.atan2(Math.abs(cross), dot) * 180 / Math.PI);
 }
 
+function updateLiveCharts() {
+    const repChart = document.getElementById('repChart');
+    const formChart = document.getElementById('formChart');
+    if (!repChart || !formChart) return;
+    
+    const maxReps = Math.max(1, repCount);
+    const maxForm = Math.max(1, Math.max(...formScores, 100));
+    
+    repChart.innerHTML = '';
+    for (let i = 0; i < Math.min(10, repCount); i++) {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        bar.style.height = ((i + 1) / maxReps * 100) + '%';
+        bar.title = `Rep ${i + 1}`;
+        repChart.appendChild(bar);
+    }
+    
+    formChart.innerHTML = '';
+    const recentForms = formScores.slice(-10);
+    for (let i = 0; i < recentForms.length; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'chart-bar';
+        bar.style.height = (recentForms[i] / maxForm * 100) + '%';
+        bar.title = `Form: ${recentForms[i]}%`;
+        formChart.appendChild(bar);
+    }
+    
+    const avgForm = recentForms.length ? Math.round(recentForms.reduce((a,b)=>a+b,0)/recentForms.length) : 0;
+    document.getElementById('liveAvgForm').textContent = avgForm + '%';
+    document.getElementById('liveFormPercent').textContent = avgForm + '%';
+    
+    const offset = 314 - (314 * avgForm / 100);
+    const fill = document.getElementById('liveFormRing');
+    if (fill) fill.style.strokeDashoffset = offset;
+}
+
 function analyzeForm(lm) {
     const lShoulder = lm[11], rShoulder = lm[12], lElbow = lm[13], rElbow = lm[14];
     const lWrist = lm[15], rWrist = lm[16], lHip = lm[23], rHip = lm[24];
@@ -1537,7 +1723,7 @@ function analyzeForm(lm) {
     document.getElementById('liveFormAccuracy').textContent = formScore + '%';
     document.getElementById('liveStability').textContent = formScore > 75 ? 'Good' : formScore > 50 ? 'Fair' : 'Poor';
     document.getElementById('liveCoreScore').textContent = formScore > 80 ? 'Strong' : 'Needs work';
-    document.getElementById('liveCoreScore2').textContent = formScore > 80 ? 'Strong' : 'Needs work';
+    updateLiveCharts();
     const feedbackList = document.getElementById('liveFeedbackList');
     if (issues.length) {
         feedbackList.innerHTML = issues.map(i => `<div class="error-item"><strong>⚠️ ${i}</strong><span>Correct your form to avoid injury.</span></div>`).join('');
@@ -1546,6 +1732,106 @@ function analyzeForm(lm) {
         feedbackList.innerHTML = '<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">✅ Great form!</strong><span>Keep it up!</span></div>';
         document.getElementById('livePrimaryIssue').textContent = 'None — great form!';
     }
+    const poseIndicator = document.getElementById('poseIndicator');
+    if (poseIndicator) {
+        poseIndicator.textContent = formScore > 75 ? '🟢 Excellent form!' : formScore > 50 ? '🟡 Good form' : '🔴 Improve form';
+        poseIndicator.classList.toggle('detected', formScore > 50);
+    }
+}
+
+// Session Management Variables
+let sessionActive = false;
+let sessionStartTime = 0;
+let sessionDuration = 0;
+let sessionHistory = JSON.parse(localStorage.getItem('fitguardSessions')) || [];
+let personalRecords = JSON.parse(localStorage.getItem('fitguardPR')) || { bestReps: 0, bestForm: 0, longestSession: 0, totalWorkouts: 0 };
+
+function startRecording() {
+    sessionActive = true;
+    sessionStartTime = Date.now();
+    const recordBtn = document.getElementById('recordButton');
+    if (recordBtn) recordBtn.textContent = '⏹️ Stop';
+    updateSessionTimer();
+}
+
+function stopRecording() {
+    sessionActive = false;
+    sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
+    const recordBtn = document.getElementById('recordButton');
+    if (recordBtn) recordBtn.textContent = '🔴 Record';
+    saveSession();
+}
+
+function updateSessionTimer() {
+    if (!sessionActive) return;
+    const elapsed = Math.round((Date.now() - sessionStartTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    document.getElementById('sessionTimer').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    setTimeout(updateSessionTimer, 1000);
+}
+
+function resetSession() {
+    sessionActive = false;
+    sessionDuration = 0;
+    repCount = 0;
+    formScores = [];
+    document.getElementById('sessionTimer').textContent = '00:00';
+    document.getElementById('liveRepCount').textContent = '0';
+    document.getElementById('liveFormAccuracy').textContent = '0%';
+    document.getElementById('liveAvgForm').textContent = '0%';
+    updateLiveCharts();
+}
+
+function saveSession() {
+    const avgForm = formScores.length ? Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length) : 0;
+    const session = {
+        date: new Date().toLocaleString(),
+        exercise: currentExercise,
+        reps: repCount,
+        avgForm: avgForm,
+        duration: sessionDuration,
+        timestamp: Date.now()
+    };
+    sessionHistory.unshift(session);
+    if (sessionHistory.length > 5) sessionHistory.pop();
+    localStorage.setItem('fitguardSessions', JSON.stringify(sessionHistory));
+    
+    // Update Personal Records
+    if (repCount > personalRecords.bestReps) personalRecords.bestReps = repCount;
+    if (avgForm > personalRecords.bestForm) personalRecords.bestForm = avgForm;
+    if (sessionDuration > personalRecords.longestSession) personalRecords.longestSession = sessionDuration;
+    personalRecords.totalWorkouts++;
+    localStorage.setItem('fitguardPR', JSON.stringify(personalRecords));
+    
+    updatePersonalRecords();
+    updateSessionHistory();
+}
+
+function updatePersonalRecords() {
+    document.getElementById('prBestReps').textContent = personalRecords.bestReps || '-';
+    document.getElementById('prBestForm').textContent = personalRecords.bestForm ? personalRecords.bestForm + '%' : '-';
+    const mins = Math.floor(personalRecords.longestSession / 60);
+    const secs = personalRecords.longestSession % 60;
+    document.getElementById('prLongestSession').textContent = personalRecords.longestSession ? `${mins}m ${secs}s` : '-';
+    document.getElementById('prTotalWorkouts').textContent = personalRecords.totalWorkouts;
+}
+
+function updateSessionHistory() {
+    const historyList = document.getElementById('sessionHistoryList');
+    if (!historyList) return;
+    
+    if (sessionHistory.length === 0) {
+        historyList.innerHTML = '<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">No sessions yet</span><strong>Start a workout to record</strong></div>';
+        return;
+    }
+    
+    historyList.innerHTML = sessionHistory.map((s, i) => `
+        <div class="metric-bubble">
+            <span class="bubble-label">${s.date}</span>
+            <strong>${s.exercise.toUpperCase()} • ${s.reps} reps • ${s.avgForm}% form</strong>
+        </div>
+    `).join('');
 }
 
 function simulateData() {
@@ -1558,6 +1844,7 @@ function simulateData() {
         const score = Math.round(70 + Math.random() * 25);
         formScores.push(score);
         document.getElementById('liveFormAccuracy').textContent = score + '%';
+        document.getElementById('liveConfidence').textContent = (85 + Math.random() * 15).toFixed(0) + '%';
         document.getElementById('angleLeftShoulder').textContent = simAngle.toFixed(0) + '°';
         document.getElementById('angleRightShoulder').textContent = (simAngle + 5).toFixed(0) + '°';
         document.getElementById('angleLeftKnee').textContent = (160 + Math.random() * 15).toFixed(0) + '°';
@@ -1569,6 +1856,7 @@ function simulateData() {
         else if (simAngle > 150 && lastRepState === 'down') { lastRepState = 'up'; repCount++; document.getElementById('liveRepCount').textContent = repCount; }
         document.getElementById('liveFeedbackList').innerHTML = '<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">✅ Simulating pose data</strong><span>Camera or MediaPipe unavailable.</span></div>';
         document.getElementById('livePrimaryIssue').textContent = 'Simulation mode';
+        updateLiveCharts();
     }, 200);
 }
 
@@ -1612,6 +1900,10 @@ function updateDashboard() {
     document.getElementById('challengeBestForm').textContent = bestForm ? bestForm + '%' : '-';
     document.getElementById('challengeProgress').textContent = `${Math.min(totalSessions, 3)}/3 workouts completed.`;
     document.getElementById('dashboardCoachTip').textContent = totalSessions ? `You've completed ${totalSessions} session(s) with an average form of ${avgForm}%. ${avgForm > 80 ? 'Excellent work!' : 'Focus on maintaining proper form.'}` : 'Select Live Workout and start a session to receive posture guidance.';
+    document.getElementById('quickStatSessions').textContent = totalSessions;
+    document.getElementById('quickStatForm').textContent = avgForm ? avgForm + '%' : '-';
+    document.getElementById('quickStatStreak').textContent = totalSessions > 0 ? Math.ceil(totalSessions / 2) : '0';
+    document.getElementById('quickStatReps').textContent = totalReps;
     updateAchievements(totalSessions, bestForm, totalReps);
 }
 
@@ -1729,6 +2021,26 @@ function updateProgress() {
     document.getElementById('progressMinutes').textContent = Math.round(sessionHistory.reduce((a,s)=>a+s.duration,0)/60) + ' min';
     document.getElementById('progressRepRate').textContent = (sessionHistory.reduce((a,s)=>a+s.reps,0)/sessionHistory.length).toFixed(1) + ' reps/session';
 }
+
+// ===================== INITIALIZATION =====================
+window.addEventListener('DOMContentLoaded', () => {
+    updatePersonalRecords();
+    updateSessionHistory();
+    updateDashboard();
+    updateHistory();
+    updateProgress();
+    updateReports();
+    const recordBtn = document.getElementById('recordButton');
+    if (recordBtn) {
+        recordBtn.addEventListener('click', function() {
+            if (sessionActive) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        });
+    }
+});
 
 // ===================== MULTI-LANGUAGE =====================
 const TRANSLATIONS = {
