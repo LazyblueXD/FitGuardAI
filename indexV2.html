@@ -1546,19 +1546,26 @@ startStopButton.addEventListener('click', () => {
 
 function startWorkout() {
     workoutActive = true; workoutSeconds = 0; repCount = 0; formScores = [];
-    startStopButton.textContent = 'Stop';
+    startStopButton.textContent = '⏹️ Stop';
     document.getElementById('liveCameraStatus').textContent = 'Tracking: Active';
+    document.getElementById('liveRepCount').textContent = '0';
+    document.getElementById('liveDuration').textContent = '0s';
+    
+    if (workoutTimer) clearInterval(workoutTimer);
     workoutTimer = setInterval(() => {
         workoutSeconds++;
         document.getElementById('liveDuration').textContent = formatTime(workoutSeconds);
     }, 1000);
-    startCamera();
+    
+    if (!videoEl) {
+        startCamera();
+    }
 }
 
 function stopWorkout() {
     workoutActive = false;
-    clearInterval(workoutTimer);
-    startStopButton.textContent = 'Start';
+    if (workoutTimer) clearInterval(workoutTimer);
+    startStopButton.textContent = '▶️ Start';
     document.getElementById('liveCameraStatus').textContent = 'Tracking: Stopped';
     const avgForm = formScores.length ? Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length) : 0;
     const session = { exercise: currentExercise, duration: workoutSeconds, reps: repCount, avgForm, date: new Date().toISOString(), issues: [] };
@@ -1626,9 +1633,7 @@ function initPose() {
     try {
         camera = new Camera(videoEl, {
             onFrame: async () => { 
-                if (workoutActive) {
-                    await pose.send({ image: videoEl }); 
-                }
+                await pose.send({ image: videoEl }); 
             },
             width: 640, height: 480
         });
@@ -1641,7 +1646,7 @@ function initPose() {
         addDebugError('MediaPipe Camera init error: ' + err.message);
         // Fallback: use manual loop if Camera class fails
         async function manualLoop() {
-            if (videoEl && workoutActive) {
+            if (videoEl) {
                 await pose.send({ image: videoEl });
             }
             requestAnimationFrame(manualLoop);
@@ -1651,7 +1656,7 @@ function initPose() {
 }
 
 function onPoseResults(results) {
-    if (!ctxCanvas) return;
+    if (!ctxCanvas || !canvasEl) return;
     ctxCanvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
     fpsCounter++;
     const now = Date.now();
@@ -1664,7 +1669,9 @@ function onPoseResults(results) {
     document.getElementById('debugLandmarkCount').textContent = lm.length;
     document.getElementById('debugDetectionConfidence').textContent = (lm[0]?.visibility * 100 || 0).toFixed(0) + '%';
     drawSkeleton(lm);
-    analyzeForm(lm);
+    if (workoutActive) {
+        analyzeForm(lm);
+    }
 }
 
 function drawSkeleton(lm) {
