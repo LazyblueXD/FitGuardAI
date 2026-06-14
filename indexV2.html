@@ -401,7 +401,7 @@
                 <button class="splash-lang-btn active" id="splashLangEn" onclick="setSplashLang('en')"><span>🇬🇧</span> EN</button>
                 <button class="splash-lang-btn" id="splashLangTh" onclick="setSplashLang('th')"><span>🇹🇭</span> TH</button>
             </div>
-            <div class="splash-badge"><span class="splash-badge-dot"></span><span id="splashBadgeText">AI-Powered Fitness</span></div>
+            <div class="splash-badge"><span class="splash-badge-dot"></span><span id="splashBadgeText" id="splashBadgeText">AI-Powered Fitness</span></div>
             <div class="splash-logo-wrap">
                 <div class="splash-logo-ring"></div>
                 <div class="splash-logo-ring-2"></div>
@@ -424,17 +424,17 @@
                     </circle>
                 </svg>
             </div>
-            <h1 class="splash-title" id="splashTitle">FitGuard <span class="splash-title-ai">AI</span></h1>
-            <p class="splash-tagline" id="splashTagline">Next-Gen Fitness Intelligence</p>
+            <h1 class="splash-title" id="splashTitle" id="splashTitle">FitGuard <span class="splash-title-ai">AI</span></h1>
+            <p class="splash-tagline" id="splashTagline" id="splashTagline">Next-Gen Fitness Intelligence</p>
             <p class="splash-subtitle" id="splashSubtitle">Experience the next generation of AI-powered fitness analysis. Your personal coach, powered by computer vision.</p>
             <div class="splash-features">
-                <span class="splash-feature-pill"><span>🤖</span> <span id="pill1">AI Pose Analysis</span></span>
-                <span class="splash-feature-pill"><span>📊</span> <span id="pill2">Real-time Feedback</span></span>
-                <span class="splash-feature-pill"><span>🏆</span> <span id="pill3">Progress Tracking</span></span>
+                <span class="splash-feature-pill"><span>🤖</span> <span id="pill1" id="pill1">AI Pose Analysis</span></span>
+                <span class="splash-feature-pill"><span>📊</span> <span id="pill2" id="pill2">Real-time Feedback</span></span>
+                <span class="splash-feature-pill"><span>🏆</span> <span id="pill3" id="pill3">Progress Tracking</span></span>
             </div>
             <div class="splash-btn-wrap">
                 <div class="splash-btn-glow"></div>
-                <button class="splash-btn" id="enterBtn" onclick="enterSite()"><span id="enterBtnText">Enter Website</span> &nbsp;→</button>
+                <button class="splash-btn" id="enterBtn" onclick="enterSite()"><span id="enterBtnText" id="enterBtnText">Enter Website</span> &nbsp;→</button>
             </div>
             <div class="splash-hint">
                 <span class="splash-hint-line"></span>
@@ -443,10 +443,10 @@
             </div>
         </div>
         <div class="splash-stats">
-            <div class="splash-stat-item"><div class="splash-stat-value">3</div><div class="splash-stat-label" id="statLabel1">Exercise Types</div></div>
-            <div class="splash-stat-item"><div class="splash-stat-value">33</div><div class="splash-stat-label" id="statLabel2">Body Landmarks</div></div>
-            <div class="splash-stat-item"><div class="splash-stat-value">Real-time</div><div class="splash-stat-label" id="statLabel3">Form Analysis</div></div>
-            <div class="splash-stat-item"><div class="splash-stat-value">AI</div><div class="splash-stat-label" id="statLabel4">Coaching</div></div>
+            <div class="splash-stat-item"><div class="splash-stat-value">3</div><div class="splash-stat-label" id="statLabel1" id="statLabel1">Exercise Types</div></div>
+            <div class="splash-stat-item"><div class="splash-stat-value">33</div><div class="splash-stat-label" id="statLabel2" id="statLabel2">Body Landmarks</div></div>
+            <div class="splash-stat-item"><div class="splash-stat-value">Real-time</div><div class="splash-stat-label" id="statLabel3" id="statLabel3">Form Analysis</div></div>
+            <div class="splash-stat-item"><div class="splash-stat-value">AI</div><div class="splash-stat-label" id="statLabel4" id="statLabel4">Coaching</div></div>
         </div>
     </div>
 
@@ -490,7 +490,7 @@
             <div class="modal-header">
                 <svg class="modal-character" id="modalCharacter" viewBox="0 0 120 120"></svg>
                 <div>
-                    <h2 class="modal-title" id="modalTitle">Exercise</h2>
+                    <h2 class="modal-title" id="modalTitle" id="thExercise">Exercise</h2>
                     <p class="modal-subtitle" id="modalSubtitle">How to perform correctly</p>
                 </div>
             </div>
@@ -504,11 +504,11 @@
         <div class="workout-summary-content">
             <button class="modal-close" id="summaryModalClose" style="position:absolute;top:20px;right:20px;">✕</button>
             <div class="summary-ai-avatar">🤖</div>
-            <h2 style="margin:0 0 16px;font-size:1.4rem;">AI Workout Summary</h2>
+            <h2 style="margin:0 0 16px;font-size:1.4rem;" id="summaryTitle">AI Workout Summary</h2>
             <div class="summary-text" id="summaryText">Analyzing your workout...</div>
             <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
-                <button class="tab-item" onclick="navigateTo('ai-coach');document.getElementById('workoutSummaryModal').classList.remove('open')">Chat with AI Coach →</button>
-                <button class="tab-item" onclick="document.getElementById('workoutSummaryModal').classList.remove('open')">Close</button>
+                <button class="tab-item" onclick="navigateTo('ai-coach');document.getElementById('workoutSummaryModal').classList.remove('open')" id="summaryCoachBtn">Chat with AI Coach →</button>
+                <button class="tab-item" onclick="document.getElementById('workoutSummaryModal').classList.remove('open')" id="summaryCloseBtn">Close</button>
             </div>
         </div>
     </div>
@@ -526,25 +526,25 @@
                 <p class="brand-desc">AI-driven workout analysis and injury prevention using live camera posture intelligence.</p>
             </div>
             <div class="sidebar-summary">
-                <h3>Session Summary</h3>
-                <div class="metric-block"><strong id="summaryWorkoutCount">0</strong><span class="metric-caption">Workouts completed</span></div>
-                <div class="metric-block"><strong id="summaryAverageForm">-</strong><span class="metric-caption">Average form score</span></div>
+                <h3 id="sessionSummaryTitle">Session Summary</h3>
+                <div class="metric-block"><strong id="summaryWorkoutCount">0</strong><span class="metric-caption" id="workoutsCompletedLabel">Workouts completed</span></div>
+                <div class="metric-block"><strong id="summaryAverageForm">-</strong><span class="metric-caption" id="avgFormScoreLabel">Average form score</span></div>
             </div>
             <nav class="nav-list" aria-label="Primary navigation">
-                <button class="nav-item active" data-page="dashboard"><span>🏠 Dashboard</span><span class="nav-badge">01</span></button>
-                <button class="nav-item" data-page="live-analysis"><span>🎯 Live Workout</span><span class="nav-badge">02</span></button>
-                <button class="nav-item" data-page="exercise-guide"><span>🏋️ Exercise Guide</span><span class="nav-badge">03</span></button>
-                <button class="nav-item" data-page="progress-analytics"><span>📈 Progress</span><span class="nav-badge">04</span></button>
-                <button class="nav-item" data-page="exercise-history"><span>📋 History</span><span class="nav-badge">05</span></button>
-                <button class="nav-item" data-page="workout-reports"><span>📊 Reports</span><span class="nav-badge">06</span></button>
-                <button class="nav-item" data-page="ai-coach"><span>🤖 AI Coach</span><span class="nav-badge">07</span></button>
-                <button class="nav-item" data-page="challenges"><span>🏆 Challenges</span><span class="nav-badge">08</span></button>
-                <button class="nav-item" data-page="achievements"><span>⭐ Achievements</span><span class="nav-badge">09</span></button>
-                <button class="nav-item" data-page="profile"><span>👤 Profile</span><span class="nav-badge">10</span></button>
-                <button class="nav-item" data-page="settings"><span>⚙️ Settings</span><span class="nav-badge">11</span></button>
+                <button class="nav-item active" data-page="dashboard"><span id="navDashboard">🏠 Dashboard</span><span class="nav-badge">01</span></button>
+                <button class="nav-item" data-page="live-analysis"><span id="navLiveWorkout">🎯 Live Workout</span><span class="nav-badge">02</span></button>
+                <button class="nav-item" data-page="exercise-guide"><span id="navExerciseGuide">🏋️ Exercise Guide</span><span class="nav-badge">03</span></button>
+                <button class="nav-item" data-page="progress-analytics"><span id="navProgress">📈 Progress</span><span class="nav-badge">04</span></button>
+                <button class="nav-item" data-page="exercise-history"><span id="navHistory">📋 History</span><span class="nav-badge">05</span></button>
+                <button class="nav-item" data-page="workout-reports"><span id="navReports">📊 Reports</span><span class="nav-badge">06</span></button>
+                <button class="nav-item" data-page="ai-coach"><span id="navAICoach">🤖 AI Coach</span><span class="nav-badge">07</span></button>
+                <button class="nav-item" data-page="challenges"><span id="navChallenges">🏆 Challenges</span><span class="nav-badge">08</span></button>
+                <button class="nav-item" data-page="achievements"><span id="navAchievements">⭐ Achievements</span><span class="nav-badge">09</span></button>
+                <button class="nav-item" data-page="profile"><span id="navProfile">👤 Profile</span><span class="nav-badge">10</span></button>
+                <button class="nav-item" data-page="settings"><span id="navSettings">⚙️ Settings</span><span class="nav-badge">11</span></button>
             </nav>
             <div class="sidebar-footer">
-                <p class="footer-title">Pro tip</p>
+                <p class="footer-title" id="proTipLabel">Pro tip</p>
                 <div class="footer-chip">Place camera at your side to capture full body!</div>
             </div>
         </aside>
@@ -552,7 +552,7 @@
         <div class="main-panel">
             <header class="topbar">
                 <div>
-                    <h1 class="page-title">FitGuard AI Control Center</h1>
+                    <h1 class="page-title" id="pageTitle">FitGuard AI Control Center</h1>
                     <p class="page-subtitle">Every insight is generated from live pose landmarks, joint angles, and exercise analysis.</p>
                 </div>
                 <div class="topbar-actions">
@@ -595,40 +595,40 @@
                             <h2 class="banner-title" id="bannerTitle">Welcome back, Athlete! 🔥</h2>
                             <p class="banner-text" id="bannerText">Your AI fitness companion is ready. Start a live workout session to get real-time posture analysis and personalized coaching tips.</p>
                         </div>
-                        <button class="banner-cta" onclick="navigateTo('live-analysis')" id="bannerCta">Start Workout →</button>
+                        <button class="banner-cta" onclick="navigateTo('live-analysis')" id="bannerCta" id="bannerCta">Start Workout →</button>
                     </div>
                     <div class="quick-actions">
-                        <div class="action-card" onclick="navigateTo('live-analysis')"><span class="action-icon">🎯</span><p class="action-label">Start Workout</p></div>
-                        <div class="action-card" onclick="navigateTo('exercise-guide')"><span class="action-icon">📚</span><p class="action-label">Exercise Guide</p></div>
-                        <div class="action-card" onclick="navigateTo('progress-analytics')"><span class="action-icon">📈</span><p class="action-label">View Progress</p></div>
-                        <div class="action-card" onclick="navigateTo('ai-coach')"><span class="action-icon">🤖</span><p class="action-label">AI Coach</p></div>
+                        <div class="action-card" onclick="navigateTo('live-analysis')"><span class="action-icon">🎯</span><p class="action-label" id="actionStartLabel">Start Workout</p></div>
+                        <div class="action-card" onclick="navigateTo('exercise-guide')"><span class="action-icon">📚</span><p class="action-label" id="exerciseGuideTitle">Exercise Guide</p></div>
+                        <div class="action-card" onclick="navigateTo('progress-analytics')"><span class="action-icon">📈</span><p class="action-label" id="actionProgressLabel">View Progress</p></div>
+                        <div class="action-card" onclick="navigateTo('ai-coach')"><span class="action-icon">🤖</span><p class="action-label" id="actionCoachLabel">AI Coach</p></div>
                     </div>
                     <div class="stats-grid">
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatSessions">0</p><p class="stat-mini-label">Total Sessions</p></div>
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatForm">-</p><p class="stat-mini-label">Avg Form</p></div>
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatStreak">0</p><p class="stat-mini-label">Day Streak</p></div>
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatReps">0</p><p class="stat-mini-label">Total Reps</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatSessions">0</p><p class="stat-mini-label" id="totalSessionsLabel">Total Sessions</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatForm">-</p><p class="stat-mini-label" id="avgFormLabel2">Avg Form</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatStreak">0</p><p class="stat-mini-label" id="dayStreakLabel">Day Streak</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatReps">0</p><p class="stat-mini-label" id="totalRepsLabel">Total Reps</p></div>
                     </div>
                     <div class="layout-grid grid-3">
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Workout Performance</h2><span class="small-chip">Live</span></div>
+                            <div class="card-header"><h2 class="card-title" id="workoutPerfTitle">Workout Performance</h2><span class="small-chip">Live</span></div>
                             <div class="stat-row">
-                                <div class="stat-card"><p class="stat-value" id="dashboardFitnessScore">-</p><p class="stat-secondary">Current session form</p></div>
-                                <div class="stat-card"><p class="stat-value" id="dashboardWorkoutCount">0</p><p class="stat-secondary">Workout sessions</p></div>
+                                <div class="stat-card"><p class="stat-value" id="dashboardFitnessScore">-</p><p class="stat-secondary" id="currentSessionFormLabel">Current session form</p></div>
+                                <div class="stat-card"><p class="stat-value" id="dashboardWorkoutCount">0</p><p class="stat-secondary" id="workoutSessionsLabel">Workout sessions</p></div>
                                 <div class="stat-card"><p class="stat-value" id="dashboardFormAccuracy">-</p><p class="stat-secondary">Average accuracy</p></div>
                             </div>
                         </div>
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Risk Insights</h2><span class="small-chip">Analysis</span></div>
+                            <div class="card-header"><h2 class="card-title" id="riskInsightsTitle">Risk Insights</h2><span class="small-chip">Analysis</span></div>
                             <div class="metric-list">
-                                <div class="metric-bubble"><span class="bubble-label">Most frequent issue</span><strong id="dashboardTopIssue">None</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Current streak</span><strong id="dashboardStreak">0 days</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="mostFreqIssueLabel">Most frequent issue</span><strong id="dashboardTopIssue">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="currentStreakLabel">Current streak</span><strong id="dashboardStreak">0 days</strong></div>
                                 <div class="metric-bubble"><span class="bubble-label">Injury warning</span><strong id="dashboardWarning">None</strong></div>
                                 <div class="metric-bubble"><span class="bubble-label">Best form score</span><strong id="dashboardBestForm">-</strong></div>
                             </div>
                         </div>
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Live Session</h2><span class="small-chip">Status</span></div>
+                            <div class="card-header"><h2 class="card-title" id="liveSessionTitle">Live Session</h2><span class="small-chip">Status</span></div>
                             <div class="progress-ring" style="margin:0 auto;">
                                 <svg viewBox="0 0 120 120" aria-hidden="true">
                                     <circle class="track" cx="60" cy="60" r="50"></circle>
@@ -658,7 +658,7 @@
 
                     <div class="layout-grid grid-2" style="margin-top:24px;">
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Session Summary</h2></div>
+                            <div class="card-header"><h2 class="card-title" id="sessionSummaryTitle">Session Summary</h2></div>
                             <div class="metric-list">
                                 <div class="metric-bubble"><span class="bubble-label">Total active minutes</span><strong id="dashboardActiveMinutes">0</strong></div>
                                 <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="dashboardTotalReps">0</strong></div>
@@ -703,9 +703,9 @@
                         <div class="card-header"><h2 class="card-title">🏋️ Choose Your Exercise</h2><span class="small-chip">Real-time AI Analysis</span></div>
                         <p style="color:var(--muted);margin:0 0 12px;font-size:0.9rem;">📌 Tip: Place camera to your side so it can see your full body for best pose detection.</p>
                         <div class="exercise-selection">
-                            <button class="active" data-exercise="pushup">💪 Push-Up</button>
-                            <button data-exercise="squat">🦵 Squat</button>
-                            <button data-exercise="plank">🧘 Plank</button>
+                            <button class="active" data-exercise="pushup" id="exPushup">💪 Push-Up</button>
+                            <button data-exercise="squat" id="exSquat">🦵 Squat</button>
+                            <button data-exercise="plank" id="exPlank">🧘 Plank</button>
                         </div>
                     </div>
 
@@ -719,8 +719,8 @@
                                 </div>
                                 <div class="camera-overlay">
                                     <div style="padding:22px;display:grid;gap:10px;">
-                                        <span class="camera-chip" id="liveExerciseLabel">Exercise: Push-Up</span>
-                                        <span class="camera-chip" id="liveCameraStatus">Tracking: Waiting</span>
+                                        <span class="camera-chip" id="liveExerciseLabel" id="liveExerciseLabel">Exercise: Push-Up</span>
+                                        <span class="camera-chip" id="liveCameraStatus" id="liveCameraStatus">Tracking: Waiting</span>
                                     </div>
                                     <div class="camera-footer">
                                         <div class="camera-stats">
@@ -736,10 +736,10 @@
                         <div class="section-card live-summary">
                             <div class="card-header"><h2 class="card-title">📊 Live Metrics</h2></div>
                             <div class="metric-list">
-                                <div class="metric-bubble"><span class="bubble-label">Duration</span><strong id="liveDuration">0s</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="thDuration">Duration</span><strong id="liveDuration">0s</strong></div>
                                 <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="liveStability">-</strong></div>
                                 <div class="metric-bubble"><span class="bubble-label">Core Score</span><strong id="liveCoreScore">-</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Avg Form</span><strong id="liveAvgForm">0%</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="avgFormLabel2">Avg Form</span><strong id="liveAvgForm">0%</strong></div>
                             </div>
                             <div style="margin-top:16px;">
                                 <h3 style="font-size:0.9rem;color:var(--muted);margin:0 0 12px;text-transform:uppercase;letter-spacing:0.05em;">Form Quality</h3>
@@ -762,8 +762,8 @@
                             <div>
                                 <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;">Shoulders</h3>
                                 <div class="angle-display">
-                                    <div class="angle-item" id="angleItemLeftShoulder"><span class="angle-label">Left Shoulder</span><span class="angle-value" id="angleLeftShoulder">-</span></div>
-                                    <div class="angle-item" id="angleItemRightShoulder"><span class="angle-label">Right Shoulder</span><span class="angle-value" id="angleRightShoulder">-</span></div>
+                                    <div class="angle-item" id="angleItemLeftShoulder"><span class="angle-label" id="leftShoulderLabel">Left Shoulder</span><span class="angle-value" id="angleLeftShoulder">-</span></div>
+                                    <div class="angle-item" id="angleItemRightShoulder"><span class="angle-label" id="rightShoulderLabel">Right Shoulder</span><span class="angle-value" id="angleRightShoulder">-</span></div>
                                 </div>
                             </div>
                             <div>
@@ -776,7 +776,7 @@
                             <div>
                                 <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;">Hip & Back</h3>
                                 <div class="angle-display">
-                                    <div class="angle-item" id="angleItemHip"><span class="angle-label">Hip Angle</span><span class="angle-value" id="angleHip">-</span></div>
+                                    <div class="angle-item" id="angleItemHip"><span class="angle-label" id="hipAngleLabel">Hip Angle</span><span class="angle-value" id="angleHip">-</span></div>
                                     <div class="angle-item" id="angleItemElbow"><span class="angle-label">Elbow Angle</span><span class="angle-value" id="angleElbow">-</span></div>
                                 </div>
                             </div>
@@ -806,7 +806,7 @@
                 <!-- EXERCISE GUIDE -->
                 <section class="page" id="exercise-guide">
                     <div class="glass-card">
-                        <div class="card-header"><h2 class="card-title">🏋️ Exercise Guide</h2><span class="small-chip">Interactive</span></div>
+                        <div class="card-header"><h2 class="card-title" id="navExerciseGuide">🏋️ Exercise Guide</h2><span class="small-chip">Interactive</span></div>
                         <p style="color:var(--muted);margin:0;">Click on any exercise to learn the correct form, steps, and safety tips.</p>
                     </div>
                     <div class="exercise-guide-grid" id="exerciseGuideGrid"></div>
@@ -852,7 +852,7 @@
                             <button class="tab-item" id="historyApplyFilterButton">Apply filters</button>
                         </div>
                         <div style="overflow-x:auto;">
-                            <table><thead><tr><th>Exercise</th><th>Duration</th><th>Reps</th><th>Avg Form</th><th>Top issue</th><th>Actions</th></tr></thead>
+                            <table><thead><tr><th id="thExercise">Exercise</th><th id="thDuration">Duration</th><th id="thReps">Reps</th><th id="avgFormLabel2">Avg Form</th><th>Top issue</th><th>Actions</th></tr></thead>
                             <tbody id="historyTableBody"><tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr></tbody></table>
                         </div>
                         <div style="margin-top:18px;display:flex;gap:12px;">
@@ -871,7 +871,7 @@
                         </div>
                         <div class="metric-list">
                             <div class="metric-bubble"><span class="bubble-label">Exercise Type</span><strong id="reportExerciseType">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Duration</span><strong id="reportDuration">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="thDuration">Duration</span><strong id="reportDuration">-</strong></div>
                             <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="reportReps">-</strong></div>
                             <div class="metric-bubble"><span class="bubble-label">Form accuracy</span><strong id="reportFormAccuracy">-</strong></div>
                             <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="reportStability">-</strong></div>
@@ -1004,7 +1004,7 @@
                                         <span class="login-status-badge logged-in">● Signed in</span>
                                         <p id="profileUserName" style="font-size:1.2rem;font-weight:700;margin:10px 0 4px;"></p>
                                         <p id="profileUserEmail" style="color:var(--muted);margin:0 0 16px;font-size:0.9rem;"></p>
-                                        <button class="tab-item" onclick="handleGoogleSignOut()">Sign Out</button>
+                                        <button class="tab-item" onclick="handleGoogleSignOut()" id="btnSignOut">Sign Out</button>
                                     </div>
                                 </div>
                             </div>
@@ -1015,12 +1015,12 @@
                         <div class="glass-card">
                             <div class="card-header"><h2 class="card-title">User Profile</h2></div>
                             <div class="info-list" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                                <div class="info-item"><label>Name</label><input id="profileNameInput" type="text" value="Athlete"></div>
-                                <div class="info-item"><label>Height (cm)</label><input id="profileHeightInput" type="number" min="100" max="230" value="178"></div>
-                                <div class="info-item"><label>Weight (kg)</label><input id="profileWeightInput" type="number" min="40" max="180" value="72"></div>
-                                <div class="info-item"><label>Age</label><input id="profileAgeInput" type="number" min="16" max="80" value="30"></div>
+                                <div class="info-item"><label id="nameLabel">Name</label><input id="profileNameInput" type="text" value="Athlete"></div>
+                                <div class="info-item"><label id="heightLabel">Height (cm)</label><input id="profileHeightInput" type="number" min="100" max="230" value="178"></div>
+                                <div class="info-item"><label id="weightLabel">Weight (kg)</label><input id="profileWeightInput" type="number" min="40" max="180" value="72"></div>
+                                <div class="info-item"><label id="ageLabel">Age</label><input id="profileAgeInput" type="number" min="16" max="80" value="30"></div>
                                 <div class="info-item"><label>Fitness level</label><select id="profileFitnessLevelInput"><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option></select></div>
-                                <div class="info-item"><label>Goal</label><select id="profileGoalInput"><option>Lose Weight</option><option selected>Build Muscle</option><option>Improve Endurance</option><option>Stay Active</option></select></div>
+                                <div class="info-item"><label id="goalLabel">Goal</label><select id="profileGoalInput"><option>Lose Weight</option><option selected>Build Muscle</option><option>Improve Endurance</option><option>Stay Active</option></select></div>
                                 <div class="info-item"><label>Estimated calories</label><strong id="profileCalories">-</strong></div>
                                 <div class="info-item"><label>BMI</label><strong id="profileBMI">22.7</strong></div>
                             </div>
@@ -1043,7 +1043,7 @@
                 <!-- SETTINGS -->
                 <section class="page" id="settings">
                     <div class="glass-card" style="max-width:900px;margin:0 auto;">
-                        <div class="card-header"><h2 class="card-title">⚙️ Settings</h2></div>
+                        <div class="card-header"><h2 class="card-title" id="navSettings">⚙️ Settings</h2></div>
                         <div class="settings-grid">
                             <div class="setting-item">
                                 <label>Camera</label>
@@ -1067,7 +1067,7 @@
                                 </select>
                             </div>
                             <div class="setting-item">
-                                <label>Language</label>
+                                <label id="languageLabel">Language</label>
                                 <select id="settingsLanguage">
                                     <option value="en">English</option>
                                     <option value="th">Thai</option>
@@ -1103,7 +1103,7 @@
         <button class="tab-item" data-page="live-analysis">🎯 Live</button>
         <button class="tab-item" data-page="exercise-guide">🏋️ Guide</button>
         <button class="tab-item" data-page="ai-coach">🤖 Coach</button>
-        <button class="tab-item" data-page="profile">👤 Profile</button>
+        <button class="tab-item" data-page="profile" id="navProfile">👤 Profile</button>
     </div>
 
 <script>
@@ -2556,5 +2556,103 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 8000);
 });
 </script>
+<script>
+    // ===================== TRANSLATIONS =====================
+    let currentLang = localStorage.getItem('fitguardLang') || 'en';
+    const TRANSLATIONS = {
+        en: {
+            splashBadgeText: 'AI-Powered Fitness', splashTitle: 'FitGuard', splashTagline: 'Next-Gen Fitness Intelligence',
+            splashSubtitle: 'Experience the next generation of AI-powered fitness analysis. Your personal coach, powered by computer vision.',
+            pill1: 'AI Pose Analysis', pill2: 'Real-time Feedback', pill3: 'Progress Tracking', enterBtnText: 'Enter Website',
+            splashHintText: 'Powered by MediaPipe & Computer Vision', statLabel1: 'Exercise Types', statLabel2: 'Body Landmarks',
+            statLabel3: 'Form Analysis', statLabel4: 'Coaching', bannerTitle: 'Welcome back, Athlete! 🔥',
+            bannerText: 'Your AI fitness companion is ready. Start a live workout session to get real-time posture analysis.',
+            bannerCta: 'Start Workout →', actionStartLabel: 'Start Workout', actionGuideLabel: 'Exercise Guide',
+            actionProgressLabel: 'View Progress', actionCoachLabel: 'AI Coach', totalSessionsLabel: 'Total Sessions',
+            avgFormLabel: 'Avg Form', dayStreakLabel: 'Day Streak', totalRepsLabel: 'Total Reps', workoutPerfTitle: 'Workout Performance',
+            currentSessionFormLabel: 'Current session form', workoutSessionsLabel: 'Workout sessions', riskInsightsTitle: 'Risk Insights',
+            mostFreqIssueLabel: 'Most frequent issue', currentStreakLabel: 'Current streak', liveSessionTitle: 'Live Session',
+            formScoreHistoryTitle: '📈 Form Score History', repsPerSessionTitle: '💪 Reps per Session', recentSessionsTitle: '📋 Recent Sessions',
+            chooseExerciseTitle: '🏋️ Choose Your Exercise', exPushup: '💪 Push-Up', exSquat: '🦵 Squat', exPlank: '🧘 Plank',
+            liveExerciseLabel: 'Exercise: Push-Up', liveCameraStatus: 'Tracking: Waiting', liveMetricsTitle: '📊 Live Metrics',
+            durationLabel: 'Duration', avgFormLabel2: 'Avg Form', jointAnglesTitle: '🦴 Joint Angles', leftShoulderLabel: 'Left Shoulder',
+            rightShoulderLabel: 'Right Shoulder', hipAngleLabel: 'Hip Angle', exerciseGuideTitle: '🏋️ Exercise Guide',
+            exerciseGuideDesc: 'Click on any exercise to learn the correct form.', aiCoachChatTitle: '🤖 AI Coach Chat',
+            profileTitle: '👤 Profile', fitnessProfileTitle: 'Fitness Profile', nameLabel: 'Name', heightLabel: 'Height (cm)',
+            weightLabel: 'Weight (kg)', ageLabel: 'Age', fitnessLevelLabel: 'Fitness Level', goalLabel: 'Goal',
+            saveProfileButton: 'Save Profile', settingsTitle: '⚙️ Settings', languageLabel: 'Language', apiKeyLabel: 'OpenAI API Key',
+            saveSettingsButton: 'Save Settings', summaryTitle: 'AI Workout Summary', summaryCoachBtn: 'Chat with AI Coach →',
+            summaryCloseBtn: 'Close', navDashboard: '🏠 Dashboard', navLiveWorkout: '🎯 Live Workout', navExerciseGuide: '🏋️ Exercise Guide',
+            navProgress: '📈 Progress', navHistory: '📋 History', navReports: '📊 Reports', navAICoach: '🤖 AI Coach',
+            navChallenges: '🏆 Challenges', navAchievements: '⭐ Achievements', navProfile: '👤 Profile', navSettings: '⚙️ Settings',
+            brandDesc: 'AI-driven workout analysis and injury prevention using live camera posture intelligence.',
+            sessionSummaryTitle: 'Session Summary', workoutsCompletedLabel: 'Workouts completed', avgFormScoreLabel: 'Average form score',
+            proTipLabel: 'Pro tip', proTipText: 'Place camera at your side to capture full body!', pageTitle: 'FitGuard AI Control Center',
+            pageSubtitle: 'Every insight is generated from live pose landmarks, joint angles, and exercise analysis.',
+            aiModelLabel: 'AI Model', cameraSelectLabel: 'Camera Device', sensitivityLabel: 'Sensitivity',
+            thExercise: 'Exercise', thDuration: 'Duration', thReps: 'Reps', thForm: 'Form', thIssues: 'Issues', thAction: 'Action',
+            lockedAchievementsLabel: '🔒 Locked Achievements', selectSessionLabel: 'Select Session', btnSignInGoogle: 'Sign in with Google',
+            btnSignOut: 'Sign Out'
+        },
+        th: {
+            splashBadgeText: 'ฟิตเนสพลัง AI', splashTitle: 'FitGuard', splashTagline: 'เทคโนโลยีฟิตเนสยุคใหม่',
+            splashSubtitle: 'สัมผัสประสบการณ์การวิเคราะห์การออกกำลังกายด้วย AI ระดับสูง โค้ชส่วนตัวของคุณ ขับเคลื่อนด้วย Computer Vision',
+            pill1: 'วิเคราะห์ท่าทาง AI', pill2: 'ฟีดแบ็คเรียลไทม์', pill3: 'ติดตามความก้าวหน้า', enterBtnText: 'เข้าสู่เว็บไซต์',
+            splashHintText: 'ขับเคลื่อนด้วย MediaPipe และ Computer Vision', statLabel1: 'ประเภทท่า', statLabel2: 'จุดบนร่างกาย',
+            statLabel3: 'วิเคราะห์ฟอร์ม', statLabel4: 'AI โค้ช', bannerTitle: 'ยินดีต้อนรับกลับมา นักกีฬา! 🔥',
+            bannerText: 'AI โค้ชส่วนตัวของคุณพร้อมแล้ว เริ่มเซสชั่นออกกำลังกายเพื่อรับการวิเคราะห์ท่าทางแบบเรียลไทม์',
+            bannerCta: 'เริ่มออกกำลังกาย →', actionStartLabel: 'เริ่มออกกำลังกาย', actionGuideLabel: 'คู่มือท่า',
+            actionProgressLabel: 'ดูความก้าวหน้า', actionCoachLabel: 'AI โค้ช', totalSessionsLabel: 'เซสชั่นทั้งหมด',
+            avgFormLabel: 'ฟอร์มเฉลี่ย', dayStreakLabel: 'สตรีกวัน', totalRepsLabel: 'ครั้งทั้งหมด', workoutPerfTitle: 'ประสิทธิภาพการออกกำลังกาย',
+            currentSessionFormLabel: 'ฟอร์มเซสชั่นปัจจุบัน', workoutSessionsLabel: 'เซสชั่นการออกกำลังกาย', riskInsightsTitle: 'ข้อมูลเชิงลึก',
+            mostFreqIssueLabel: 'ปัญหาที่พบบ่อย', currentStreakLabel: 'สตรีกปัจจุบัน', liveSessionTitle: 'เซสชั่นสด',
+            formScoreHistoryTitle: '📈 ประวัติคะแนนฟอร์ม', repsPerSessionTitle: '💪 ครั้งต่อเซสชั่น', recentSessionsTitle: '📋 เซสชั่นล่าสุด',
+            chooseExerciseTitle: '🏋️ เลือกท่าของคุณ', exPushup: '💪 พุช-อัป', exSquat: '🦵 สควอท', exPlank: '🧘 แพลงก์',
+            liveExerciseLabel: 'ท่า: พุช-อัป', liveCameraStatus: 'การติดตาม: รอ', liveMetricsTitle: '📊 เมตริกสด',
+            durationLabel: 'ระยะเวลา', avgFormLabel2: 'ฟอร์มเฉลี่ย', jointAnglesTitle: '🦴 มุมข้อต่อ', leftShoulderLabel: 'ไหล่ซ้าย',
+            rightShoulderLabel: 'ไหล่ขวา', hipAngleLabel: 'มุมสะโพก', exerciseGuideTitle: '🏋️ คู่มือท่า',
+            exerciseGuideDesc: 'คลิกที่ท่าเพื่อเรียนรู้ฟอร์มที่ถูกต้อง', aiCoachChatTitle: '🤖 แชท AI โค้ช',
+            profileTitle: '👤 โปรไฟล์', fitnessProfileTitle: 'โปรไฟล์ฟิตเนส', nameLabel: 'ชื่อ', heightLabel: 'ส่วนสูง (ซม.)',
+            weightLabel: 'น้ำหนัก (กก.)', ageLabel: 'อายุ', fitnessLevelLabel: 'ระดับฟิตเนส', goalLabel: 'เป้าหมาย',
+            saveProfileButton: 'บันทึกโปรไฟล์', settingsTitle: '⚙️ การตั้งค่า', languageLabel: 'ภาษา', apiKeyLabel: 'OpenAI API Key',
+            saveSettingsButton: 'บันทึกการตั้งค่า', summaryTitle: 'สรุปการออกกำลังกาย AI', summaryCoachBtn: 'คุยกับ AI โค้ช →',
+            summaryCloseBtn: 'ปิด', navDashboard: '🏠 แดชบอร์ด', navLiveWorkout: '🎯 การออกกำลังกายสด', navExerciseGuide: '🏋️ คู่มือท่า',
+            navProgress: '📈 ความก้าวหน้า', navHistory: '📋 ประวัติ', navReports: '📊 รายงาน', navAICoach: '🤖 AI โค้ช',
+            navChallenges: '🏆 ความท้าทาย', navAchievements: '⭐ ความสำเร็จ', navProfile: '👤 โปรไฟล์', navSettings: '⚙️ การตั้งค่า',
+            brandDesc: 'การวิเคราะห์การออกกำลังกายและการป้องกันการบาดเจ็บด้วย AI โดยใช้ท่าทางกล้องสด',
+            sessionSummaryTitle: 'สรุปเซสชั่น', workoutsCompletedLabel: 'การออกกำลังกายที่เสร็จสิ้น', avgFormScoreLabel: 'คะแนนฟอร์มเฉลี่ย',
+            proTipLabel: 'เคล็ดลับ', proTipText: 'วางกล้องข้างตัวคุณเพื่อจับภาพร่างกายทั้งหมด!', pageTitle: 'ศูนย์ควบคุม FitGuard AI',
+            pageSubtitle: 'ข้อมูลเชิงลึกทั้งหมดสร้างขึ้นจากจุดสำคัญท่าทางและมุมข้อต่อ',
+            aiModelLabel: 'โมเดล AI', cameraSelectLabel: 'อุปกรณ์กล้อง', sensitivityLabel: 'ความไว',
+            thExercise: 'ท่าออกกำลังกาย', thDuration: 'เวลา', thReps: 'จำนวนครั้ง', thForm: 'ฟอร์ม', thIssues: 'ปัญหาที่พบ', thAction: 'การกระทำ',
+            lockedAchievementsLabel: '🔒 ความสำเร็จที่ยังล็อกอยู่', selectSessionLabel: 'เลือกเซสชั่น', btnSignInGoogle: 'เข้าสู่ระบบด้วย Google',
+            btnSignOut: 'ออกจากระบบ'
+        }
+    };
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('fitguardLang', lang);
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.id.toLowerCase().includes(lang)));
+        document.querySelectorAll('.splash-lang-btn').forEach(b => b.classList.toggle('active', b.id.toLowerCase().includes(lang)));
+        const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+        Object.keys(t).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = t[id];
+        });
+        const chatInput = document.getElementById('chatInput');
+        if (chatInput) chatInput.placeholder = lang === 'th' ? 'ถามโค้ชของคุณ...' : 'Ask your coach...';
+        
+        // Update dynamic labels
+        const sensVal = document.getElementById('settingsSensitivity')?.value || 5;
+        const sensLabel = document.getElementById('sensitivityLabel');
+        if (sensLabel) sensLabel.textContent = (lang === 'th' ? 'ความไว: ' : 'Sensitivity: ') + sensVal;
+        
+        updateDashboard();
+        updateHistory();
+        updateDailyChallenge();
+        buildExerciseGuide();
+    }
+    </script>
 </body>
 </html>
