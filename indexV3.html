@@ -1,2 +1,1004 @@
-print
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Push-up Detector — MediaPipe Pose</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg-dark:      #0a0a0f;
+      --bg-card:      #12122a;
+      --bg-panel:     #0f1535;
+      --accent-green: #00ff88;
+      --accent-blue:  #0f3460;
+      --accent-cyan:  #00d4ff;
+      --color-good:   #00ff88;
+      --color-bad:    #ff3b3b;
+      --color-warn:   #ffcc00;
+      --text-primary: #e0e0e0;
+      --text-muted:   #7a7a9a;
+      --border:       rgba(0,212,255,0.18);
+      --radius:       14px;
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: 'Segoe UI', 'Noto Sans Thai', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ===== Header ===== */
+    header {
+      width: 100%;
+      background: linear-gradient(135deg, #0f3460 0%, #12122a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-icon {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, #00c96e, #00ff88);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(0,255,136,0.4);
+    }
+    .header-text h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.3px;
+    }
+    .header-text p { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+
+    /* ===== Main Layout ===== */
+    main {
+      width: 100%;
+      max-width: 1320px;
+      padding: 20px 16px;
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 18px;
+    }
+
+    /* ===== Video Section ===== */
+    .video-section { display: flex; flex-direction: column; gap: 14px; }
+
+    .canvas-wrapper {
+      position: relative;
+      background: #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 2px solid var(--border);
+      width: 100%;
+      aspect-ratio: 16/9;
+    }
+
+    #inputVideo {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+      opacity: 0;
+    }
+
+    #outputCanvas {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      transform: scaleX(-1);
+    }
+
+    /* HUD Badges */
+    .hud-tl {
+      position: absolute; top: 12px; left: 12px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .hud-tr {
+      position: absolute; top: 12px; right: 12px;
+      display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+    }
+    .badge {
+      background: rgba(10,10,20,0.8);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.82rem;
+      backdrop-filter: blur(6px);
+      transition: all 0.3s;
+    }
+    .badge-phase { color: var(--accent-cyan); }
+    .badge-fps   { color: var(--text-muted); font-size: 0.75rem; }
+    .badge-form  { color: var(--accent-green); }
+
+    /* Loading overlay */
+    #loadingOverlay {
+      position: absolute; inset: 0;
+      background: rgba(10,10,20,0.92);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      z-index: 20; border-radius: var(--radius);
+    }
+    .spinner {
+      width: 56px; height: 56px;
+      border: 4px solid rgba(0,255,136,0.15);
+      border-top-color: var(--accent-green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    #loadingOverlay p { color: var(--accent-green); font-size: 0.95rem; }
+    #loadingStatus   { color: var(--text-muted); font-size: 0.8rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* No camera overlay */
+    #noCameraOverlay {
+      position: absolute; inset: 0;
+      background: rgba(10,10,20,0.95);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
+      z-index: 20; border-radius: var(--radius);
+    }
+    #noCameraOverlay .nc-icon { font-size: 3.5rem; }
+    #noCameraOverlay p { color: var(--color-bad); font-size: 0.95rem; text-align: center; padding: 0 24px; line-height: 1.6; }
+
+    /* ===== Controls ===== */
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn {
+      flex: 1; min-width: 110px;
+      padding: 11px 18px;
+      border: none; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      letter-spacing: 0.2px;
+    }
+    .btn-primary  { background: linear-gradient(135deg,#00c96e,#00ff88); color:#000; }
+    .btn-danger   { background: linear-gradient(135deg,#c0392b,#ff3b3b); color:#fff; }
+    .btn-secondary{ background: var(--bg-panel); color: var(--text-primary); border: 1px solid var(--border); }
+
+    .btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn:disabled { opacity: 0.38; cursor: not-allowed; transform: none; filter: none; }
+
+    /* ===== Side Panel ===== */
+    .side-panel { display: flex; flex-direction: column; gap: 14px; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    .card-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    /* Rep Counter */
+    .rep-display { text-align: center; }
+    .rep-number {
+      font-size: 5.5rem; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      transition: transform 0.15s;
+    }
+    .rep-number.pulse { animation: repPulse 0.45s cubic-bezier(0.36,0.07,0.19,0.97); }
+    @keyframes repPulse {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    .rep-label { font-size: 0.82rem; color: var(--text-muted); margin-top: 4px; }
+
+    .phase-indicator {
+      display: flex; gap: 8px; margin-top: 14px;
+    }
+    .phase-pill {
+      flex: 1; padding: 6px 0; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700;
+      text-align: center; transition: all 0.3s;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      border: 1px solid transparent;
+    }
+    .phase-pill.active-up {
+      background: rgba(0,255,136,0.15);
+      color: var(--accent-green);
+      border-color: var(--accent-green);
+      box-shadow: 0 0 10px rgba(0,255,136,0.2);
+    }
+    .phase-pill.active-down {
+      background: rgba(0,212,255,0.15);
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(0,212,255,0.2);
+    }
+
+    /* Angle gauges */
+    .angle-list { display: flex; flex-direction: column; gap: 11px; }
+    .angle-item label {
+      display: flex; justify-content: space-between;
+      font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;
+    }
+    .angle-item label span { color: var(--text-primary); font-weight: 700; }
+    .angle-track {
+      height: 7px; background: rgba(255,255,255,0.07);
+      border-radius: 4px; overflow: hidden;
+    }
+    .angle-fill {
+      height: 100%; border-radius: 4px;
+      transition: width 0.12s ease, background 0.3s;
+    }
+
+    /* Form checks */
+    .check-list { display: flex; flex-direction: column; gap: 7px; }
+    .check-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 11px; border-radius: 9px;
+      background: rgba(255,255,255,0.03);
+      font-size: 0.82rem; transition: all 0.3s;
+      border: 1px solid transparent;
+    }
+    .check-dot {
+      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+      background: var(--text-muted); transition: all 0.3s;
+    }
+    .check-item.ok   { border-color: rgba(0,255,136,0.2); }
+    .check-item.ok   .check-dot { background: var(--color-good); box-shadow: 0 0 7px var(--color-good); }
+    .check-item.bad  { border-color: rgba(255,59,59,0.3); background: rgba(255,59,59,0.06); }
+    .check-item.bad  .check-dot { background: var(--color-bad);  box-shadow: 0 0 7px var(--color-bad); }
+    .check-item.warn { border-color: rgba(255,204,0,0.25); }
+    .check-item.warn .check-dot { background: var(--color-warn); box-shadow: 0 0 7px var(--color-warn); }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .stat-box {
+      background: rgba(255,255,255,0.04); border-radius: 9px;
+      padding: 11px; text-align: center;
+    }
+    .stat-val { font-size: 1.55rem; font-weight: 800; color: var(--accent-cyan); }
+    .stat-lbl { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Legend */
+    .legend-list { display: flex; flex-direction: column; gap: 7px; }
+    .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--text-muted); }
+    .legend-swatch { width: 26px; height: 4px; border-radius: 2px; flex-shrink: 0; }
+
+    /* Alert Banner */
+    #alertBanner {
+      position: fixed; top: 76px; left: 50%;
+      transform: translateX(-50%) translateY(-16px);
+      padding: 11px 26px; border-radius: 10px;
+      font-size: 0.92rem; font-weight: 700;
+      z-index: 200; opacity: 0;
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none; max-width: 88vw; text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    #alertBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #alertBanner.alert-bad  { background: rgba(200,30,30,0.9); color:#fff; box-shadow: 0 4px 20px rgba(255,0,0,0.4); }
+    #alertBanner.alert-good { background: rgba(0,180,80,0.9);  color:#fff; box-shadow: 0 4px 20px rgba(0,255,100,0.3); }
+    #alertBanner.alert-warn { background: rgba(180,140,0,0.9); color:#fff; box-shadow: 0 4px 20px rgba(255,200,0,0.3); }
+
+    /* Responsive */
+    @media (max-width: 920px) {
+      main { grid-template-columns: 1fr; }
+      .side-panel { display: grid; grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .side-panel { grid-template-columns: 1fr; }
+      header { padding: 10px 14px; }
+      .header-text h1 { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="alertBanner"></div>
+
+<header>
+  <div class="logo-icon">💪</div>
+  <div class="header-text">
+    <h1>Push-up Detector</h1>
+    <p>MediaPipe Pose — Real-time Form Analysis &amp; Rep Counter</p>
+  </div>
+</header>
+
+<main>
+  <!-- Left: Camera -->
+  <div class="video-section">
+    <div class="canvas-wrapper" id="canvasWrapper">
+      <video id="inputVideo" playsinline autoplay muted></video>
+      <canvas id="outputCanvas"></canvas>
+
+      <!-- HUD -->
+      <div class="hud-tl">
+        <div class="badge badge-phase" id="badgePhase">⏳ กำลังโหลด...</div>
+        <div class="badge badge-form"  id="badgeForm" style="display:none"></div>
+      </div>
+      <div class="hud-tr">
+        <div class="badge badge-fps" id="badgeFps">-- FPS</div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>กำลังโหลด MediaPipe Pose...</p>
+        <span id="loadingStatus">เชื่อมต่อกล้อง...</span>
+      </div>
+
+      <!-- No Camera -->
+      <div id="noCameraOverlay">
+        <div class="nc-icon">📷</div>
+        <p>ไม่สามารถเข้าถึงกล้องได้<br>กรุณาอนุญาตการใช้งานกล้องแล้วรีเฟรชหน้า</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary"   id="btnStart" disabled>▶ เริ่มตรวจจับ</button>
+      <button class="btn btn-danger"    id="btnStop"  disabled>⏹ หยุด</button>
+      <button class="btn btn-secondary" id="btnReset">🔄 รีเซ็ต</button>
+    </div>
+  </div>
+
+  <!-- Right: Panel -->
+  <div class="side-panel">
+
+    <!-- Rep Counter -->
+    <div class="card">
+      <div class="card-title">จำนวนครั้ง</div>
+      <div class="rep-display">
+        <div class="rep-number" id="repCount">0</div>
+        <div class="rep-label">Push-up Reps</div>
+        <div class="phase-indicator">
+          <div class="phase-pill" id="pillUp">⬆ UP</div>
+          <div class="phase-pill" id="pillDown">⬇ DOWN</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Angles -->
+    <div class="card">
+      <div class="card-title">มุมข้อต่อ (Degrees)</div>
+      <div class="angle-list">
+        <div class="angle-item">
+          <label>ข้อศอกซ้าย <span id="lblElbowL">--°</span></label>
+          <div class="angle-track"><div class="angle-fill" id="barElbowL" style="width:0%"></div></div>
+        </div>
+        <div class="angle-item">
+          <label>ข้อศอกขวา <span id="lblElbowR">--°</span></label>
+          <div class="angle-track"><div class="angle-fill" id="barElbowR" style="width:0%"></div></div>
+        </div>
+        <div class="angle-item">
+          <label>ลำตัว (Hip) <span id="lblBody">--°</span></label>
+          <div class="angle-track"><div class="angle-fill" id="barBody" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Checks -->
+    <div class="card">
+      <div class="card-title">ตรวจสอบท่าทาง</div>
+      <div class="check-list">
+        <div class="check-item" id="chkBody">
+          <div class="check-dot"></div><span>ลำตัวตรง (Body Straight)</span>
+        </div>
+        <div class="check-item" id="chkElbow">
+          <div class="check-dot"></div><span>ข้อศอกไม่กางเกินไป</span>
+        </div>
+        <div class="check-item" id="chkDepth">
+          <div class="check-dot"></div><span>ลงลึกพอ (≤ 90°)</span>
+        </div>
+        <div class="check-item" id="chkSymmetry">
+          <div class="check-dot"></div><span>สมมาตรซ้าย-ขวา</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card">
+      <div class="card-title">สถิติเซสชัน</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-val" id="statGood">0</div>
+          <div class="stat-lbl">ท่าถูก ✅</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statBad">0</div>
+          <div class="stat-lbl">ท่าผิด ❌</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statAcc">--%</div>
+          <div class="stat-lbl">ความแม่นยำ</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statTime">0s</div>
+          <div class="stat-lbl">เวลา</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="card">
+      <div class="card-title">คำอธิบายสี</div>
+      <div class="legend-list">
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#00ff88"></div>
+          <span>ท่าถูกต้อง / ปกติ</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#ff3b3b"></div>
+          <span>ท่าผิด — ต้องแก้ไขทันที</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#ffcc00"></div>
+          <span>คำเตือน — ใกล้ผิดมาตรฐาน</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-swatch" style="background:#00d4ff"></div>
+          <span>จุด Landmark (ปกติ)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<script>
+/* ================================================================
+   PUSH-UP DETECTOR  |  MediaPipe Pose
+   ================================================================
+   Rep counting state machine:
+     IDLE  →  UP (elbow > 155°)  →  DOWN (elbow < 90°)  →  UP  → count++
+   Form checks run every frame; errors flag connections/points red.
+   ================================================================ */
+
+// ── DOM ──────────────────────────────────────────────────────────
+const videoEl      = document.getElementById('inputVideo');
+const canvasEl     = document.getElementById('outputCanvas');
+const ctx          = canvasEl.getContext('2d');
+const loadingOvl   = document.getElementById('loadingOverlay');
+const loadingStatus= document.getElementById('loadingStatus');
+const noCamOvl     = document.getElementById('noCameraOverlay');
+const btnStart     = document.getElementById('btnStart');
+const btnStop      = document.getElementById('btnStop');
+const btnReset     = document.getElementById('btnReset');
+const repCountEl   = document.getElementById('repCount');
+const badgePhaseEl = document.getElementById('badgePhase');
+const badgeFormEl  = document.getElementById('badgeForm');
+const badgeFpsEl   = document.getElementById('badgeFps');
+const alertEl      = document.getElementById('alertBanner');
+
+// ── Thresholds ───────────────────────────────────────────────────
+const T = {
+  ELBOW_UP:        155,   // arm extended → UP state
+  ELBOW_DOWN:       90,   // arm bent     → DOWN state
+  ELBOW_HYSTERESIS: 10,   // buffer to avoid flickering
+  BODY_MIN:        155,   // body alignment min (degrees)
+  BODY_MAX:        190,   // body alignment max
+  FLARE_WARN:       40,   // elbow flare warning (% of shoulder width)
+  FLARE_BAD:        60,   // elbow flare error
+  SYMMETRY_WARN:    18,   // L/R elbow diff warning
+  SYMMETRY_BAD:     30,   // L/R elbow diff error
+  MIN_VISIBILITY:   0.40, // landmark visibility threshold
+};
+
+// ── State ────────────────────────────────────────────────────────
+let state = {
+  phase:      'IDLE',   // IDLE | UP | DOWN
+  reps:       0,
+  goodReps:   0,
+  badReps:    0,
+  running:    false,
+  sessionStart: null,
+  repHadError: false,
+  alertTimer:  null,
+  lastFpsTime: performance.now(),
+  fpsSmooth:   0,
+};
+
+// ── Math helpers ─────────────────────────────────────────────────
+function angle3(A, B, C) {
+  const bax = A.x - B.x, bay = A.y - B.y;
+  const bcx = C.x - B.x, bcy = C.y - B.y;
+  const dot = bax*bcx + bay*bcy;
+  const mag = Math.sqrt(bax*bax+bay*bay) * Math.sqrt(bcx*bcx+bcy*bcy);
+  if (mag < 1e-9) return 0;
+  return Math.round(Math.acos(Math.min(1, Math.max(-1, dot/mag))) * 180 / Math.PI);
+}
+
+function dist(A, B) {
+  return Math.sqrt((A.x-B.x)**2 + (A.y-B.y)**2);
+}
+
+function visible(lm, threshold = T.MIN_VISIBILITY) {
+  return lm && lm.visibility >= threshold;
+}
+
+// ── Alert ────────────────────────────────────────────────────────
+function showAlert(msg, type = 'bad', ms = 2200) {
+  alertEl.textContent = msg;
+  alertEl.className = `show alert-${type}`;
+  if (state.alertTimer) clearTimeout(state.alertTimer);
+  state.alertTimer = setTimeout(() => {
+    alertEl.className = alertEl.className.replace('show','').trim();
+  }, ms);
+}
+
+// ── UI helpers ───────────────────────────────────────────────────
+function setCheck(id, status) {
+  const el = document.getElementById(id);
+  el.className = `check-item ${status}`;
+}
+
+function updateAngleBar(barId, lblId, deg, minG, maxG) {
+  document.getElementById(lblId).textContent = deg + '°';
+  const pct = Math.min(100, (deg / 180) * 100);
+  const bar = document.getElementById(barId);
+  bar.style.width = pct + '%';
+  bar.style.background = (deg >= minG && deg <= maxG) ? 'var(--color-good)' : 'var(--color-bad)';
+}
+
+function updatePills(phase) {
+  const up   = document.getElementById('pillUp');
+  const down = document.getElementById('pillDown');
+  up.className   = 'phase-pill' + (phase === 'UP'   ? ' active-up'   : '');
+  down.className = 'phase-pill' + (phase === 'DOWN' ? ' active-down' : '');
+}
+
+function pulseRep() {
+  repCountEl.classList.remove('pulse');
+  void repCountEl.offsetWidth;
+  repCountEl.classList.add('pulse');
+}
+
+function updateStats() {
+  document.getElementById('statGood').textContent = state.goodReps;
+  document.getElementById('statBad').textContent  = state.badReps;
+  const total = state.goodReps + state.badReps;
+  document.getElementById('statAcc').textContent  = total > 0 ? Math.round(state.goodReps/total*100)+'%' : '--%';
+  if (state.sessionStart) {
+    const s = Math.floor((Date.now() - state.sessionStart) / 1000);
+    document.getElementById('statTime').textContent = s + 's';
+  }
+}
+
+// ── Canvas drawing ───────────────────────────────────────────────
+// Skeleton connections: [from, to, group]
+const SKELETON = [
+  // Arms
+  [11,13,'arm_l'],[13,15,'arm_l'],
+  [12,14,'arm_r'],[14,16,'arm_r'],
+  // Torso
+  [11,12,'torso'],[11,23,'torso_l'],[12,24,'torso_r'],[23,24,'torso'],
+  // Legs
+  [23,25,'leg_l'],[25,27,'leg_l'],
+  [24,26,'leg_r'],[26,28,'leg_r'],
+];
+
+function connectionKey(i, j) { return `${Math.min(i,j)}-${Math.max(i,j)}`; }
+
+function drawSkeleton(lms, errConn, warnConn, errPts) {
+  const W = canvasEl.width, H = canvasEl.height;
+
+  SKELETON.forEach(([i, j]) => {
+    const A = lms[i], B = lms[j];
+    if (!A || !B || !visible(A) || !visible(B)) return;
+    const key = connectionKey(i, j);
+    const isErr  = errConn.has(key);
+    const isWarn = !isErr && warnConn.has(key);
+
+    const color = isErr ? '#ff3b3b' : isWarn ? '#ffcc00' : '#00ff88';
+    const lw    = isErr ? 5 : 3.5;
+
+    ctx.beginPath();
+    ctx.moveTo(A.x*W, A.y*H);
+    ctx.lineTo(B.x*W, B.y*H);
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = lw;
+    ctx.lineCap     = 'round';
+    ctx.shadowBlur  = isErr ? 14 : 8;
+    ctx.shadowColor = color;
+    ctx.stroke();
+    ctx.shadowBlur  = 0;
+  });
+
+  // Landmark dots
+  [11,12,13,14,15,16,23,24,25,26,27,28].forEach(i => {
+    const lm = lms[i];
+    if (!lm || !visible(lm)) return;
+    const x = lm.x * W, y = lm.y * H;
+    const isErr = errPts.has(i);
+    const color  = isErr ? '#ff3b3b' : '#00d4ff';
+    const r      = isErr ? 9 : 7;
+
+    // Outer glow ring
+    ctx.beginPath();
+    ctx.arc(x, y, r+4, 0, Math.PI*2);
+    ctx.strokeStyle = isErr ? 'rgba(255,59,59,0.3)' : 'rgba(0,212,255,0.25)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Filled dot
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = color;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+}
+
+function drawAngleTag(lms, a, b, c, color) {
+  if (!visible(lms[a]) || !visible(lms[b]) || !visible(lms[c])) return;
+  const deg = angle3(lms[a], lms[b], lms[c]);
+  const x = lms[b].x * canvasEl.width;
+  const y = lms[b].y * canvasEl.height - 20;
+  ctx.font = 'bold 14px Segoe UI';
+  ctx.fillStyle = color;
+  ctx.shadowBlur = 8; ctx.shadowColor = color;
+  ctx.fillText(deg + '°', x - 16, y);
+  ctx.shadowBlur = 0;
+}
+
+function drawHUD(phase, formOk, reps) {
+  const W = canvasEl.width, H = canvasEl.height;
+
+  // Phase text (top center)
+  const phaseText = phase === 'UP' ? '⬆  UP' : phase === 'DOWN' ? '⬇  DOWN' : '';
+  if (phaseText) {
+    ctx.font = 'bold 24px Segoe UI';
+    const tw = ctx.measureText(phaseText).width;
+    const px = W/2 - tw/2;
+    const py = 38;
+    ctx.fillStyle = formOk ? '#00ff88' : '#ff3b3b';
+    ctx.shadowBlur = 12; ctx.shadowColor = ctx.fillStyle;
+    ctx.fillText(phaseText, px, py);
+    ctx.shadowBlur = 0;
+  }
+
+  // Rep count (bottom-left)
+  ctx.font = 'bold 56px Segoe UI';
+  ctx.fillStyle = 'rgba(0,255,136,0.92)';
+  ctx.shadowBlur = 16; ctx.shadowColor = '#00ff88';
+  ctx.fillText(reps, 18, H - 16);
+  ctx.shadowBlur = 0;
+  ctx.font = '13px Segoe UI';
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  const repW = ctx.measureText(reps.toString()).width;
+  ctx.fillText('REPS', 22 + repW, H - 16);
+}
+
+// ── Form analysis ────────────────────────────────────────────────
+function analyzeForm(lms) {
+  const lS = lms[11], rS = lms[12];
+  const lE = lms[13], rE = lms[14];
+  const lW = lms[15], rW = lms[16];
+  const lH = lms[23], rH = lms[24];
+  const lK = lms[25], rK = lms[26];
+  const lA = lms[27], rA = lms[28];
+
+  // Need at least upper body
+  if (![lS,rS,lE,rE,lW,rW,lH,rH].every(lm => visible(lm))) return null;
+
+  const elbowL = angle3(lS, lE, lW);
+  const elbowR = angle3(rS, rE, rW);
+  const avgElbow = (elbowL + elbowR) / 2;
+
+  // Body alignment
+  let bodyL = 180, bodyR = 180;
+  if (visible(lA)) bodyL = angle3(lS, lH, lA);
+  if (visible(rA)) bodyR = angle3(rS, rH, rA);
+  const avgBody = (bodyL + bodyR) / 2;
+
+  // Elbow flare (relative to shoulder width)
+  const sw = dist(lS, rS);
+  const flareL = sw > 0 ? (Math.abs(lE.x - lS.x) / sw) * 100 : 0;
+  const flareR = sw > 0 ? (Math.abs(rE.x - rS.x) / sw) * 100 : 0;
+  const maxFlare = Math.max(flareL, flareR);
+
+  // Symmetry
+  const symDiff = Math.abs(elbowL - elbowR);
+
+  // ── Error sets ──
+  const errConn  = new Set();
+  const warnConn = new Set();
+  const errPts   = new Set();
+  const alerts   = [];
+  let formOk = true;
+
+  // 1. Body alignment
+  const bodyOk = avgBody >= T.BODY_MIN && avgBody <= T.BODY_MAX;
+  if (!bodyOk) {
+    ['11-23','12-24','23-24','23-25','24-26'].forEach(k => errConn.add(k));
+    [23,24].forEach(p => errPts.add(p));
+    alerts.push({ msg: '⚠ ลำตัวไม่ตรง! ปรับสะโพกให้อยู่ในแนวเดียวกับไหล่', type: 'bad' });
+    formOk = false;
+    setCheck('chkBody', 'bad');
+  } else {
+    setCheck('chkBody', 'ok');
+  }
+
+  // 2. Elbow flare
+  if (maxFlare >= T.FLARE_BAD) {
+    ['11-13','12-14'].forEach(k => errConn.add(k));
+    [13,14].forEach(p => errPts.add(p));
+    alerts.push({ msg: '⚠ ข้อศอกกางออกมากเกินไป! ดึงข้อศอกเข้าหาลำตัว', type: 'bad' });
+    formOk = false;
+    setCheck('chkElbow', 'bad');
+  } else if (maxFlare >= T.FLARE_WARN) {
+    ['11-13','12-14'].forEach(k => warnConn.add(k));
+    setCheck('chkElbow', 'warn');
+  } else {
+    setCheck('chkElbow', 'ok');
+  }
+
+  // 3. Depth (only meaningful in DOWN phase)
+  if (state.phase === 'DOWN') {
+    setCheck('chkDepth', avgElbow <= T.ELBOW_DOWN ? 'ok' : 'warn');
+  } else {
+    setCheck('chkDepth', 'ok');
+  }
+
+  // 4. Symmetry
+  if (symDiff >= T.SYMMETRY_BAD) {
+    alerts.push({ msg: '⚠ ท่าไม่สมมาตร! ตรวจสอบแรงกดซ้าย-ขวา', type: 'warn' });
+    setCheck('chkSymmetry', 'bad');
+    formOk = false;
+  } else if (symDiff >= T.SYMMETRY_WARN) {
+    setCheck('chkSymmetry', 'warn');
+  } else {
+    setCheck('chkSymmetry', 'ok');
+  }
+
+  // Update angle bars
+  updateAngleBar('barElbowL','lblElbowL', elbowL, T.ELBOW_DOWN, T.ELBOW_UP);
+  updateAngleBar('barElbowR','lblElbowR', elbowR, T.ELBOW_DOWN, T.ELBOW_UP);
+  updateAngleBar('barBody',  'lblBody',   Math.round(avgBody), T.BODY_MIN, T.BODY_MAX);
+
+  return { elbowL, elbowR, avgElbow, avgBody, formOk, errConn, warnConn, errPts, alerts };
+}
+
+// ── State machine ────────────────────────────────────────────────
+function updatePhase(avgElbow, formOk) {
+  const prev = state.phase;
+
+  if (state.phase === 'IDLE') {
+    // Wait for extended arm first
+    if (avgElbow >= T.ELBOW_UP - T.ELBOW_HYSTERESIS) {
+      state.phase = 'UP';
+    }
+  } else if (state.phase === 'UP') {
+    if (avgElbow <= T.ELBOW_DOWN + T.ELBOW_HYSTERESIS) {
+      state.phase = 'DOWN';
+      state.repHadError = !formOk;
+    }
+  } else if (state.phase === 'DOWN') {
+    if (!formOk) state.repHadError = true;
+    if (avgElbow >= T.ELBOW_UP - T.ELBOW_HYSTERESIS) {
+      state.phase = 'UP';
+      // ── Count rep ──
+      state.reps++;
+      repCountEl.textContent = state.reps;
+      pulseRep();
+      if (state.repHadError) {
+        state.badReps++;
+        showAlert('❌ ท่าผิด! ตรวจสอบการออกกำลังกาย', 'bad', 2500);
+      } else {
+        state.goodReps++;
+        showAlert('✅ ดีมาก! +1 Rep', 'good', 1400);
+      }
+      state.repHadError = false;
+      updateStats();
+    }
+  }
+
+  if (state.phase !== prev) {
+    updatePills(state.phase);
+  }
+}
+
+// ── Badge update ─────────────────────────────────────────────────
+function updateBadge(phase, formOk, detected) {
+  if (!detected) {
+    badgePhaseEl.textContent = '🔍 ไม่พบบุคคล';
+    badgePhaseEl.style.color = 'var(--color-warn)';
+    badgeFormEl.style.display = 'none';
+    return;
+  }
+  const labels = { IDLE: '⏳ เตรียมพร้อม', UP: '⬆ ท่าขึ้น (UP)', DOWN: '⬇ ท่าลง (DOWN)' };
+  badgePhaseEl.textContent = labels[phase] || '⏳';
+  badgePhaseEl.style.color = formOk ? 'var(--accent-cyan)' : 'var(--color-bad)';
+  badgeFormEl.style.display = 'block';
+  badgeFormEl.textContent = formOk ? '✅ ท่าถูกต้อง' : '❌ ท่าผิด';
+  badgeFormEl.style.color = formOk ? 'var(--color-good)' : 'var(--color-bad)';
+}
+
+// ── onResults callback ───────────────────────────────────────────
+let alertThrottle = 0;
+
+function onResults(results) {
+  if (!state.running) return;
+
+  // Resize canvas
+  const vw = videoEl.videoWidth  || 1280;
+  const vh = videoEl.videoHeight || 720;
+  if (canvasEl.width !== vw || canvasEl.height !== vh) {
+    canvasEl.width  = vw;
+    canvasEl.height = vh;
+  }
+
+  // FPS
+  const now = performance.now();
+  const dt  = now - state.lastFpsTime;
+  state.lastFpsTime = now;
+  state.fpsSmooth   = state.fpsSmooth * 0.88 + (1000/dt) * 0.12;
+  badgeFpsEl.textContent = Math.round(state.fpsSmooth) + ' FPS';
+
+  // Draw video
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.drawImage(results.image, 0, 0, canvasEl.width, canvasEl.height);
+
+  const lms = results.poseLandmarks;
+  if (lms && lms.length > 0) {
+    const analysis = analyzeForm(lms);
+
+    if (analysis) {
+      const { avgElbow, formOk, errConn, warnConn, errPts, alerts, elbowL, elbowR } = analysis;
+
+      // State machine
+      updatePhase(avgElbow, formOk);
+
+      // Draw skeleton
+      drawSkeleton(lms, errConn, warnConn, errPts);
+
+      // Draw angle tags at elbows
+      const elbowColorL = (elbowL >= T.ELBOW_DOWN && elbowL <= T.ELBOW_UP) ? '#00ff88' : '#ff3b3b';
+      const elbowColorR = (elbowR >= T.ELBOW_DOWN && elbowR <= T.ELBOW_UP) ? '#00ff88' : '#ff3b3b';
+      drawAngleTag(lms, 11, 13, 15, elbowColorL);
+      drawAngleTag(lms, 12, 14, 16, elbowColorR);
+
+      // Draw HUD
+      drawHUD(state.phase, formOk, state.reps);
+
+      // Badge
+      updateBadge(state.phase, formOk, true);
+
+      // Throttled form alerts (not rep alerts)
+      alertThrottle++;
+      if (alerts.length > 0 && alertThrottle % 90 === 0) {
+        const a = alerts[0];
+        showAlert(a.msg, a.type, 2000);
+      }
+    } else {
+      drawHUD(state.phase, true, state.reps);
+      updateBadge(state.phase, true, false);
+    }
+  } else {
+    drawHUD(state.phase, true, state.reps);
+    updateBadge(state.phase, true, false);
+  }
+}
+
+// ── MediaPipe Pose ───────────────────────────────────────────────
+const pose = new Pose({
+  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`
+});
+
+pose.setOptions({
+  modelComplexity:        1,
+  smoothLandmarks:        true,
+  enableSegmentation:     false,
+  smoothSegmentation:     false,
+  minDetectionConfidence: 0.55,
+  minTrackingConfidence:  0.55,
+});
+
+pose.onResults(onResults);
+
+// ── Camera ───────────────────────────────────────────────────────
+let camera = null;
+
+async function initCamera() {
+  try {
+    loadingStatus.textContent = 'กำลังขอสิทธิ์กล้อง...';
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }
+    });
+    videoEl.srcObject = stream;
+    await videoEl.play();
+
+    loadingStatus.textContent = 'กำลังโหลดโมเดล AI...';
+
+    camera = new Camera(videoEl, {
+      onFrame: async () => {
+        if (state.running) await pose.send({ image: videoEl });
+      },
+      width: 1280,
+      height: 720,
+    });
+
+    loadingOvl.style.display = 'none';
+    btnStart.disabled = false;
+
+    // Auto-start
+    startDetection();
+
+  } catch (err) {
+    console.error(err);
+    loadingOvl.style.display = 'none';
+    noCamOvl.style.display   = 'flex';
+  }
+}
+
+function startDetection() {
+  state.running     = true;
+  state.sessionStart = state.sessionStart || Date.now();
+  state.phase       = 'IDLE';
+  camera.start();
+  btnStart.disabled = true;
+  btnStop.disabled  = false;
+  badgePhaseEl.textContent = '⏳ เตรียมพร้อม';
+  badgePhaseEl.style.color = 'var(--accent-cyan)';
+}
+
+function stopDetection() {
+  state.running = false;
+  camera.stop();
+  btnStart.disabled = false;
+  btnStop.disabled  = true;
+  badgePhaseEl.textContent = '⏸ หยุดชั่วคราว';
+  badgePhaseEl.style.color = 'var(--text-muted)';
+  badgeFormEl.style.display = 'none';
+}
+
+function resetAll() {
+  state.reps        = 0;
+  state.goodReps    = 0;
+  state.badReps     = 0;
+  state.phase       = 'IDLE';
+  state.repHadError = false;
+  state.sessionStart = state.running ? Date.now() : null;
+  repCountEl.textContent = '0';
+  updatePills('IDLE');
+  updateStats();
+  ['lblElbowL','lblElbowR','lblBody'].forEach(id => document.getElementById(id).textContent = '--°');
+  ['barElbowL','barElbowR','barBody'].forEach(id => document.getElementById(id).style.width = '0%');
+  ['chkBody','chkElbow','chkDepth','chkSymmetry'].forEach(id => {
+    document.getElementById(id).className = 'check-item';
+  });
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+}
+
+// ── Events ───────────────────────────────────────────────────────
+btnStart.addEventListener('click', startDetection);
+btnStop.addEventListener('click',  stopDetection);
+btnReset.addEventListener('click', resetAll);
+
+// ── Init ─────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  initCamera();
+  setInterval(updateStats, 1000);
+});
+</script>
+</body>
+</html>
