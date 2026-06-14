@@ -7,8 +7,8 @@
     <!-- Chart.js for line charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- MediaPipe Pose -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.5/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -121,8 +121,8 @@
         .dc-name { font-size: 1.1rem; font-weight: 700; }
         .dc-target { font-size: 0.82rem; color: var(--muted); }
         .dc-progress-wrap { display: flex; align-items: center; gap: 10px; }
-        .dc-progress-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
-        .dc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--green)); border-radius: 999px; transition: width 0.4s ease; }
+        .dc-progress-bar { flex: 1; height: 12px; background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.2); border-radius: 999px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); }
+        .dc-progress-fill { height: 100%; background: linear-gradient(90deg, #00d4ff, #7cff6b); border-radius: 999px; transition: width 0.4s ease; box-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
         .dc-count { font-size: 0.85rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
         .dc-status { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
         .daily-challenge-card.completed .dc-status { color: var(--green); }
@@ -136,6 +136,10 @@
         @keyframes thinkDot { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
         .ai-thinking-text { font-size: 0.82rem; color: var(--muted); font-style: italic; animation: thinkTextFade 2s ease-in-out infinite; }
         @keyframes thinkTextFade { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        
+        #liveRepCount { font-size: 8rem !important; font-weight: 900; color: var(--accent); text-shadow: 0 0 30px rgba(0, 212, 255, 0.4); margin: 20px 0; }
+        .counter-container { text-align: center; padding: 40px; background: rgba(0,0,0,0.2); border-radius: 30px; margin-bottom: 30px; }
 
         /* === APP SHELL === */
         .app-shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; position: relative; z-index: 2; }
@@ -175,7 +179,7 @@
         .top-action { width: 52px; height: 52px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(124, 255, 107, 0.1); background: rgba(9, 23, 46, 0.88); cursor: pointer; transition: transform 0.25s ease; color: var(--text); }
         .top-action:hover { transform: translateY(-2px); }
         .avatar { width: 52px; height: 52px; border-radius: 18px; background: linear-gradient(135deg, #00d4ff 0%, #00e6c3 100%); display: grid; place-items: center; color: #071b35; font-weight: 800; box-shadow: 0 16px 30px rgba(0, 212, 255, 0.18); cursor: pointer; overflow: hidden; }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar img { width: 100%; height: 100%; object-fit: contain; }
         .page-container { display: grid; gap: 24px; }
         .page { display: none; }
         .page.active { display: block; }
@@ -200,16 +204,21 @@
         .progress-ring .track { stroke: rgba(255,255,255,0.08); }
         .progress-ring .fill { stroke: var(--green); stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: 314; transition: stroke-dashoffset 0.5s ease; }
         .progress-ring-label { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text); font-weight: 800; }
-        .live-grid { display: grid; gap: 24px; grid-template-columns: 1.6fr 1fr; }
-        .camera-card { min-height: 520px; position: relative; overflow: hidden; }
-        .camera-panel { position: relative; height: 100%; border-radius: 28px; background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 212, 255, 0.12); box-shadow: inset 0 0 80px rgba(0, 212, 255, 0.08); overflow: hidden; }
-        .camera-feed { width: 100%; height: 100%; position: relative; overflow: hidden; background: radial-gradient(circle at 30% 40%, rgba(0, 212, 255, 0.12), transparent 20%), linear-gradient(180deg, rgba(2, 16, 38, 0.95), rgba(0, 0, 0, 0.15)); }
-        .camera-feed video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        /* === LIVE WORKOUT LAYOUT — camera-first === */
+        .live-grid { display: grid; gap: 20px; grid-template-columns: 2fr 1fr; align-items: start; }
+        .camera-card { min-height: 580px; position: relative; overflow: hidden; }
+        .camera-panel { position: relative; height: 100%; min-height: 580px; border-radius: 24px; background: #000; border: 1px solid rgba(0, 212, 255, 0.18); box-shadow: 0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0, 212, 255, 0.06); overflow: hidden; }
+        .camera-feed { width: 100%; height: 100%; min-height: 580px; position: relative; overflow: hidden; background: #000; }
+        /* Video fills entire camera-feed — no letterbox, no cropping of body */
+        .camera-feed video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: brightness(1.08) contrast(1.08); }
+        /* Canvas overlays video exactly — NO CSS transform (JS handles mirror internally) */
         .camera-feed canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-        .camera-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
-        .camera-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px; backdrop-filter: blur(10px); background: rgba(0, 0, 0, 0.25); pointer-events: all; }
-        .camera-stats { display: grid; gap: 10px; }
-        .camera-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: rgba(0, 0, 0, 0.4); color: #fff; font-size: 0.92rem; }
+        /* Overlay is transparent in the middle — only top/bottom strips */
+        .camera-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; background: transparent; }
+        /* Footer strip: compact, semi-transparent, does NOT cover body area */
+        .camera-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; backdrop-filter: blur(12px); background: linear-gradient(0deg, rgba(0,0,0,0.65) 0%, transparent 100%); pointer-events: all; }
+        .camera-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+        .camera-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 0.82rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px); }
         .exercise-selection { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 0; }
         .exercise-selection button { padding: 14px 16px; border-radius: 20px; border: 1px solid rgba(0, 212, 255, 0.12); background: rgba(9, 23, 46, 0.88); color: var(--text); cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
         .exercise-selection button.active, .exercise-selection button:hover { background: rgba(0, 212, 255, 0.14); border-color: rgba(0, 212, 255, 0.25); transform: translateY(-2px); }
@@ -228,6 +237,14 @@
 
         /* === AI COACH CHAT === */
         .chat-container { display: flex; flex-direction: column; height: 600px; background: rgba(7, 27, 53, 0.85); border: 1px solid rgba(0, 212, 255, 0.12); border-radius: var(--radius); overflow: hidden; }
+        /* AI thinking state indicator in header */
+        .ai-status-thinking { color: var(--accent) !important; animation: thinkTextFade 1.5s ease-in-out infinite; }
+        /* Streaming text cursor */
+        .chat-msg-bubble.streaming::after { content: '▌'; display: inline-block; animation: cursorBlink 0.7s step-end infinite; color: var(--accent); margin-left: 2px; }
+        @keyframes cursorBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        /* Message fade-in */
+        .chat-msg { animation: msgFadeIn 0.3s ease; }
+        @keyframes msgFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .chat-header { padding: 20px 24px; border-bottom: 1px solid rgba(0,212,255,0.1); display: flex; align-items: center; gap: 14px; background: rgba(9,23,46,0.9); }
         .chat-header-avatar { width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), var(--green)); display: grid; place-items: center; font-size: 1.3rem; }
         .chat-header-info h3 { margin: 0; font-size: 1rem; font-weight: 700; }
@@ -260,15 +277,23 @@
         .chat-send-btn { width: 48px; height: 48px; border-radius: 16px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #071b35; cursor: pointer; display: grid; place-items: center; font-size: 1.2rem; transition: all 0.2s ease; flex-shrink: 0; }
         .chat-send-btn:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(0,212,255,0.3); }
 
-        /* === POSE INDICATOR === */
-        .pose-indicator { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,0.6); color: white; font-size: 0.85rem; font-weight: 700; backdrop-filter: blur(10px); z-index: 10; }
+        /* === POSE INDICATOR — top-left, compact === */
+        .pose-indicator { position: absolute; top: 14px; left: 14px; transform: none; padding: 6px 14px; border-radius: 999px; background: rgba(0,0,0,0.65); color: white; font-size: 0.8rem; font-weight: 700; backdrop-filter: blur(12px); z-index: 10; border: 1px solid rgba(255,255,255,0.12); white-space: nowrap; }
         .pose-indicator.detected { background: rgba(124,255,107,0.2); border: 1px solid rgba(124,255,107,0.4); }
+        /* === LIVE METRICS SIDE PANEL === */
+        .live-metrics-panel { display: flex; flex-direction: column; gap: 14px; }
+        .live-rep-counter { text-align: center; padding: 20px 16px; background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.15); border-radius: 20px; }
+        .live-rep-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+        .live-rep-value { font-size: 4rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 24px rgba(0,212,255,0.4); line-height: 1; }
+        .live-form-badge { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(0,0,0,0.2); border-radius: 14px; border: 1px solid rgba(255,255,255,0.07); }
+        .live-form-badge .badge-label { font-size: 0.8rem; color: var(--muted); }
+        .live-form-badge .badge-value { font-size: 1rem; font-weight: 700; color: var(--green); }
 
         /* === GOOGLE LOGIN === */
         .google-login-btn { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: var(--text); cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.2s ease; width: 100%; justify-content: center; }
         .google-login-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.25); transform: translateY(-2px); }
         .google-login-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
-        .profile-avatar-large { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); }
+        .profile-avatar-large { width: 80px; height: 80px; border-radius: 50%; object-fit: contain; border: 3px solid var(--accent); }
         .profile-avatar-placeholder { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--green)); display: grid; place-items: center; font-size: 2rem; font-weight: 800; color: #071b35; border: 3px solid var(--accent); }
         .login-status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; }
         .login-status-badge.logged-in { background: rgba(124,255,107,0.12); border: 1px solid rgba(124,255,107,0.25); color: var(--green); }
@@ -378,6 +403,8 @@
             .grid-3 { grid-template-columns: 1fr; }
             .grid-2 { grid-template-columns: 1fr; }
             .live-grid { grid-template-columns: 1fr; }
+            .camera-card, .camera-panel, .camera-feed { min-height: 360px; }
+            .live-rep-value { font-size: 3rem; }
             .exercise-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .mascot-banner { flex-direction: column; text-align: center; }
             .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -709,41 +736,47 @@
                         </div>
                     </div>
 
-                    <div class="glass-card live-grid" style="margin-bottom:24px;">
+                    <div class="glass-card live-grid" style="margin-bottom:24px;padding:16px;">
+                        <!-- CAMERA COLUMN: dominant, full height -->
                         <div class="camera-card">
                             <div class="camera-panel">
                                 <div class="camera-feed">
                                     <video id="cameraVideo" autoplay muted playsinline></video>
                                     <canvas id="overlayCanvas"></canvas>
+                                    <!-- Pose status: top-left, compact -->
                                     <div class="pose-indicator" id="poseIndicator">🔴 Waiting for pose...</div>
                                 </div>
+                                <!-- Overlay: only top-label strip + bottom controls strip -->
                                 <div class="camera-overlay">
-                                    <div style="padding:22px;display:grid;gap:10px;">
+                                    <!-- Top strip: exercise name + camera status only -->
+                                    <div style="padding:14px 16px;display:flex;gap:8px;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,transparent 100%);">
                                         <span class="camera-chip" id="liveExerciseLabel">Exercise: Push-Up</span>
                                         <span class="camera-chip" id="liveCameraStatus">Tracking: Waiting</span>
                                     </div>
+                                    <!-- Bottom strip: stats + start/stop button -->
                                     <div class="camera-footer">
                                         <div class="camera-stats">
-                                            <div class="camera-chip">Reps: <span id="liveRepCount">0</span></div>
                                             <div class="camera-chip">Form: <span id="liveFormAccuracy">0%</span></div>
-                                            <div class="camera-chip">Timer: <span id="sessionTimer">00:00</span></div>
+                                            <div class="camera-chip">⏱ <span id="sessionTimer">00:00</span></div>
                                         </div>
-                                        <button class="top-action" id="startStopButton" style="width:auto;padding:12px 18px;">▶️ Start</button>
+                                        <button class="top-action" id="startStopButton" style="width:auto;padding:10px 20px;font-size:0.9rem;">▶️ Start</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="section-card live-summary">
-                            <div class="card-header"><h2 class="card-title">📊 Live Metrics</h2></div>
-                            <div class="metric-list">
-                                <div class="metric-bubble"><span class="bubble-label">Duration</span><strong id="liveDuration">0s</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="liveStability">-</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Core Score</span><strong id="liveCoreScore">-</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Avg Form</span><strong id="liveAvgForm">0%</strong></div>
+
+                        <!-- METRICS COLUMN: right side panel -->
+                        <div class="section-card live-metrics-panel">
+                            <!-- Rep / Time Counter -->
+                            <div class="live-rep-counter">
+                                <div class="live-rep-label" id="repCounterLabel">Reps</div>
+                                <div class="live-rep-value" id="liveRepCount">0</div>
                             </div>
-                            <div style="margin-top:16px;">
-                                <h3 style="font-size:0.9rem;color:var(--muted);margin:0 0 12px;text-transform:uppercase;letter-spacing:0.05em;">Form Quality</h3>
-                                <div class="progress-ring" style="width:100px;height:100px;margin:0 auto;">
+
+                            <!-- Form Ring -->
+                            <div style="text-align:center;">
+                                <h3 style="font-size:0.78rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.07em;">Form Quality</h3>
+                                <div class="progress-ring" style="width:90px;height:90px;margin:0 auto;">
                                     <svg viewBox="0 0 120 120" aria-hidden="true">
                                         <circle class="track" cx="60" cy="60" r="50"></circle>
                                         <circle class="fill" cx="60" cy="60" r="50" id="liveFormRing"></circle>
@@ -751,7 +784,17 @@
                                     <div class="progress-ring-label" id="liveFormPercent">0%</div>
                                 </div>
                             </div>
-                            <div class="error-panel" id="liveFeedbackList" style="margin-top:16px;"><div class="error-item"><strong>Ready</strong><span>Choose an exercise and start your workout.</span></div></div>
+
+                            <!-- Quick stats -->
+                            <div style="display:grid;gap:8px;">
+                                <div class="live-form-badge"><span class="badge-label">Duration</span><strong class="badge-value" id="liveDuration">0s</strong></div>
+                                <div class="live-form-badge"><span class="badge-label">Avg Form</span><strong class="badge-value" id="liveAvgForm">0%</strong></div>
+                                <div class="live-form-badge"><span class="badge-label">Stability</span><strong class="badge-value" id="liveStability">-</strong></div>
+                                <div class="live-form-badge"><span class="badge-label">Core</span><strong class="badge-value" id="liveCoreScore">-</strong></div>
+                            </div>
+
+                            <!-- Feedback -->
+                            <div class="error-panel" id="liveFeedbackList"><div class="error-item"><strong>Ready</strong><span>Choose an exercise and start.</span></div></div>
                         </div>
                     </div>
 
@@ -883,32 +926,38 @@
 
                 <!-- AI COACH - CHAT AGENT -->
                 <section class="page" id="ai-coach">
-                    <div class="glass-card" style="margin-bottom:20px;">
-                        <div class="card-header">
-                            <h2 class="card-title">🤖 AI Fitness Coach</h2>
-                            <span class="small-chip" style="background:rgba(124,255,107,0.12);color:var(--green);">● Online</span>
-                        </div>
-                        <p style="color:var(--muted);margin:0;font-size:0.9rem;">Ask me anything about workouts, nutrition, health goals, or get personalized advice based on your progress.</p>
-                    </div>
-                    <div class="chat-container">
+                    <div class="chat-container" style="height:calc(100vh - 180px);min-height:520px;">
+                        <!-- Chat Header -->
                         <div class="chat-header">
                             <div class="chat-header-avatar">🤖</div>
                             <div class="chat-header-info">
                                 <h3>FitGuard AI Coach</h3>
-                                <p>Fitness • Nutrition • Health Goals</p>
+                                <p id="aiCoachStatus">Fitness • Nutrition • Health Goals</p>
                             </div>
-                            <div class="chat-online-dot"></div>
+                            <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+                                <span class="chat-online-dot" title="AI Online"></span>
+                                <button id="clearChatBtn" title="Clear conversation" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--muted);padding:6px 12px;border-radius:10px;cursor:pointer;font-size:0.78rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,101,119,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">Clear</button>
+                            </div>
                         </div>
+
+                        <!-- Messages -->
                         <div class="chat-messages" id="chatMessages"></div>
+
+                        <!-- Quick replies -->
                         <div class="chat-quick-replies" id="quickReplies">
-                            <button class="quick-reply-btn" onclick="sendQuickReply('How do I improve my push-up form?')">💪 Push-up form tips</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('How do I improve my push-up form?')">💪 Push-up form</button>
                             <button class="quick-reply-btn" onclick="sendQuickReply('What should I eat before a workout?')">🥗 Pre-workout nutrition</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('How many reps should I do per session?')">📊 Rep recommendations</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('Analyze my recent workout performance and give me tips')">📊 Analyze my progress</button>
                             <button class="quick-reply-btn" onclick="sendQuickReply('How do I set realistic fitness goals?')">🎯 Goal setting</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('What are the best recovery strategies after intense training?')">😴 Recovery tips</button>
                         </div>
+
+                        <!-- Input area -->
                         <div class="chat-input-area">
-                            <textarea class="chat-input" id="chatInput" placeholder="Ask about workouts, nutrition, health goals..." rows="1"></textarea>
-                            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">➤</button>
+                            <textarea class="chat-input" id="chatInput" placeholder="Ask anything about fitness, nutrition, or your progress..." rows="1"></textarea>
+                            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -1075,14 +1124,11 @@
                             </div>
                             <div class="setting-item">
                                 <label>AI Coach Model</label>
-                                <select id="settingsAIModel">
-                                    <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
-                                    <option value="gpt-4o">GPT-4o (Advanced)</option>
-                                </select>
+                                
                             </div>
                             <div class="setting-item" style="grid-column:1/-1;">
-                                <label>OpenAI API Key (for AI Coach)</label>
-                                <input type="password" id="settingsApiKey" placeholder="sk-... (optional, uses built-in key if empty)">
+                                <label>Google Gemini API Key (for AI Coach)</label>
+                                <input type="password" id="settingsGeminiKey" placeholder="AIza... (optional, uses built-in key if empty)">
                                 <p style="color:var(--muted);font-size:0.8rem;margin:4px 0 0;">Your key is stored locally and never sent to our servers.</p>
                             </div>
                         </div>
@@ -1107,9 +1153,11 @@
     </div>
 
 <script>
+
 // ===================== ANIMATED BACKGROUND =====================
 (function() {
     const canvas = document.getElementById('bgCanvas');
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let W, H, stars = [], shootingStars = [];
     function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
@@ -1145,6 +1193,7 @@
 // ===================== FLOATING PARTICLES =====================
 (function() {
     const layer = document.getElementById('particleLayer');
+    if (!layer) return;
     const colors = ['rgba(0,212,255,0.6)', 'rgba(124,255,107,0.5)', 'rgba(0,230,195,0.5)', 'rgba(255,213,107,0.4)'];
     for (let i = 0; i < 28; i++) {
         const p = document.createElement('div'); p.className = 'particle';
@@ -1156,16 +1205,21 @@
 
 // ===================== SPLASH =====================
 function enterSite() {
-    document.getElementById('splashScreen').classList.add('hidden');
-    setTimeout(() => { document.getElementById('splashScreen').style.display = 'none'; }, 1100);
+    const splash = document.getElementById('splashScreen');
+    if (splash) {
+        splash.classList.add('hidden');
+        setTimeout(() => { splash.style.display = 'none'; }, 1100);
+    }
 }
 function setSplashLang(lang) {
-    document.getElementById('splashLangEn').classList.toggle('active', lang === 'en');
-    document.getElementById('splashLangTh').classList.toggle('active', lang === 'th');
+    const en = document.getElementById('splashLangEn');
+    const th = document.getElementById('splashLangTh');
+    if (en) en.classList.toggle('active', lang === 'en');
+    if (th) th.classList.toggle('active', lang === 'th');
     setLanguage(lang);
 }
 
-// ===================== EXERCISE DATA (3 exercises only) =====================
+// ===================== EXERCISE DATA =====================
 const EXERCISES = {
     pushup: {
         name: 'Push-Up', emoji: '💪', badge: 'Upper Body',
@@ -1179,7 +1233,6 @@ const EXERCISES = {
         ],
         tips: 'Keep your hips level — do not let them sag or rise. Breathe in on the way down, out on the way up.',
         color: '#00d4ff',
-        // Angle targets for form checking
         angles: {
             elbow: { min: 70, max: 110, label: 'Elbow (down phase)' },
             hip: { min: 160, max: 180, label: 'Hip alignment' }
@@ -1265,21 +1318,37 @@ function buildExerciseGuide() {
 function showExerciseModal(key) {
     const ex = EXERCISES[key];
     if (!ex) return;
-    document.getElementById('modalCharacter').innerHTML = ex.character;
-    document.getElementById('modalTitle').textContent = `${ex.emoji} ${ex.name}`;
-    document.getElementById('modalSubtitle').textContent = ex.desc;
-    document.getElementById('modalSteps').innerHTML = ex.steps.map((s, i) => `
-        <div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>
-    `).join('');
-    document.getElementById('modalTips').innerHTML = `<strong>💡 Pro Tip:</strong> ${ex.tips}`;
-    document.getElementById('exerciseModal').classList.add('open');
-    document.getElementById('detailTitle').textContent = `${ex.emoji} ${ex.name}`;
-    document.getElementById('detailDesc').textContent = ex.desc;
-    document.getElementById('detailCharacter').innerHTML = ex.character;
-    document.getElementById('detailSteps').innerHTML = ex.steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+    const mc = document.getElementById('modalCharacter');
+    const mt = document.getElementById('modalTitle');
+    const ms = document.getElementById('modalSubtitle');
+    const mst = document.getElementById('modalSteps');
+    const mti = document.getElementById('modalTips');
+    const em = document.getElementById('exerciseModal');
+    const dt = document.getElementById('detailTitle');
+    const dd = document.getElementById('detailDesc');
+    const dc = document.getElementById('detailCharacter');
+    const ds = document.getElementById('detailSteps');
+    if (mc) mc.innerHTML = ex.character;
+    if (mt) mt.textContent = `${ex.emoji} ${ex.name}`;
+    if (ms) ms.textContent = ex.desc;
+    if (mst) mst.innerHTML = ex.steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+    if (mti) mti.innerHTML = `<strong>💡 Pro Tip:</strong> ${ex.tips}`;
+    if (em) em.classList.add('open');
+    if (dt) dt.textContent = `${ex.emoji} ${ex.name}`;
+    if (dd) dd.textContent = ex.desc;
+    if (dc) dc.innerHTML = ex.character;
+    if (ds) ds.innerHTML = ex.steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
 }
-document.getElementById('modalClose').addEventListener('click', () => document.getElementById('exerciseModal').classList.remove('open'));
-document.getElementById('exerciseModal').addEventListener('click', (e) => { if (e.target === document.getElementById('exerciseModal')) document.getElementById('exerciseModal').classList.remove('open'); });
+
+const _modalClose = document.getElementById('modalClose');
+if (_modalClose) _modalClose.addEventListener('click', () => {
+    const em = document.getElementById('exerciseModal');
+    if (em) em.classList.remove('open');
+});
+const _exerciseModal = document.getElementById('exerciseModal');
+if (_exerciseModal) _exerciseModal.addEventListener('click', (e) => {
+    if (e.target === _exerciseModal) _exerciseModal.classList.remove('open');
+});
 
 // ===================== NAVIGATION =====================
 function navigateTo(pageId) {
@@ -1290,7 +1359,7 @@ function navigateTo(pageId) {
     if (page) page.classList.add('active');
     document.querySelectorAll(`[data-page="${pageId}"]`).forEach(n => n.classList.add('active'));
     if (pageId === 'exercise-guide') buildExerciseGuide();
-    if (pageId === 'live-analysis' && !videoEl) startCamera();
+    if (pageId === 'live-analysis') { if (!videoEl || !videoEl.srcObject) startCamera(); }
     if (pageId === 'progress-analytics') updateProgress();
     if (pageId === 'workout-reports') updateReports();
     if (pageId === 'ai-coach') initChatIfNeeded();
@@ -1301,12 +1370,27 @@ document.querySelectorAll('[data-page]').forEach(btn => {
 });
 
 // ===================== WORKOUT STATE =====================
-let workoutActive = false, workoutTimer = null, workoutSeconds = 0, repCount = 0;
-let formScores = [], currentExercise = 'pushup';
-let lastRepState = 'up', fpsCounter = 0, lastFpsTime = Date.now();
-let sessionActive = false, sessionStartTime = 0, sessionDuration = 0;
-let sessionHistory = JSON.parse(localStorage.getItem('fitguardSessions')) || [];
-let personalRecords = JSON.parse(localStorage.getItem('fitguardPR')) || { bestReps: 0, bestForm: 0, longestSession: 0, totalWorkouts: 0 };
+let workoutActive = false;
+let workoutTimer = null;
+let workoutSeconds = 0;
+let repCount = 0;
+let trackingState = 'User Missing'; // 'Tracking Good', 'Tracking Weak', 'User Missing'
+let sideViewStatus = 'RED';         // 'RED', 'YELLOW', 'GREEN'
+let poseBuffer = [];const BUFFER_SIZE = 1;
+let isFormCorrect = true;
+let plankTimerActive = false;
+let plankSeconds = 0;               // separate plank hold timer
+let plankTimerInterval = null;
+let formScores = [];
+let currentExercise = 'pushup';
+let lastRepState = 'up';
+let sessionActive = false;
+let sessionStartTime = 0;
+let sessionDuration = 0;
+let sessionHistory = JSON.parse(localStorage.getItem('fitguardSessions') || '[]');
+let personalRecords = JSON.parse(localStorage.getItem('fitguardPR') || '{"bestReps":0,"bestForm":0,"longestSession":0,"totalWorkouts":0}');
+let fpsCounter = 0;
+let lastFpsTime = Date.now();
 
 document.querySelectorAll('.exercise-selection button').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1314,43 +1398,85 @@ document.querySelectorAll('.exercise-selection button').forEach(btn => {
         btn.classList.add('active');
         currentExercise = btn.dataset.exercise;
         lastRepState = 'up';
-        document.getElementById('liveExerciseLabel').textContent = `Exercise: ${EXERCISES[currentExercise]?.name || currentExercise}`;
+        repCount = 0;
+        plankSeconds = 0;
+        updateCounterDisplay();
+        const lbl = document.getElementById('liveExerciseLabel');
+        if (lbl) lbl.textContent = `Exercise: ${EXERCISES[currentExercise] ? EXERCISES[currentExercise].name : currentExercise}`;
+        // Update rep counter label
+        const rcl = document.getElementById('repCounterLabel');
+        if (rcl) rcl.textContent = currentExercise === 'plank' ? 'Hold Time' : 'Reps';
     });
 });
 
 const startStopButton = document.getElementById('startStopButton');
-startStopButton.addEventListener('click', () => {
+if (startStopButton) startStopButton.addEventListener('click', () => {
     if (workoutActive) stopWorkout(); else startWorkout();
 });
 
 function startWorkout() {
-    workoutActive = true; workoutSeconds = 0; repCount = 0; formScores = []; lastRepState = 'up';
-    startStopButton.textContent = '⏹️ Stop';
-    sessionActive = true; sessionStartTime = Date.now();
-    document.getElementById('liveCameraStatus').textContent = 'Tracking: Active';
+    // Allow immediate start, but only count reps when GREEN
+    workoutActive = true;
+    workoutSeconds = 0;
+    repCount = 0;
+    plankSeconds = 0;
+    formScores = [];
+    lastRepState = 'up';
+    isFormCorrect = true;
+    plankTimerActive = false;
+    if (startStopButton) startStopButton.textContent = '⏹️ Stop';
+    sessionActive = true;
+    sessionStartTime = Date.now();
+    const cs = document.getElementById('liveCameraStatus');
+    if (cs) cs.textContent = 'Tracking: Active';
     workoutTimer = setInterval(() => {
         workoutSeconds++;
-        const m = Math.floor(workoutSeconds/60), s = workoutSeconds%60;
-        document.getElementById('liveDuration').textContent = formatTime(workoutSeconds);
-        document.getElementById('sessionTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const m = Math.floor(workoutSeconds / 60), s = workoutSeconds % 60;
+        const ld = document.getElementById('liveDuration');
+        const st = document.getElementById('sessionTimer');
+        if (ld) ld.textContent = formatTime(workoutSeconds);
+        if (st) st.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }, 1000);
-    startCamera();
+    // Plank timer: only ticks when form is correct
+    if (currentExercise === 'plank') {
+        plankTimerInterval = setInterval(() => {
+            if (plankTimerActive && workoutActive) {
+                plankSeconds++;
+                updateCounterDisplay();
+            }
+        }, 1000);
+    }
+    // Camera/MediaPipe should already be running from navigateTo; only start if not yet active
+    if (!videoEl || !videoEl.srcObject) startCamera();
 }
 
 function stopWorkout() {
-    workoutActive = false; sessionActive = false;
+    workoutActive = false;
+    sessionActive = false;
+    plankTimerActive = false;
     clearInterval(workoutTimer);
-    startStopButton.textContent = '▶️ Start';
-    document.getElementById('liveCameraStatus').textContent = 'Tracking: Stopped';
-    // Clear MediaPipe overlay immediately
-    if (ctxCanvas && canvasEl) ctxCanvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
+    clearInterval(plankTimerInterval);
+    plankTimerInterval = null;
+    if (startStopButton) startStopButton.textContent = '▶️ Start';
+    const cs = document.getElementById('liveCameraStatus');
+    if (cs) cs.textContent = 'Tracking: Paused';
+    // Do NOT clear canvas — skeleton stays visible after stopping
     sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
-    const avgForm = formScores.length ? Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length) : 0;
-    const session = { exercise: currentExercise, duration: sessionDuration, reps: repCount, avgForm, date: new Date().toISOString(), issues: [] };
+    const avgForm = formScores.length ? Math.round(formScores.reduce((a,b) => a+b, 0) / formScores.length) : 0;
+    // For plank, store seconds held as the "reps" value for history
+    const storedReps = currentExercise === 'plank' ? plankSeconds : repCount;
+    const session = {
+        exercise: currentExercise,
+        duration: sessionDuration,
+        reps: storedReps,
+        avgForm,
+        date: new Date().toISOString(),
+        issues: []
+    };
     sessionHistory.unshift(session);
     if (sessionHistory.length > 20) sessionHistory.pop();
     localStorage.setItem('fitguardSessions', JSON.stringify(sessionHistory));
-    if (repCount > personalRecords.bestReps) personalRecords.bestReps = repCount;
+    if (storedReps > personalRecords.bestReps) personalRecords.bestReps = storedReps;
     if (avgForm > personalRecords.bestForm) personalRecords.bestForm = avgForm;
     if (sessionDuration > personalRecords.longestSession) personalRecords.longestSession = sessionDuration;
     personalRecords.totalWorkouts++;
@@ -1359,75 +1485,115 @@ function stopWorkout() {
     showPostWorkoutSummary(session);
 }
 
-function formatTime(s) { return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; }
+function formatTime(s) {
+    return s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`;
+}
 
 // ===================== CAMERA & MEDIAPIPE =====================
-let videoEl, canvasEl, ctxCanvas, pose, camera;
+let videoEl = null, canvasEl = null, ctxCanvas = null, pose = null, camera = null;
 
 function startCamera() {
     videoEl = document.getElementById('cameraVideo');
     canvasEl = document.getElementById('overlayCanvas');
+    if (!videoEl || !canvasEl) return;
     ctxCanvas = canvasEl.getContext('2d');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        document.getElementById('debugCameraStatus').textContent = 'Not supported';
         addDebugError('Camera not supported in this browser.');
-        simulateData(); return;
+        const dcs = document.getElementById('debugCameraStatus');
+        if (dcs) dcs.textContent = 'Not supported';
+        return;
     }
-    document.getElementById('liveCameraStatus').textContent = 'Requesting camera...';
-    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' }, audio: false })
+    const cs = document.getElementById('liveCameraStatus');
+    if (cs) cs.textContent = 'Requesting camera...';
+    navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: 'user', advanced: [{ focusMode: 'continuous' }] }, audio: false })
         .then(stream => {
             videoEl.srcObject = stream;
             videoEl.onloadedmetadata = () => {
+                // Use natural video dimensions — no zoom
                 canvasEl.width = videoEl.videoWidth;
                 canvasEl.height = videoEl.videoHeight;
-                document.getElementById('debugCameraStatus').textContent = 'Active';
-                document.getElementById('profileCameraStatus').textContent = 'Active';
-                document.getElementById('liveCameraStatus').textContent = 'Camera: Active';
+                const dcs = document.getElementById('debugCameraStatus');
+                if (dcs) dcs.textContent = 'Active';
+                const pcs = document.getElementById('profileCameraStatus');
+                if (pcs) pcs.textContent = 'Active';
+                const cs2 = document.getElementById('liveCameraStatus');
+                if (cs2) cs2.textContent = 'Camera: Active — Position side-view';
                 initPose();
             };
         })
         .catch(err => {
-            document.getElementById('debugCameraStatus').textContent = 'Error: ' + err.message;
-            document.getElementById('liveCameraStatus').textContent = 'Camera: Error';
+            const dcs = document.getElementById('debugCameraStatus');
+            if (dcs) dcs.textContent = 'Error: ' + err.message;
+            const cs2 = document.getElementById('liveCameraStatus');
+            if (cs2) cs2.textContent = 'Camera: Error';
             addDebugError('Camera error: ' + err.message);
-            simulateData();
         });
 }
 
 function initPose() {
     if (typeof Pose === 'undefined') {
-        document.getElementById('debugMediaPipeStatus').textContent = 'Not loaded';
-        addDebugError('MediaPipe Pose not loaded. Check internet connection.');
-        simulateData(); return;
+        const dmp = document.getElementById('debugMediaPipeStatus');
+        if (dmp) dmp.textContent = 'Loading...';
+        setTimeout(initPose, 1500);
+        return;
     }
-    pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${f}` });
-    pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-    pose.onResults(onPoseResults);
-    document.getElementById('debugMediaPipeStatus').textContent = 'Active';
-    if (typeof Camera !== 'undefined') {
-        try {
-            camera = new Camera(videoEl, {
-                onFrame: async () => { if (workoutActive) await pose.send({ image: videoEl }); },
-                width: 640, height: 480
+
+    // Prevent multiple initializations
+    if (window._poseInitializing) return;
+    window._poseInitializing = true;
+
+    try {
+        if (!pose) {
+            pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}` });
+            pose.setOptions({
+                modelComplexity: 2,
+                smoothLandmarks: true,
+                enableSegmentation: false,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
             });
-            camera.start().catch(err => addDebugError('Camera start: ' + err.message));
-        } catch(err) {
-            addDebugError('Camera init: ' + err.message);
+            pose.onResults(onPoseResults);
+        }
+
+        const dmp = document.getElementById('debugMediaPipeStatus');
+        if (dmp) dmp.textContent = 'Active';
+
+        if (typeof Camera !== 'undefined' && !camera) {
+            camera = new Camera(videoEl, {
+                onFrame: async () => {
+                    if (pose && videoEl && videoEl.readyState >= 2) {
+                        try { 
+                            await pose.send({ image: videoEl }); 
+                        } catch(e) {
+                            console.error("Pose send error:", e);
+                        }
+                    }
+                },
+                width: 640,
+                height: 480
+            });
+            camera.start().catch(err => {
+                console.warn('Camera start error:', err.message);
+                startManualLoop();
+            });
+        } else if (typeof Camera === 'undefined') {
             startManualLoop();
         }
-    } else {
-        startManualLoop();
+    } catch (err) {
+        console.error("Init error:", err);
+    } finally {
+        window._poseInitializing = false;
     }
 }
 
 function startManualLoop() {
+    console.log('Starting manual frame loop...');
     async function loop() {
-        if (videoEl && pose) {
-            if (workoutActive) {
+        if (videoEl && pose && videoEl.readyState >= 2) {
+            try {
                 await pose.send({ image: videoEl });
-            } else {
-                // Clear canvas when not active
-                if (ctxCanvas && canvasEl) ctxCanvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
+            } catch(e) {
+                // Silently ignore frame errors to keep loop running
             }
         }
         requestAnimationFrame(loop);
@@ -1435,88 +1601,379 @@ function startManualLoop() {
     loop();
 }
 
-// ===================== POSE RESULTS & SKELETON DRAWING =====================
-// Skeleton connections for full body
+// ===================== SKELETON CONNECTIONS =====================
 const SKELETON_CONNECTIONS = [
-    [11,12],[11,13],[13,15],[12,14],[14,16],  // arms
-    [11,23],[12,24],[23,24],                   // torso
-    [23,25],[25,27],[24,26],[26,28]            // legs
+    [11,12],[11,13],[13,15],[12,14],[14,16],
+    [11,23],[12,24],[23,24],
+    [23,25],[25,27],[24,26],[26,28]
 ];
 
-// Per-exercise: which connections are "critical" for form checking
-const EXERCISE_CRITICAL_CONNECTIONS = {
-    pushup: {
-        arms: [[11,13],[13,15],[12,14],[14,16]],
-        body: [[11,23],[12,24],[23,24],[23,25],[24,26]]
-    },
-    squat: {
-        legs: [[23,25],[25,27],[24,26],[26,28]],
-        body: [[11,23],[12,24],[23,24]]
-    },
-    plank: {
-        body: [[11,23],[12,24],[23,24],[23,25],[24,26]],
-        arms: [[11,13],[13,15],[12,14],[14,16]]
+// ===================== POSE RESULTS =====================
+let smoothedLandmarks = null;
+let landmarkHistory = []; // For Moving Average (5 frames)
+const MOVING_AVG_WINDOW = 5;
+
+function applySmoothing(newLandmarks) {
+    // 1. Handle Null/Missing Landmarks (Use previous if available)
+    if (!newLandmarks || newLandmarks.length === 0) {
+        return smoothedLandmarks;
     }
+
+    // 2. Add to History for Moving Average
+    landmarkHistory.push(JSON.parse(JSON.stringify(newLandmarks)));
+    if (landmarkHistory.length > MOVING_AVG_WINDOW) landmarkHistory.shift();
+
+    // 3. Calculate Moving Average
+    let avgLandmarks = JSON.parse(JSON.stringify(newLandmarks));
+    for (let i = 0; i < avgLandmarks.length; i++) {
+        let sumX = 0, sumY = 0, sumZ = 0, sumV = 0;
+        let count = landmarkHistory.length;
+        for (let h = 0; h < count; h++) {
+            sumX += landmarkHistory[h][i].x;
+            sumY += landmarkHistory[h][i].y;
+            sumZ += (landmarkHistory[h][i].z || 0);
+            sumV += (landmarkHistory[h][i].visibility || 0);
+        }
+        avgLandmarks[i].x = sumX / count;
+        avgLandmarks[i].y = sumY / count;
+        avgLandmarks[i].z = sumZ / count;
+        avgLandmarks[i].visibility = sumV / count;
+    }
+
+    smoothedLandmarks = avgLandmarks;
+    return smoothedLandmarks;
+}
+
+// ===== REP COUNTING LOGIC WITH ANGLE TRACKING =====
+// ===== PLANK-SPECIFIC STATE =====
+
+
+
+
+
+
+
+let repState = {
+    status: 'UP',
+    lastRepTime: 0,
+    cooldown: 500 // 0.5s cooldown
 };
 
-function onPoseResults(results) {
-    if (!ctxCanvas) return;
-    ctxCanvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
-    // If workout is not active, clear canvas and return (fix overlay stuck)
+function updateRepState(lm) {
     if (!workoutActive) return;
+
+    const now = Date.now();
+    if (now - repState.lastRepTime < repState.cooldown) return;
+
+    // 1. Get visible side
+    const lSh = lm[11], lEl = lm[13], lWr = lm[15], lHi = lm[23], lKn = lm[25], lAn = lm[27];
+    const rSh = lm[12], rEl = lm[14], rWr = lm[16], rHi = lm[24], rKn = lm[26], rAn = lm[28];
+    
+    const useLeft = (lSh.visibility + lHi.visibility) > (rSh.visibility + rHi.visibility);
+    const sh = useLeft ? lSh : rSh;
+    const el = useLeft ? lEl : rEl;
+    const wr = useLeft ? lWr : rWr;
+    const hi = useLeft ? lHi : rHi;
+    const kn = useLeft ? lKn : rKn;
+    const an = useLeft ? lAn : rAn;
+
+    if (currentExercise === 'pushup') {
+        const angle = calcAngle(sh, el, wr);
+        if (repState.status === 'UP' && angle < 110) {
+            repState.status = 'DOWN';
+        } else if (repState.status === 'DOWN' && angle > 145) {
+            repCount++;
+            updateCounterDisplay();
+            repState.lastRepTime = now;
+            repState.status = 'UP';
+        }
+    } else if (currentExercise === 'squat') {
+        const angle = calcAngle(hi, kn, an);
+        if (repState.status === 'UP' && angle < 120) {
+            repState.status = 'DOWN';
+        } else if (repState.status === 'DOWN' && angle > 145) {
+            repCount++;
+            updateCounterDisplay();
+            repState.lastRepTime = now;
+            repState.status = 'UP';
+        }
+    } else if (currentExercise === 'plank') {
+        const angle = calcAngle(sh, hi, an);
+        // Plank: สะโพกอยู่ช่วง 140° - 180° ให้ตัวจับเวลาเดินต่อทันที
+        if (angle >= 140 && angle <= 180) {
+            plankTimerActive = true;
+        } else {
+            plankTimerActive = false;
+        }
+    }
+}
+
+
+
+
+function onPoseResults(results) {
+    if (!ctxCanvas || !canvasEl) return;
+
+    // Sync canvas to displayed size before drawing
+    const dW = canvasEl.offsetWidth;
+    const dH = canvasEl.offsetHeight;
+    if (dW > 0 && dH > 0 && (canvasEl.width !== dW || canvasEl.height !== dH)) {
+        canvasEl.width = dW;
+        canvasEl.height = dH;
+        ctxCanvas = canvasEl.getContext('2d');
+    }
+    ctxCanvas.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+    // FPS counter
     fpsCounter++;
     const now = Date.now();
     if (now - lastFpsTime >= 1000) {
-        document.getElementById('debugFPS').textContent = fpsCounter;
-        fpsCounter = 0; lastFpsTime = now;
+        const fpsel = document.getElementById('debugFPS');
+        if (fpsel) fpsel.textContent = fpsCounter;
+        fpsCounter = 0;
+        lastFpsTime = now;
     }
-    if (!results.poseLandmarks) {
-        document.getElementById('debugLandmarkCount').textContent = '0';
+
+    if (!results.poseLandmarks || results.poseLandmarks.length === 0) {
+        updateTrackingState('User Missing');
+        sideViewStatus = 'RED';
+        updatePoseIndicator();
+        const dlc = document.getElementById('debugLandmarkCount');
+        if (dlc) dlc.textContent = '0';
         return;
     }
-    const lm = results.poseLandmarks;
-    document.getElementById('debugLandmarkCount').textContent = lm.length;
-    document.getElementById('debugDetectionConfidence').textContent = (lm[0]?.visibility * 100 || 0).toFixed(0) + '%';
 
-    // Analyze form first to get issue data
-    const formData = analyzeForm(lm);
-    // Draw skeleton with color coding
-    drawColoredSkeleton(lm, formData);
+    // 1. Apply Exponential Moving Average (EMA) Smoothing
+    const lm = applySmoothing(results.poseLandmarks);
+
+    // 2. Frame buffering for extra stability (optional but kept for legacy)
+    poseBuffer.push(lm);
+    if (poseBuffer.length > BUFFER_SIZE) poseBuffer.shift();
+
+    // Confidence
+    const avgConfidence = lm.reduce((acc, p) => acc + (p.visibility || 0), 0) / lm.length;
+    if (avgConfidence > 0.45) updateTrackingState('Tracking Good');
+    else if (avgConfidence > 0.2) updateTrackingState('Tracking Weak');
+    else updateTrackingState('User Missing');
+
+    // Check side-view positioning (always, not just when workout active)
+    checkSideView(lm);
+    updatePoseIndicator();
+    
+    // Update rep counting state based on angles
+    updateRepState(lm);
+
+    // Draw skeleton with color based on side-view status
+    const formData = workoutActive ? analyzeForm(lm) : { badConnections: [], badJoints: [] };
+    drawSkeleton(lm, formData);
+
+    // Update Debug info (Throttled)
+    if (fpsCounter % 5 === 0) {
+        const dlc = document.getElementById('debugLandmarkCount');
+        if (dlc) dlc.textContent = lm.length;
+        const ddc = document.getElementById('debugDetectionConfidence');
+        if (ddc) ddc.textContent = (avgConfidence * 100).toFixed(0) + '%';
+    }
 }
 
-function drawColoredSkeleton(lm, formData) {
+function averageLandmarks(buffer) {
+    const avg = buffer[0].map(p => ({ x: p.x, y: p.y, z: p.z || 0, visibility: p.visibility || 0 }));
+    for (let i = 1; i < buffer.length; i++) {
+        for (let j = 0; j < avg.length; j++) {
+            avg[j].x += buffer[i][j].x;
+            avg[j].y += buffer[i][j].y;
+            avg[j].z += (buffer[i][j].z || 0);
+            avg[j].visibility += (buffer[i][j].visibility || 0);
+        }
+    }
+    const n = buffer.length;
+    for (let j = 0; j < avg.length; j++) {
+        avg[j].x /= n;
+        avg[j].y /= n;
+        avg[j].z /= n;
+        avg[j].visibility /= n;
+    }
+    return avg;
+}
+
+function updateTrackingState(state) {
+    trackingState = state;
+    const el = document.getElementById('liveCameraStatus');
+    if (el) {
+        if (workoutActive) {
+            el.textContent = 'Tracking: ' + state;
+        } else {
+            // Show camera status even when not in workout
+            el.textContent = state === 'User Missing' ? 'Camera: Ready' : 'Camera: ' + state;
+        }
+    }
+}
+
+// ===================== SIDE-VIEW DETECTION =====================
+let sideViewBuffer = [];
+const SIDE_VIEW_BUFFER_SIZE = 10; // ใช้ 10 เฟรมล่าสุดมาตัดสินใจ (ประมาณ 0.3 วินาที)
+
+function checkSideView(lm) {
+    const lSh = lm[11], rSh = lm[12], lHip = lm[23], rHip = lm[24];
+    if (!lSh || !rSh || !lHip || !rHip) { 
+        updateSideViewStatus('RED'); 
+        return; 
+    }
+
+    const shoulderDist = Math.abs(lSh.x - rSh.x);
+    const hipDist = Math.abs(lHip.x - rHip.x);
+    
+    let thresholdGreen = 0.18;
+    let thresholdYellow = 0.28;
+
+    let currentStatus = 'RED';
+    if (shoulderDist < thresholdGreen && hipDist < thresholdGreen) {
+        currentStatus = 'GREEN';
+    } else if (shoulderDist < thresholdYellow && hipDist < thresholdYellow) {
+        currentStatus = 'YELLOW';
+    }
+
+    // ระบบ Debounce: เก็บประวัติสถานะ
+    sideViewBuffer.push(currentStatus);
+    if (sideViewBuffer.length > SIDE_VIEW_BUFFER_SIZE) sideViewBuffer.shift();
+
+    // เลือกสถานะที่ปรากฏบ่อยที่สุดใน Buffer (Majority Vote)
+    const counts = sideViewBuffer.reduce((acc, status) => {
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+    }, {});
+
+    const dominantStatus = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+    updateSideViewStatus(dominantStatus);
+}
+
+function updateSideViewStatus(status) {
+    sideViewStatus = status;
+}
+
+function updatePoseIndicator() {
+    const el = document.getElementById('poseIndicator');
+    if (!el) return;
+    if (sideViewStatus === 'GREEN') {
+        el.textContent = '🟢 Side-view ready';
+        el.style.background = 'rgba(124,255,107,0.2)';
+        el.style.border = '1px solid rgba(124,255,107,0.5)';
+        el.style.color = '#7cff6b';
+    } else if (sideViewStatus === 'YELLOW') {
+        el.textContent = '🟡 Turn sideways to camera';
+        el.style.background = 'rgba(255,213,107,0.2)';
+        el.style.border = '1px solid rgba(255,213,107,0.5)';
+        el.style.color = '#ffd56b';
+    } else {
+        el.textContent = '🔴 Full body not visible';
+        el.style.background = 'rgba(255,101,119,0.2)';
+        el.style.border = '1px solid rgba(255,101,119,0.5)';
+        el.style.color = '#ff6577';
+    }
+}
+
+// ===================== SKELETON DRAWING =====================
+function drawSkeleton(lm, formData) {
+    if (!ctxCanvas || !canvasEl) return;
+
+    // Sync canvas resolution to actual displayed size for crisp rendering
+    const displayW = canvasEl.offsetWidth || canvasEl.width;
+    const displayH = canvasEl.offsetHeight || canvasEl.height;
+    if (canvasEl.width !== displayW || canvasEl.height !== displayH) {
+        canvasEl.width = displayW;
+        canvasEl.height = displayH;
+    }
+
     const W = canvasEl.width, H = canvasEl.height;
-    // Mirror the canvas to match mirrored video
     ctxCanvas.save();
+    // Mirror horizontally to match mirrored video (CSS scaleX(-1) on video)
     ctxCanvas.scale(-1, 1);
     ctxCanvas.translate(-W, 0);
 
-    const badConnections = new Set(formData.badConnections || []);
+    // Base color based on rep counting state and side-view status
+    let baseColor, glowColor;
+    
+    // Base color logic: Always Green if tracking is active, unless it's a critical error
+    if (sideViewStatus === 'RED') {
+        baseColor = 'rgba(255, 101, 119, 0.92)';  // Red
+        glowColor = 'rgba(255,101,119,0.35)';
+    } else if (sideViewStatus === 'YELLOW') {
+        baseColor = 'rgba(255, 213, 107, 0.92)';  // Yellow
+        glowColor = 'rgba(255,213,107,0.35)';
+    } else {
+        baseColor = 'rgba(124, 255, 107, 0.92)';  // Green
+        glowColor = 'rgba(124,255,107,0.4)';
+    }
 
-    // Draw all connections
+    // Special case for exercise state
+    if (workoutActive && repState && repState.status === 'DOWN') {
+        baseColor = 'rgba(0, 212, 255, 0.95)'; // Cyan when in DOWN phase
+        glowColor = 'rgba(0, 212, 255, 0.4)';
+    }
+    
+    const badConnSet = new Set(formData.badConnections || []);
+    const badJointSet = new Set(formData.badJoints || []);
+
+    // Draw connections with glow effect
     SKELETON_CONNECTIONS.forEach(([a, b]) => {
-        if (!lm[a] || !lm[b] || lm[a].visibility < 0.4 || lm[b].visibility < 0.4) return;
+        if (!lm[a] || !lm[b]) return;
+        if (lm[a].visibility < 0.05 || lm[b].visibility < 0.05) return;
         const connKey = `${a}-${b}`;
-        const isBad = badConnections.has(connKey) || badConnections.has(`${b}-${a}`);
+        const isBad = badConnSet.has(connKey) || badConnSet.has(`${b}-${a}`);
+        const color = isBad ? 'rgba(255, 101, 119, 0.97)' : baseColor;
+        const glow = isBad ? 'rgba(255,101,119,0.4)' : glowColor;
+
+        // Glow pass
         ctxCanvas.beginPath();
         ctxCanvas.moveTo(lm[a].x * W, lm[a].y * H);
         ctxCanvas.lineTo(lm[b].x * W, lm[b].y * H);
-        ctxCanvas.strokeStyle = isBad ? 'rgba(255,101,119,0.9)' : 'rgba(124,255,107,0.85)';
-        ctxCanvas.lineWidth = isBad ? 4 : 3;
+        ctxCanvas.strokeStyle = glow;
+        ctxCanvas.lineWidth = isBad ? 18 : 14;
+        ctxCanvas.lineCap = 'round';
+        ctxCanvas.stroke();
+
+        // Main line
+        ctxCanvas.beginPath();
+        ctxCanvas.moveTo(lm[a].x * W, lm[a].y * H);
+        ctxCanvas.lineTo(lm[b].x * W, lm[b].y * H);
+        ctxCanvas.strokeStyle = color;
+        ctxCanvas.lineWidth = isBad ? 7 : 5;
+        ctxCanvas.lineCap = 'round';
         ctxCanvas.stroke();
     });
 
-    // Draw landmark dots
+    // Draw joints with glow
+    const keyJoints = [11,12,13,14,15,16,23,24,25,26,27,28];
     lm.forEach((p, i) => {
-        if (p.visibility < 0.4) return;
-        // Only draw upper body + lower body key points
-        if (![11,12,13,14,15,16,23,24,25,26,27,28].includes(i)) return;
-        const isJointBad = formData.badJoints?.includes(i);
+        if (!keyJoints.includes(i)) return;
+        if (p.visibility < 0.05) return;
+        const isBad = badJointSet.has(i);
+        // Force hip (23, 24) to always be GREEN
+        let color = baseColor;
+        let glow = glowColor;
+        if (currentExercise === 'pushup' && (i === 23 || i === 24)) {
+            color = 'rgba(124, 255, 107, 0.97)';  // Force hip green
+            glow = 'rgba(124,255,107,0.4)';
+        } else if (isBad) {
+            color = 'rgba(255, 101, 119, 0.97)';
+            glow = 'rgba(255,101,119,0.4)';
+        }
+        const r = isBad ? 13 : 9;
+
+        // Glow ring
         ctxCanvas.beginPath();
-        ctxCanvas.arc(p.x * W, p.y * H, isJointBad ? 7 : 5, 0, Math.PI * 2);
-        ctxCanvas.fillStyle = isJointBad ? '#ff6577' : '#7cff6b';
+        ctxCanvas.arc(p.x * W, p.y * H, r + 5, 0, Math.PI * 2);
+        ctxCanvas.fillStyle = glow;
         ctxCanvas.fill();
-        ctxCanvas.strokeStyle = isJointBad ? 'rgba(255,101,119,0.5)' : 'rgba(124,255,107,0.4)';
+
+        // Joint fill
+        ctxCanvas.beginPath();
+        ctxCanvas.arc(p.x * W, p.y * H, r, 0, Math.PI * 2);
+        ctxCanvas.fillStyle = color;
+        ctxCanvas.fill();
+
+        // Joint outline
+        ctxCanvas.strokeStyle = 'rgba(0,0,0,0.7)';
         ctxCanvas.lineWidth = 2;
         ctxCanvas.stroke();
     });
@@ -1524,136 +1981,157 @@ function drawColoredSkeleton(lm, formData) {
     ctxCanvas.restore();
 }
 
+// ===================== ANGLE CALCULATION (Vector Dot Product) =====================
+// θ = arccos( (BA · BC) / (|BA| × |BC|) )
 function calcAngle(a, b, c) {
-    const ab = { x: a.x - b.x, y: a.y - b.y };
-    const cb = { x: c.x - b.x, y: c.y - b.y };
-    const dot = ab.x * cb.x + ab.y * cb.y;
-    const cross = ab.x * cb.y - ab.y * cb.x;
-    return Math.abs(Math.atan2(Math.abs(cross), dot) * 180 / Math.PI);
+    if (!a || !b || !c) return null;
+    const BAx = a.x - b.x, BAy = a.y - b.y, BAz = (a.z || 0) - (b.z || 0);
+    const BCx = c.x - b.x, BCy = c.y - b.y, BCz = (c.z || 0) - (b.z || 0);
+    const dot = BAx * BCx + BAy * BCy + BAz * BCz;
+    const magBA = Math.sqrt(BAx*BAx + BAy*BAy + BAz*BAz);
+    const magBC = Math.sqrt(BCx*BCx + BCy*BCy + BCz*BCz);
+    if (magBA < 1e-6 || magBC < 1e-6) return null;
+    const cosTheta = Math.max(-1, Math.min(1, dot / (magBA * magBC)));
+    return Math.acos(cosTheta) * (180 / Math.PI);
 }
 
+// ===================== STABILITY CHECK =====================
+function checkStability(lm) {
+    if (!lm || lm.length < 28) return false;
+    const lSh = lm[11], rSh = lm[12], lHip = lm[23], rHip = lm[24];
+    if (!lSh || !rSh || !lHip || !rHip) return false;
+    
+    const shoulderCenterX = (lSh.x + rSh.x) / 2;
+    const shoulderCenterY = (lSh.y + rSh.y) / 2;
+    const hipCenterX = (lHip.x + rHip.x) / 2;
+    const hipCenterY = (lHip.y + rHip.y) / 2;
+    
+    if (!window.stabilityBuffer) window.stabilityBuffer = { shoulder: [], hip: [] };
+    window.stabilityBuffer.shoulder.push({ x: shoulderCenterX, y: shoulderCenterY });
+    window.stabilityBuffer.hip.push({ x: hipCenterX, y: hipCenterY });
+    
+    if (window.stabilityBuffer.shoulder.length > 5) {
+        window.stabilityBuffer.shoulder.shift();
+        window.stabilityBuffer.hip.shift();
+    }
+    
+    const calcVariance = (arr) => {
+        if (arr.length < 2) return 0;
+        const mean = arr.reduce((sum, p) => sum + Math.sqrt(p.x*p.x + p.y*p.y), 0) / arr.length;
+        return arr.reduce((sum, p) => sum + Math.pow(Math.sqrt(p.x*p.x + p.y*p.y) - mean, 2), 0) / arr.length;
+    };
+    
+    const shoulderVar = calcVariance(window.stabilityBuffer.shoulder);
+    const hipVar = calcVariance(window.stabilityBuffer.hip);
+    return shoulderVar < 0.005 && hipVar < 0.005;  // More relaxed threshold
+}
+
+// ===================== FORM ANALYSIS =====================
 function analyzeForm(lm) {
-    const lShoulder = lm[11], rShoulder = lm[12];
-    const lElbow = lm[13], rElbow = lm[14];
-    const lWrist = lm[15], rWrist = lm[16];
-    const lHip = lm[23], rHip = lm[24];
-    const lKnee = lm[25], rKnee = lm[26];
-    const lAnkle = lm[27], rAnkle = lm[28];
+    // Relaxed position check: only block if RED (critical missing parts)
+    if (sideViewStatus === 'RED') {
+        isFormCorrect = false;
+        plankTimerActive = false;
+        updateFeedbackUI(['Position yourself in side-view (turn sideways to camera)']);
+        return { issues: [], badConnections: [], badJoints: [], formScore: 0 };
+    }
 
-    const lElbowAngle = lShoulder && lElbow && lWrist ? calcAngle(lShoulder, lElbow, lWrist) : 0;
-    const rElbowAngle = rShoulder && rElbow && rWrist ? calcAngle(rShoulder, rElbow, rWrist) : 0;
-    const lShoulderAngle = lElbow && lShoulder && lHip ? calcAngle(lElbow, lShoulder, lHip) : 0;
-    const rShoulderAngle = rElbow && rShoulder && rHip ? calcAngle(rElbow, rShoulder, rHip) : 0;
-    const lKneeAngle = lHip && lKnee && lAnkle ? calcAngle(lHip, lKnee, lAnkle) : 0;
-    const rKneeAngle = rHip && rKnee && rAnkle ? calcAngle(rHip, rKnee, rAnkle) : 0;
-    const hipAngle = lShoulder && lHip && lKnee ? calcAngle(lShoulder, lHip, lKnee) : 0;
-    const elbowAngle = (lElbowAngle + rElbowAngle) / 2;
+    const lSh = lm[11], rSh = lm[12];
+    const lEl = lm[13], rEl = lm[14];
+    const lWr = lm[15], rWr = lm[16];
+    const lHi = lm[23], rHi = lm[24];
+    const lKn = lm[25], rKn = lm[26];
+    const lAn = lm[27], rAn = lm[28];
 
-    // Update angle displays
-    updateAngleDisplay('angleLeftShoulder', 'angleItemLeftShoulder', lShoulderAngle, 60, 120);
-    updateAngleDisplay('angleRightShoulder', 'angleItemRightShoulder', rShoulderAngle, 60, 120);
-    updateAngleDisplay('angleLeftKnee', 'angleItemLeftKnee', lKneeAngle, 80, 170);
-    updateAngleDisplay('angleRightKnee', 'angleItemRightKnee', rKneeAngle, 80, 170);
-    updateAngleDisplay('angleHip', 'angleItemHip', hipAngle, 150, 180);
+    // Pick the more-visible side
+    const useLeft = (lSh.visibility || 0) >= (rSh.visibility || 0);
+    const sh = useLeft ? lSh : rSh;
+    const el = useLeft ? lEl : rEl;
+    const wr = useLeft ? lWr : rWr;
+    const hi = useLeft ? lHi : rHi;
+    const kn = useLeft ? lKn : rKn;
+    const an = useLeft ? lAn : rAn;
+
+    // Compute angles using dot-product method
+    const elbowAngle    = calcAngle(sh, el, wr);   // Shoulder-Elbow-Wrist
+    const kneeAngle     = calcAngle(hi, kn, an);   // Hip-Knee-Ankle
+    const hipAngle      = calcAngle(sh, hi, kn);   // Shoulder-Hip-Knee (body alignment)
+    const shoulderAngle = calcAngle(el, sh, hi);   // Elbow-Shoulder-Hip (for elbow flare)
+
+    // Update angle display elements
     updateAngleDisplay('angleElbow', 'angleItemElbow', elbowAngle, 70, 160);
+    updateAngleDisplay('angleLeftKnee', 'angleItemLeftKnee', kneeAngle, 80, 180);
+    updateAngleDisplay('angleRightKnee', 'angleItemRightKnee', kneeAngle, 80, 180);
+    updateAngleDisplay('angleHip', 'angleItemHip', hipAngle, 160, 180);
+    updateAngleDisplay('angleLeftShoulder', 'angleItemLeftShoulder', shoulderAngle, 0, 45);
+    updateAngleDisplay('angleRightShoulder', 'angleItemRightShoulder', shoulderAngle, 0, 45);
 
-    let formScore = 85, issues = [], badConnections = [], badJoints = [];
+    let issues = [], badConnections = [], badJoints = [];
+    isFormCorrect = true;
+    let formScore = 100;
 
-    if (currentExercise === 'pushup') {
-        // Check elbow angle (should be ~90 at bottom)
-        if (lElbowAngle > 0 && (lElbowAngle < 60 || lElbowAngle > 160)) {
-            issues.push('Left arm angle off'); badConnections.push('11-13', '13-15'); badJoints.push(13, 15); formScore -= 15;
-        }
-        if (rElbowAngle > 0 && (rElbowAngle < 60 || rElbowAngle > 160)) {
-            issues.push('Right arm angle off'); badConnections.push('12-14', '14-16'); badJoints.push(14, 16); formScore -= 15;
-        }
-        // Check hip alignment (should be straight)
-        if (hipAngle > 0 && hipAngle < 155) {
-            issues.push('Hips sagging — keep body straight'); badConnections.push('11-23', '12-24', '23-24'); badJoints.push(23, 24); formScore -= 12;
-        }
-        if (hipAngle > 0 && hipAngle > 185) {
-            issues.push('Hips too high — lower your hips'); badConnections.push('11-23', '12-24'); badJoints.push(23, 24); formScore -= 10;
-        }
-        // Rep counting: elbow angle goes low then high
-        const avgElbow = (lElbowAngle + rElbowAngle) / 2;
-        if (avgElbow < 90 && lastRepState === 'up') { lastRepState = 'down'; }
-        else if (avgElbow > 150 && lastRepState === 'down') { lastRepState = 'up'; repCount++; document.getElementById('liveRepCount').textContent = repCount; }
-
-    } else if (currentExercise === 'squat') {
-        // Check knee angle - only flag if extremely bad (knees caving or hyperextended)
-        if (lKneeAngle > 0 && lKneeAngle < 55) {
-            issues.push('Left knee over-flexed'); badConnections.push('23-25', '25-27'); badJoints.push(25, 27); formScore -= 12;
-        }
-        if (rKneeAngle > 0 && rKneeAngle < 55) {
-            issues.push('Right knee over-flexed'); badConnections.push('24-26', '26-28'); badJoints.push(26, 28); formScore -= 12;
-        }
-        // Check forward lean
-        if (hipAngle > 0 && hipAngle < 40) {
-            issues.push('Leaning too far forward'); badConnections.push('11-23', '12-24'); badJoints.push(11, 12); formScore -= 10;
-        }
-        // Rep counting: knee angle goes low then high
-        // Standing = ~170-180 deg, bottom squat = ~70-100 deg
-        const avgKnee = (lKneeAngle + rKneeAngle) / 2;
-        if (avgKnee > 0 && avgKnee < 120 && lastRepState === 'up') { lastRepState = 'down'; }
-        else if (avgKnee > 150 && lastRepState === 'down') { lastRepState = 'up'; repCount++; document.getElementById('liveRepCount').textContent = repCount; }
-
-    } else if (currentExercise === 'plank') {
-        // Check body alignment (hip should be roughly straight)
-        // Plank can be detected from side or front - be lenient
-        if (hipAngle > 0 && hipAngle < 140) {
-            issues.push('Hips sagging — raise hips'); badConnections.push('11-23', '12-24', '23-25', '24-26'); badJoints.push(23, 24); formScore -= 20;
-        }
-        if (hipAngle > 0 && hipAngle > 195) {
-            issues.push('Hips too high — lower hips'); badConnections.push('11-23', '12-24'); badJoints.push(23, 24); formScore -= 15;
-        }
-        // Check shoulder position (elbow under shoulder) - more lenient range
-        if (lShoulderAngle > 0 && (lShoulderAngle < 55 || lShoulderAngle > 125)) {
-            issues.push('Shoulder position off'); badConnections.push('11-13', '12-14'); badJoints.push(11, 12); formScore -= 10;
-        }
-        // Plank: count time held, no reps
-        if (workoutActive) {
-            repCount = workoutSeconds; // track seconds directly
-            document.getElementById('liveRepCount').textContent = workoutSeconds + 's';
+    // ถอดเงื่อนไขตรวจฟอร์มผิดอื่น ๆ ออกให้หมดตามข้อกำหนด
+    // เน้นการนับครั้งที่ง่ายที่สุด
+    if (currentExercise === 'plank') {
+        const plankAngle = calcAngle(sh, hi, an);
+        if (plankAngle < 140 || plankAngle > 180) {
+            issues.push('Adjust your posture to keep the timer running');
+            formScore = 70;
         }
     }
 
-    formScore = Math.max(0, Math.min(100, formScore));
+    let finalForm = formScore + 10; formScore = finalForm <= 10 ? 0 : Math.min(100, finalForm);
     if (workoutActive) formScores.push(formScore);
 
-    // Update UI
-    document.getElementById('liveFormAccuracy').textContent = formScore + '%';
-    document.getElementById('liveStability').textContent = formScore > 75 ? 'Good' : formScore > 50 ? 'Fair' : 'Poor';
-    document.getElementById('liveCoreScore').textContent = formScore > 80 ? 'Strong' : 'Needs work';
+    // Update form ring and metrics
     updateLiveFormRing(formScore);
+    const lfa = document.getElementById('liveFormAccuracy');
+    if (lfa) lfa.textContent = formScore + '%';
+    const ls = document.getElementById('liveStability');
+    if (ls) ls.textContent = formScore > 75 ? 'Good' : formScore > 50 ? 'Fair' : 'Poor';
+    const lcs = document.getElementById('liveCoreScore');
+    if (lcs) lcs.textContent = formScore > 80 ? 'Strong' : 'Needs work';
+    const recentForms = formScores.slice(-20);
+    const avgForm = recentForms.length ? Math.round(recentForms.reduce((a,b) => a+b, 0) / recentForms.length) : 0;
+    const laf = document.getElementById('liveAvgForm');
+    if (laf) laf.textContent = avgForm + '%';
 
+    // Primary issue
+    const lpi = document.getElementById('livePrimaryIssue');
+    if (lpi) lpi.textContent = issues.length ? issues[0] : 'None — great form!';
+
+    updateFeedbackUI(issues);
+
+    return { issues, badConnections, badJoints, formScore };
+}
+
+function updateCounterDisplay() {
+    const el = document.getElementById('liveRepCount');
+    if (!el) return;
+    if (currentExercise === 'plank') {
+        const mins = Math.floor(plankSeconds / 60);
+        const secs = plankSeconds % 60;
+        el.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+    } else {
+        el.textContent = repCount;
+    }
+}
+
+function updateFeedbackUI(issues) {
     const feedbackList = document.getElementById('liveFeedbackList');
-    if (issues.length) {
+    if (!feedbackList) return;
+    if (issues && issues.length) {
         feedbackList.innerHTML = issues.map(i => `<div class="error-item"><strong>⚠️ ${i}</strong><span>Adjust your form to avoid injury.</span></div>`).join('');
-        document.getElementById('livePrimaryIssue').textContent = issues[0];
     } else {
         feedbackList.innerHTML = '<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">✅ Great form!</strong><span>Keep it up!</span></div>';
-        document.getElementById('livePrimaryIssue').textContent = 'None — great form!';
     }
-
-    const poseIndicator = document.getElementById('poseIndicator');
-    if (poseIndicator) {
-        poseIndicator.textContent = formScore > 75 ? '🟢 Excellent form!' : formScore > 50 ? '🟡 Good form' : '🔴 Improve form';
-        poseIndicator.classList.toggle('detected', formScore > 50);
-    }
-
-    // Update avg form
-    const recentForms = formScores.slice(-20);
-    const avgForm = recentForms.length ? Math.round(recentForms.reduce((a,b)=>a+b,0)/recentForms.length) : 0;
-    document.getElementById('liveAvgForm').textContent = avgForm + '%';
-
-    return { badConnections, badJoints, formScore, issues };
 }
 
 function updateAngleDisplay(valueId, itemId, angle, minGood, maxGood) {
     const el = document.getElementById(valueId);
     const item = document.getElementById(itemId);
     if (!el || !item) return;
-    if (angle === 0) { el.textContent = '-'; item.className = 'angle-item'; return; }
+    if (!angle || angle === 0) { el.textContent = '-'; item.className = 'angle-item'; return; }
     el.textContent = angle.toFixed(0) + '°';
     const isGood = angle >= minGood && angle <= maxGood;
     item.className = 'angle-item ' + (isGood ? 'good' : 'bad');
@@ -1663,47 +2141,23 @@ function updateLiveFormRing(score) {
     const offset = 314 - (314 * score / 100);
     const fill = document.getElementById('liveFormRing');
     if (fill) fill.style.strokeDashoffset = offset;
-    document.getElementById('liveFormPercent').textContent = score + '%';
-}
-
-// ===================== SIMULATE DATA (fallback) =====================
-let simulationInterval = null;
-function simulateData() {
-    if (simulationInterval) return;
-    let simAngle = 90, simDir = 1;
-    simulationInterval = setInterval(() => {
-        if (!workoutActive) return;
-        simAngle += simDir * 8;
-        if (simAngle > 170) simDir = -1;
-        if (simAngle < 60) simDir = 1;
-        const score = Math.round(70 + Math.random() * 25);
-        if (workoutActive) formScores.push(score);
-        document.getElementById('liveFormAccuracy').textContent = score + '%';
-        document.getElementById('liveStability').textContent = score > 80 ? 'Good' : 'Fair';
-        document.getElementById('liveCoreScore').textContent = score > 80 ? 'Strong' : 'Needs work';
-        updateLiveFormRing(score);
-        const avgForm = formScores.length ? Math.round(formScores.reduce((a,b)=>a+b,0)/formScores.length) : 0;
-        document.getElementById('liveAvgForm').textContent = avgForm + '%';
-        if (simAngle < 80 && lastRepState === 'up') { lastRepState = 'down'; }
-        else if (simAngle > 150 && lastRepState === 'down') { lastRepState = 'up'; repCount++; document.getElementById('liveRepCount').textContent = repCount; }
-        document.getElementById('liveFeedbackList').innerHTML = '<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">✅ Simulation mode</strong><span>Camera or MediaPipe unavailable.</span></div>';
-        document.getElementById('livePrimaryIssue').textContent = 'Simulation mode';
-    }, 200);
+    const pct = document.getElementById('liveFormPercent');
+    if (pct) pct.textContent = score + '%';
 }
 
 function addDebugError(msg) {
     const log = document.getElementById('debugErrorLog');
     if (!log) return;
-    const item = document.createElement('div'); item.className = 'error-item';
+    const item = document.createElement('div');
+    item.className = 'error-item';
     item.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong><span>${msg}</span>`;
     log.prepend(item);
 }
 
 // ===================== GOOGLE SIGN IN =====================
-let currentUser = JSON.parse(localStorage.getItem('fitguardUser')) || null;
+let currentUser = JSON.parse(localStorage.getItem('fitguardUser') || 'null');
 
 function handleGoogleSignIn() {
-    // Use Google Identity Services popup
     if (typeof google !== 'undefined' && google.accounts) {
         google.accounts.id.initialize({
             client_id: '1234567890-placeholder.apps.googleusercontent.com',
@@ -1712,7 +2166,6 @@ function handleGoogleSignIn() {
         });
         google.accounts.id.prompt((notification) => {
             if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                // Fallback: show mock sign-in for demo
                 showMockGoogleSignIn();
             }
         });
@@ -1722,7 +2175,6 @@ function handleGoogleSignIn() {
 }
 
 function showMockGoogleSignIn() {
-    // Demo mode: simulate Google sign-in
     const name = prompt('Demo Mode: Enter your name (Google Sign-In requires a real Client ID)', 'Athlete');
     if (name) {
         const email = name.toLowerCase().replace(/\s+/g, '.') + '@gmail.com';
@@ -1732,12 +2184,13 @@ function showMockGoogleSignIn() {
 }
 
 function handleGoogleCredential(response) {
-    // Parse JWT credential
     try {
         const payload = JSON.parse(atob(response.credential.split('.')[1]));
         const user = { name: payload.name, email: payload.email, avatar: payload.picture, provider: 'google' };
         setCurrentUser(user);
-    } catch(e) { addDebugError('Google credential parse error: ' + e.message); }
+    } catch(e) {
+        addDebugError('Google credential parse error: ' + e.message);
+    }
 }
 
 function setCurrentUser(user) {
@@ -1758,27 +2211,33 @@ function updateProfileUI() {
     const loginSection = document.getElementById('profileLoginStatus');
     const loggedInSection = document.getElementById('profileLoggedInSection');
     const avatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+    if (!loginSection || !loggedInSection) return;
     if (currentUser) {
         loginSection.style.display = 'none';
         loggedInSection.style.display = 'block';
-        document.getElementById('profileUserName').textContent = currentUser.name;
-        document.getElementById('profileUserEmail').textContent = currentUser.email;
-        if (currentUser.avatar) {
-            avatarPlaceholder.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Avatar">`;
-        } else {
-            avatarPlaceholder.textContent = currentUser.name.charAt(0).toUpperCase();
+        const pun = document.getElementById('profileUserName');
+        if (pun) pun.textContent = currentUser.name;
+        const pue = document.getElementById('profileUserEmail');
+        if (pue) pue.textContent = currentUser.email;
+        if (avatarPlaceholder) {
+            if (currentUser.avatar) {
+                avatarPlaceholder.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Avatar">`;
+            } else {
+                avatarPlaceholder.textContent = currentUser.name.charAt(0).toUpperCase();
+            }
         }
-        // Pre-fill profile name
-        document.getElementById('profileNameInput').value = currentUser.name;
+        const pni = document.getElementById('profileNameInput');
+        if (pni) pni.value = currentUser.name;
     } else {
         loginSection.style.display = 'block';
         loggedInSection.style.display = 'none';
-        avatarPlaceholder.textContent = '?';
+        if (avatarPlaceholder) avatarPlaceholder.textContent = '?';
     }
 }
 
 function updateTopbarAvatar() {
     const avatar = document.getElementById('topbarAvatar');
+    if (!avatar) return;
     if (currentUser) {
         if (currentUser.avatar) {
             avatar.innerHTML = `<img src="${currentUser.avatar}" style="width:100%;height:100%;object-fit:cover;" alt="Avatar">`;
@@ -1796,38 +2255,41 @@ let formScoreChart, repsChart, progressChart;
 function initCharts() {
     const chartDefaults = {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { legend: { display: false }, filler: { propagate: true } },
         scales: {
             x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9bb8d8', font: { size: 11 } } },
-            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9bb8d8', font: { size: 11 } } }
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9bb8d8', font: { size: 11 } }, beginAtZero: true }
         }
     };
-
-    const formCtx = document.getElementById('formScoreLineChart')?.getContext('2d');
-    if (formCtx) {
-        formScoreChart = new Chart(formCtx, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Form Score', data: [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.08)', borderWidth: 2.5, pointBackgroundColor: '#00d4ff', pointRadius: 4, tension: 0.4, fill: true }] },
-            options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
-        });
+    const formCtx = document.getElementById('formScoreLineChart');
+    if (formCtx && typeof Chart !== 'undefined') {
+        try {
+            formScoreChart = new Chart(formCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Form Score', data: [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', borderWidth: 2.5, pointBackgroundColor: '#00d4ff', pointRadius: 4, tension: 0.4, fill: true, segment: { borderColor: ctx => ctx.p0DataIndex === ctx.p1DataIndex - 1 ? '#00d4ff' : 'transparent' } }] },
+                options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
+            });
+        } catch(e) { console.error('Form chart error:', e); }
     }
-
-    const repsCtx = document.getElementById('repsLineChart')?.getContext('2d');
-    if (repsCtx) {
-        repsChart = new Chart(repsCtx, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Reps', data: [], borderColor: '#7cff6b', backgroundColor: 'rgba(124,255,107,0.08)', borderWidth: 2.5, pointBackgroundColor: '#7cff6b', pointRadius: 4, tension: 0.4, fill: true }] },
-            options: { ...chartDefaults }
-        });
+    const repsCtx = document.getElementById('repsLineChart');
+    if (repsCtx && typeof Chart !== 'undefined') {
+        try {
+            repsChart = new Chart(repsCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Reps', data: [], borderColor: '#7cff6b', backgroundColor: 'rgba(124,255,107,0.1)', borderWidth: 2.5, pointBackgroundColor: '#7cff6b', pointRadius: 4, tension: 0.4, fill: true }] },
+                options: { ...chartDefaults }
+            });
+        } catch(e) { console.error('Reps chart error:', e); }
     }
-
-    const progressCtx = document.getElementById('progressLineChart')?.getContext('2d');
-    if (progressCtx) {
-        progressChart = new Chart(progressCtx, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Form Score', data: [], borderColor: '#00e6c3', backgroundColor: 'rgba(0,230,195,0.08)', borderWidth: 2.5, pointBackgroundColor: '#00e6c3', pointRadius: 4, tension: 0.4, fill: true }] },
-            options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
-        });
+    const progressCtx = document.getElementById('progressLineChart');
+    if (progressCtx && typeof Chart !== 'undefined') {
+        try {
+            progressChart = new Chart(progressCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Form Score', data: [], borderColor: '#00e6c3', backgroundColor: 'rgba(0,230,195,0.1)', borderWidth: 2.5, pointBackgroundColor: '#00e6c3', pointRadius: 4, tension: 0.4, fill: true }] },
+                options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
+            });
+        } catch(e) { console.error('Progress chart error:', e); }
     }
 }
 
@@ -1838,32 +2300,19 @@ function updateCharts() {
     });
     const formData = sessionHistory.slice().reverse().map(s => s.avgForm);
     const repsData = sessionHistory.slice().reverse().map(s => s.reps);
-
-    if (formScoreChart) {
-        formScoreChart.data.labels = labels;
-        formScoreChart.data.datasets[0].data = formData;
-        formScoreChart.update();
-    }
-    if (repsChart) {
-        repsChart.data.labels = labels;
-        repsChart.data.datasets[0].data = repsData;
-        repsChart.update();
-    }
-    if (progressChart) {
-        progressChart.data.labels = labels;
-        progressChart.data.datasets[0].data = formData;
-        progressChart.update();
-    }
+    if (formScoreChart) { formScoreChart.data.labels = labels; formScoreChart.data.datasets[0].data = formData; formScoreChart.update(); }
+    if (repsChart) { repsChart.data.labels = labels; repsChart.data.datasets[0].data = repsData; repsChart.update(); }
+    if (progressChart) { progressChart.data.labels = labels; progressChart.data.datasets[0].data = formData; progressChart.update(); }
 }
 
 // ===================== DASHBOARD UPDATE =====================
 function updateDashboard() {
     const totalSessions = sessionHistory.length;
-    const allForms = sessionHistory.map(s => s.avgForm).filter(Boolean);
-    const avgForm = allForms.length ? Math.round(allForms.reduce((a,b)=>a+b,0)/allForms.length) : 0;
+    const allForms = sessionHistory.map(s => s.avgForm).filter(v => v > 0);
+    const avgForm = allForms.length ? Math.round(allForms.reduce((a,b) => a+b, 0) / allForms.length) : 0;
     const bestForm = allForms.length ? Math.max(...allForms) : 0;
-    const totalReps = sessionHistory.reduce((a,s) => a + s.reps, 0);
-    const totalMins = Math.round(sessionHistory.reduce((a,s) => a + s.duration, 0) / 60);
+    const totalReps = sessionHistory.reduce((a,s) => a + (s.reps || 0), 0);
+    const totalMins = Math.round(sessionHistory.reduce((a,s) => a + (s.duration || 0), 0) / 60);
 
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('dashboardWorkoutCount', totalSessions);
@@ -1907,22 +2356,23 @@ function updateSessionHistory() {
         historyList.innerHTML = '<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">No sessions yet</span><strong>Start a workout to record</strong></div>';
         return;
     }
-    historyList.innerHTML = sessionHistory.slice(0, 5).map(s => `
-        <div class="metric-bubble">
-            <span class="bubble-label">${new Date(s.date).toLocaleDateString()}</span>
-            <strong>${EXERCISES[s.exercise]?.emoji || ''} ${EXERCISES[s.exercise]?.name || s.exercise} • ${s.reps} reps • ${s.avgForm}% form</strong>
-        </div>
-    `).join('');
+    historyList.innerHTML = sessionHistory.slice(0, 5).map(s => {
+        const ex = EXERCISES[s.exercise];
+        const label = s.exercise === 'plank'
+            ? `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${formatTime(s.reps)} held • ${s.avgForm}% form`
+            : `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${s.reps} reps • ${s.avgForm}% form`;
+        return `<div class="metric-bubble"><span class="bubble-label">${new Date(s.date).toLocaleDateString()}</span><strong>${label}</strong></div>`;
+    }).join('');
 }
 
 function updatePersonalRecords() {
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('prBestReps', personalRecords.bestReps || '-');
     set('prBestForm', personalRecords.bestForm ? personalRecords.bestForm + '%' : '-');
-    const mins = Math.floor(personalRecords.longestSession / 60);
-    const secs = personalRecords.longestSession % 60;
+    const mins = Math.floor((personalRecords.longestSession || 0) / 60);
+    const secs = (personalRecords.longestSession || 0) % 60;
     set('prLongestSession', personalRecords.longestSession ? `${mins}m ${secs}s` : '-');
-    set('prTotalWorkouts', personalRecords.totalWorkouts);
+    set('prTotalWorkouts', personalRecords.totalWorkouts || 0);
 }
 
 function updateAchievements(sessions, bestForm, totalReps) {
@@ -1944,35 +2394,59 @@ function updateAchievements(sessions, bestForm, totalReps) {
 function updateHistory() {
     const tbody = document.getElementById('historyTableBody');
     if (!tbody) return;
-    if (!sessionHistory.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr>'; return; }
-    tbody.innerHTML = sessionHistory.map((s, i) => `<tr>
-        <td>${EXERCISES[s.exercise]?.emoji || ''} ${EXERCISES[s.exercise]?.name || s.exercise}</td>
-        <td>${formatTime(s.duration)}</td>
-        <td>${s.reps}</td>
-        <td>${s.avgForm}%</td>
-        <td>${s.issues?.join(', ') || 'None'}</td>
-        <td><button class="badge-pill" onclick="viewSessionDetail(${i})">View</button></td>
-    </tr>`).join('');
+    if (!sessionHistory.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = sessionHistory.map((s, i) => {
+        const ex = EXERCISES[s.exercise];
+        const repsLabel = s.exercise === 'plank' ? formatTime(s.reps) + ' held' : s.reps + ' reps';
+        return `<tr>
+            <td>${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise}</td>
+            <td>${formatTime(s.duration)}</td>
+            <td>${repsLabel}</td>
+            <td>${s.avgForm}%</td>
+            <td>${(s.issues && s.issues.length) ? s.issues.join(', ') : 'None'}</td>
+            <td><button class="badge-pill" onclick="viewSessionDetail(${i})">View</button></td>
+        </tr>`;
+    }).join('');
 }
 
 function viewSessionDetail(i) {
     const s = sessionHistory[i];
-    alert(`${EXERCISES[s.exercise]?.name} — ${new Date(s.date).toLocaleString()}\nDuration: ${formatTime(s.duration)} | Reps: ${s.reps} | Form: ${s.avgForm}%`);
+    if (!s) return;
+    const ex = EXERCISES[s.exercise];
+    const repsLabel = s.exercise === 'plank' ? formatTime(s.reps) + ' held' : s.reps + ' reps';
+    alert(`${ex ? ex.name : s.exercise} — ${new Date(s.date).toLocaleString()}\nDuration: ${formatTime(s.duration)} | ${repsLabel} | Form: ${s.avgForm}%`);
 }
 
-document.getElementById('clearHistoryButton')?.addEventListener('click', () => {
-    if (confirm('Clear all history?')) { sessionHistory = []; localStorage.setItem('fitguardSessions', '[]'); updateHistory(); updateDashboard(); }
+const _clearHistoryButton = document.getElementById('clearHistoryButton');
+if (_clearHistoryButton) _clearHistoryButton.addEventListener('click', () => {
+    if (confirm('Clear all history?')) {
+        sessionHistory = [];
+        localStorage.setItem('fitguardSessions', '[]');
+        updateHistory();
+        updateDashboard();
+    }
 });
-document.getElementById('exportHistoryButton')?.addEventListener('click', () => {
-    const data = sessionHistory.map(s => `${EXERCISES[s.exercise]?.name},${formatTime(s.duration)},${s.reps},${s.avgForm}%`).join('\n');
+
+const _exportHistoryButton = document.getElementById('exportHistoryButton');
+if (_exportHistoryButton) _exportHistoryButton.addEventListener('click', () => {
+    const data = sessionHistory.map(s => {
+        const ex = EXERCISES[s.exercise];
+        return `${ex ? ex.name : s.exercise},${formatTime(s.duration)},${s.reps},${s.avgForm}%`;
+    }).join('\n');
     const blob = new Blob([`Exercise,Duration,Reps,Form\n${data}`], { type: 'text/csv' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fitguard_history.csv'; a.click();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fitguard_history.csv';
+    a.click();
 });
 
 // ===================== PROGRESS =====================
 function updateProgress() {
-    const totalMins = Math.round(sessionHistory.reduce((a,s) => a + s.duration, 0) / 60);
-    const totalReps = sessionHistory.reduce((a,s) => a + s.reps, 0);
+    const totalMins = Math.round(sessionHistory.reduce((a,s) => a + (s.duration || 0), 0) / 60);
+    const totalReps = sessionHistory.reduce((a,s) => a + (s.reps || 0), 0);
     const avgRepRate = sessionHistory.length ? Math.round(totalReps / sessionHistory.length) : 0;
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('progressMinutes', totalMins);
@@ -1980,10 +2454,11 @@ function updateProgress() {
     set('progressCommonIssue', 'None');
     const bars = document.getElementById('progressBars');
     if (bars) {
-        bars.innerHTML = sessionHistory.slice(0, 5).map((s, i) => `
-            <div class="label-row"><span>${EXERCISES[s.exercise]?.name || s.exercise} #${i+1}</span><span>${s.avgForm}%</span></div>
-            <div class="bar-track"><div class="bar-value" style="width:${s.avgForm}%"></div></div>
-        `).join('');
+        bars.innerHTML = sessionHistory.slice(0, 5).map((s, i) => {
+            const ex = EXERCISES[s.exercise];
+            return `<div class="label-row"><span>${ex ? ex.name : s.exercise} #${i+1}</span><span>${s.avgForm}%</span></div>
+                    <div class="bar-track"><div class="bar-value" style="width:${s.avgForm}%"></div></div>`;
+        }).join('');
     }
     updateCharts();
 }
@@ -1992,7 +2467,12 @@ function updateProgress() {
 function updateReports() {
     const select = document.getElementById('reportSelect');
     if (!select) return;
-    select.innerHTML = sessionHistory.length ? sessionHistory.map((s, i) => `<option value="${i}">${EXERCISES[s.exercise]?.name} — ${new Date(s.date).toLocaleDateString()}</option>`).join('') : '<option>No sessions yet</option>';
+    select.innerHTML = sessionHistory.length
+        ? sessionHistory.map((s, i) => {
+            const ex = EXERCISES[s.exercise];
+            return `<option value="${i}">${ex ? ex.name : s.exercise} — ${new Date(s.date).toLocaleDateString()}</option>`;
+          }).join('')
+        : '<option>No sessions yet</option>';
     if (sessionHistory.length) showReport(0);
     select.onchange = () => showReport(parseInt(select.value));
 }
@@ -2001,27 +2481,44 @@ function showReport(i) {
     const s = sessionHistory[i];
     if (!s) return;
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('reportExerciseType', EXERCISES[s.exercise]?.name || s.exercise);
+    const ex = EXERCISES[s.exercise];
+    const repsLabel = s.exercise === 'plank' ? formatTime(s.reps) + ' held' : s.reps;
+    set('reportExerciseType', ex ? ex.name : s.exercise);
     set('reportDuration', formatTime(s.duration));
-    set('reportReps', s.reps);
+    set('reportReps', repsLabel);
     set('reportFormAccuracy', s.avgForm + '%');
     set('reportStability', s.avgForm > 80 ? 'Excellent' : s.avgForm > 60 ? 'Good' : 'Fair');
     set('reportInjuryRisk', s.avgForm > 80 ? 'Low' : s.avgForm > 60 ? 'Moderate' : 'High');
     const timeline = document.getElementById('reportTimeline');
-    if (timeline) timeline.innerHTML = `<p style="color:var(--muted);">Session on ${new Date(s.date).toLocaleString()} — ${s.reps} reps in ${formatTime(s.duration)} with ${s.avgForm}% average form.</p>`;
+    if (timeline) timeline.innerHTML = `<p style="color:var(--muted);">Session on ${new Date(s.date).toLocaleString()} — ${repsLabel} in ${formatTime(s.duration)} with ${s.avgForm}% average form.</p>`;
 }
 
-// ===================== AI COACH CHAT =====================
-let chatHistory = [];
+// ===================== AI COACH CHAT (AI AGENT) =====================
+let chatHistory = [];       // Full conversation history for context
 let chatInitialized = false;
 
 function initChatIfNeeded() {
     if (chatInitialized) return;
     chatInitialized = true;
     chatHistory = [];
-    const welcomeMsg = `Hello! I'm your FitGuard AI Coach 🤖\n\nI can help you with:\n• **Workout form & technique** for push-ups, squats, and planks\n• **Nutrition advice** — pre/post workout meals, macros\n• **Goal setting** — building muscle, losing weight, endurance\n• **Recovery tips** — rest days, stretching, sleep\n\nWhat would you like to know today?`;
+    const welcomeMsg = currentLang === 'th'
+        ? `สวัสดีครับ! ผมคือ **FitGuard AI Coach** 🤖\n\nผมเป็น AI Agent ที่วิเคราะห์ข้อมูลการออกกำลังกายของคุณแบบ Real-time และให้คำแนะนำที่ตรงจุด ถามผมได้เลยเรื่อง:\n\n• **เทคนิคการออกกำลังกาย** — Push-up, Squat, Plank\n• **โภชนาการ** — อาหารก่อน/หลังออกกำลังกาย, แมคโคร\n• **การตั้งเป้าหมาย** — ลดน้ำหนัก, เพิ่มกล้ามเนื้อ, ความทนทาน\n• **การฟื้นฟู** — วันพัก, การยืดกล้ามเนื้อ, การนอนหลับ\n\nมีอะไรให้ช่วยไหมครับ?`
+        : `Hello! I'm your **FitGuard AI Coach** 🤖\n\nI'm an AI Agent that analyzes your workout data in real-time and gives you precise, personalized advice. Ask me anything about:\n\n• **Exercise technique** — Push-ups, Squats, Planks\n• **Nutrition** — Pre/post workout meals, macros, hydration\n• **Goal setting** — Weight loss, muscle gain, endurance\n• **Recovery** — Rest days, stretching, sleep optimization\n\nWhat would you like to work on today?`;
     addChatMessage('ai', welcomeMsg, true);
 }
+
+// Clear chat and reset history
+function clearChat() {
+    chatHistory = [];
+    chatInitialized = false;
+    const container = document.getElementById('chatMessages');
+    if (container) container.innerHTML = '';
+    initChatIfNeeded();
+}
+
+// Wire up clear button
+const _clearChatBtn = document.getElementById('clearChatBtn');
+if (_clearChatBtn) _clearChatBtn.addEventListener('click', clearChat);
 
 function addChatMessage(role, text, skipHistory) {
     const container = document.getElementById('chatMessages');
@@ -2044,18 +2541,67 @@ function addChatMessage(role, text, skipHistory) {
 }
 
 function formatChatText(text) {
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>');
+    // Escape HTML first
+    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // Split by double newlines to create paragraphs
+    let paragraphs = text.split(/\n\n+/);
+    
+    paragraphs = paragraphs.map(para => {
+        // Check if this paragraph contains list items
+        const lines = para.split('\n');
+        const isListPara = lines.some(l => /^\s*[-•*]\s/.test(l));
+        
+        if (isListPara) {
+            // Process as list
+            const listItems = lines
+                .filter(l => /^\s*[-•*]\s/.test(l))
+                .map(l => {
+                    const item = l.replace(/^\s*[-•*]\s+/, '').trim();
+                    return `<li>${formatInline(item)}</li>`;
+                })
+                .join('');
+            return `<ul style="margin:8px 0;padding-left:20px;">${listItems}</ul>`;
+        } else {
+            // Process as regular paragraph with inline formatting
+            const formatted = lines.map(l => formatInline(l.trim())).filter(l => l).join('<br>');
+            return `<p style="margin:8px 0;line-height:1.6;">${formatted}</p>`;
+        }
+    }).filter(p => p.trim()).join('');
+    
+    return paragraphs;
 }
+
+function formatInline(text) {
+    if (!text) return '';
+    // Bold: **text** -> <strong>text</strong>
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Italic: *text* -> <em>text</em>
+    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Inline code: `text` -> <code>text</code>
+    text = text.replace(/`([^`]+)`/g, '<code style="background:rgba(0,212,255,0.12);padding:2px 6px;border-radius:4px;font-size:0.9em;color:var(--accent);">$1</code>');
+    return text;
+}
+
+
 
 function showThinkingIndicator() {
     const container = document.getElementById('chatMessages');
-    if (document.getElementById('typingIndicator')) return;
+    if (!container || document.getElementById('typingIndicator')) return;
+
+    // Update header status
+    const statusEl = document.getElementById('aiCoachStatus');
+    if (statusEl) {
+        statusEl.textContent = currentLang === 'th' ? '✨ กำลังวิเคราะห์...' : '✨ Thinking...';
+        statusEl.classList.add('ai-status-thinking');
+    }
+
     const div = document.createElement('div');
-    div.className = 'chat-msg ai'; div.id = 'typingIndicator';
-    const thinkSteps = ['กำลังคิด...', 'วิเคราะห์ข้อมูล...', 'ประมวลผล...', 'กำลังตอบ...'];
+    div.className = 'chat-msg ai';
+    div.id = 'typingIndicator';
+    const thinkSteps = currentLang === 'th'
+        ? ['กำลังคิด...', 'วิเคราะห์ข้อมูล...', 'ประมวลผล...', 'กำลังเขียนคำตอบ...']
+        : ['Thinking...', 'Analyzing your data...', 'Processing...', 'Generating response...'];
     let stepIdx = 0;
     div.innerHTML = `<div class="chat-msg-avatar">🤖</div><div class="chat-msg-bubble"><div class="ai-thinking"><div class="ai-thinking-dots"><span></span><span></span><span></span></div><span class="ai-thinking-text" id="thinkingText">${thinkSteps[0]}</span></div></div>`;
     container.appendChild(div);
@@ -2064,7 +2610,10 @@ function showThinkingIndicator() {
         stepIdx = (stepIdx + 1) % thinkSteps.length;
         const el = document.getElementById('thinkingText');
         if (el) el.textContent = thinkSteps[stepIdx];
-    }, 700);
+        // Also update header
+        const sEl = document.getElementById('aiCoachStatus');
+        if (sEl) sEl.textContent = (currentLang === 'th' ? '✨ ' : '✨ ') + thinkSteps[stepIdx];
+    }, 800);
 }
 function showTypingIndicator() { showThinkingIndicator(); }
 
@@ -2074,18 +2623,32 @@ function removeTypingIndicator() {
         if (el._thinkInterval) clearInterval(el._thinkInterval);
         el.remove();
     }
+    // Reset header status
+    const statusEl = document.getElementById('aiCoachStatus');
+    if (statusEl) {
+        statusEl.textContent = currentLang === 'th' ? 'Fitness • โภชนาการ • เป้าหมาย' : 'Fitness • Nutrition • Health Goals';
+        statusEl.classList.remove('ai-status-thinking');
+    }
 }
 
 let _chatSending = false;
 async function sendChatMessage() {
     if (_chatSending) return;
     const input = document.getElementById('chatInput');
+    if (!input) return;
     const text = input.value.trim();
     if (!text) return;
     _chatSending = true;
     input.value = '';
+    input.style.height = 'auto'; // reset textarea height
     const sendBtn = document.getElementById('chatSendBtn');
-    if (sendBtn) sendBtn.disabled = true;
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = '0.5'; }
+    // Hide quick replies after first message
+    const qr = document.getElementById('quickReplies');
+    if (qr && qr.style.display !== 'none' && document.querySelectorAll('#chatMessages .chat-msg.user').length > 0) {
+        qr.style.transition = 'opacity 0.3s'; qr.style.opacity = '0';
+        setTimeout(() => { qr.style.display = 'none'; }, 300);
+    }
     addChatMessage('user', text);
     showThinkingIndicator();
     try {
@@ -2094,104 +2657,190 @@ async function sendChatMessage() {
         addChatMessage('ai', response);
     } catch(e) {
         removeTypingIndicator();
-        addChatMessage('ai', 'Sorry, I encountered an error. Please check your API key in Settings or try again.');
+        const errMsg = currentLang === 'th'
+            ? '⚠️ เกิดข้อผิดพลาด กรุณาตรวจสอบ API Key ใน Settings หรือลองใหม่'
+            : '⚠️ An error occurred. Please check your API key in Settings or try again.';
+        addChatMessage('ai', errMsg);
     } finally {
         _chatSending = false;
-        const sendBtn = document.getElementById('chatSendBtn');
-        if (sendBtn) sendBtn.disabled = false;
+        const sb = document.getElementById('chatSendBtn');
+        if (sb) { sb.disabled = false; sb.style.opacity = '1'; }
+        if (input) input.focus();
     }
 }
 
 function sendQuickReply(text) {
-    document.getElementById('chatInput').value = text;
+    const input = document.getElementById('chatInput');
+    if (input) input.value = text;
     sendChatMessage();
 }
 
-document.getElementById('chatInput')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
-});
+const _chatInput = document.getElementById('chatInput');
+if (_chatInput) {
+    _chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+    });
+    // Auto-resize textarea as user types
+    _chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+}
 
+// ===== GEMINI AI COACH REPLACEMENT =====
 async function callAICoach(userMessage) {
-    const apiKey = document.getElementById('settingsApiKey')?.value || '';
-    const model = document.getElementById('settingsAIModel')?.value || 'gpt-4o-mini';
-    const totalReps = sessionHistory.reduce((a,s) => a + s.reps, 0);
-    const avgForm = sessionHistory.length ? Math.round(sessionHistory.reduce((a,s)=>a+s.avgForm,0)/sessionHistory.length) : 0;
-    const systemPrompt = `You are FitGuard AI Coach, an expert fitness and nutrition coach. You help users with workout form, exercise technique, nutrition, and health goals. Be encouraging, specific, and practical. Keep responses concise (2-4 paragraphs max).
+    const apiKeyEl = document.getElementById('settingsGeminiKey');
+    const apiKey = (apiKeyEl ? apiKeyEl.value.trim() : '') || '';
 
-User's current stats:
-- Sessions completed: ${sessionHistory.length}
-- Total reps: ${totalReps}
-- Average form score: ${avgForm}%
-- Current exercise focus: ${EXERCISES[currentExercise]?.name || currentExercise}
-- Fitness goal: ${document.getElementById('profileGoalInput')?.value || 'Not set'}
-- Fitness level: ${document.getElementById('profileFitnessLevelInput')?.value || 'Not set'}
+    // Build user context from session data
+    const totalReps = sessionHistory.reduce((a,s) => a + (s.reps || 0), 0);
+    const avgForm = sessionHistory.length
+        ? Math.round(sessionHistory.reduce((a,s) => a + (s.avgForm || 0), 0) / sessionHistory.length)
+        : 0;
+    const bestForm = sessionHistory.length ? Math.max(...sessionHistory.map(s => s.avgForm || 0)) : 0;
+    const lastSession = sessionHistory[0];
+    const recentIssues = [...new Set(sessionHistory.slice(0, 5).flatMap(s => s.issues || []))];
+    const profileGoal = document.getElementById('profileGoalInput') ? document.getElementById('profileGoalInput').value : 'Not set';
+    const fitnessLevel = document.getElementById('profileFitnessLevelInput') ? document.getElementById('profileFitnessLevelInput').value : 'Not set';
+    const profileName = document.getElementById('profileNameInput') ? document.getElementById('profileNameInput').value : 'Athlete';
+    const lang = currentLang === 'th' ? 'Thai' : 'English';
 
-Language preference: ${currentLang === 'th' ? 'Thai (ภาษาไทย)' : 'English'}`;
+    const systemPrompt = `You are FitGuard AI Coach — an expert personal trainer AI that teaches proper exercise form and provides personalized fitness coaching.
 
-    const messages = [
-        { role: 'system', content: systemPrompt },
-        ...chatHistory.slice(-8),
-        { role: 'user', content: userMessage }
-    ];
+Your personality: Friendly, encouraging, professional, and detail-oriented. You teach like a real trainer who cares about the user's form and safety.
 
-    // Try with user's API key first, then built-in
-    const keys = apiKey ? [apiKey] : [];
-    // Use environment variable if available
-    const baseUrl = 'https://api.openai.com/v1';
+User Profile:
+- Name: ${profileName}
+- Goal: ${profileGoal}
+- Fitness Level: ${fitnessLevel}
+- Total Sessions: ${sessionHistory.length}
+- Total Reps: ${totalReps}
+- Average Form Score: ${avgForm}%
+- Current Exercise: ${EXERCISES[currentExercise] ? EXERCISES[currentExercise].name : currentExercise}
+
+IMPORTANT INSTRUCTIONS:
+1. **Exercise Teaching**: When asked about an exercise, provide:
+   - Step-by-step form instructions (be very detailed about body positioning)
+   - Common mistakes to avoid
+   - Tips for proper breathing
+   - How to progress safely
+   
+2. **Form Analysis**: If user mentions form issues, explain:
+   - What they're doing wrong (reference their actual stats if available)
+   - How to fix it with specific cues
+   - Why it matters for safety and effectiveness
+
+3. **Guide References**: When appropriate, suggest:
+   - "For more detailed visuals, check the **Exercise Guide** tab for step-by-step photos"
+   - "Visit the **Guide** section to see proper form demonstrations"
+   - "The **Exercise Guide** has detailed breakdowns of this movement"
+
+4. **Formatting**: Use **bold** for key points, bullet lists for steps, and clear paragraphs
+
+5. **Language**: Respond in ${lang} only
+
+6. **Tone**: Be encouraging but honest. If they have form issues, help them fix it with compassion.
+
+7. **Off-topic**: If asked about unrelated topics, politely redirect: "I'm here to help with your fitness! Let's talk about your workout or form."`;
+
+    // Build messages for Gemini: convert to Gemini format
+    const geminiHistory = chatHistory.slice(-20).map(msg => ({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+    }));
+
+    // If no API key, use local fallback
     if (!apiKey) {
-        // Fallback to local response
         return generateLocalCoachResponse(userMessage);
     }
-    const res = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({ model, messages, max_tokens: 500, temperature: 0.7 })
-    });
-    if (!res.ok) throw new Error('API error: ' + res.status);
-    const data = await res.json();
-    return data.choices[0].message.content;
+
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                system: { parts: [{ text: systemPrompt }] },
+                contents: [
+                    ...geminiHistory,
+                    { role: 'user', parts: [{ text: userMessage }] }
+                ],
+                generationConfig: {
+                    temperature: 0.75,
+                    topK: 40,
+                    topP: 0.95,
+                    maxOutputTokens: 1024
+                }
+            })
+        });
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData.error ? errData.error.message : `HTTP ${res.status}`;
+            throw new Error(errMsg);
+        }
+
+        const data = await res.json();
+        const content = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]
+            ? data.candidates[0].content.parts[0].text
+            : null;
+        if (!content) throw new Error('Empty response from Gemini API');
+        return content;
+    } catch(e) {
+        console.error('Gemini AI Coach error:', e);
+        const errText = e.message.includes('401') || e.message.includes('API key')
+            ? 'Invalid Gemini API key. Check Settings.'
+            : e.message.includes('429')
+            ? 'Rate limit reached. Try again soon.'
+            : e.message.includes('quota')
+            ? 'API quota exceeded.'
+            : `Connection error: ${e.message}`;
+        return (currentLang === 'th'
+            ? `⚠️ ไม่สามารถเชื่อมต่อ Gemini API ได้: ${errText}\n\nกำลังใช้โหมด Offline:\n\n`
+            : `⚠️ Could not reach Gemini API: ${errText}\n\nUsing offline mode:\n\n`)
+            + generateLocalCoachResponse(userMessage);
+    }
 }
+
+
 
 function generateLocalCoachResponse(msg) {
     const lower = msg.toLowerCase();
-    const totalReps = sessionHistory.reduce((a,s) => a + s.reps, 0);
-    const avgForm = sessionHistory.length ? Math.round(sessionHistory.reduce((a,s)=>a+s.avgForm,0)/sessionHistory.length) : 0;
+    const totalReps = sessionHistory.reduce((a,s) => a + (s.reps || 0), 0);
+    const avgForm = sessionHistory.length ? Math.round(sessionHistory.reduce((a,s) => a + (s.avgForm || 0), 0) / sessionHistory.length) : 0;
     const lang = currentLang;
 
     if (lower.includes('push') || lower.includes('วิดพื้น')) {
         return lang === 'th'
             ? `**เทคนิควิดพื้นที่ถูกต้อง** 💪\n\nวางมือห่างกว่าไหล่เล็กน้อย ลำตัวต้องตรงจากหัวถึงส้นเท้า ลดตัวลงจนอกเกือบถึงพื้น แล้วดันขึ้นมา\n\n**จุดที่ต้องระวัง:** อย่าให้สะโพกห้อยลงหรือยกสูงเกินไป เกร็งแกนกลางตลอดเวลา\n\nจากสถิติของคุณ ทำ ${totalReps} reps แล้ว ยอดเยี่ยมมาก! 🔥`
-            : `**Perfect Push-Up Form** 💪\n\nPlace hands slightly wider than shoulder-width. Keep your body in a straight line from head to heels. Lower until your chest nearly touches the floor, then push back up.\n\n**Key points:** Don't let your hips sag or pike up. Keep your core engaged throughout the movement.\n\nYou've done ${totalReps} total reps so far — great work! Keep focusing on form quality over quantity. 🔥`;
+            : `**Perfect Push-Up Form** 💪\n\nPlace hands slightly wider than shoulder-width. Keep your body in a straight line from head to heels. Lower until your chest nearly touches the floor, then push back up.\n\n**Key points:** Don't let your hips sag or pike up. Keep your core engaged throughout.\n\nYou've done ${totalReps} total reps so far — great work! 🔥`;
     }
     if (lower.includes('squat') || lower.includes('สควอท')) {
         return lang === 'th'
             ? `**เทคนิคสควอทที่ถูกต้อง** 🦵\n\nยืนเท้าห่างเท่าไหล่ ปลายเท้าชี้ออกเล็กน้อย ดันสะโพกไปด้านหลังแล้วงอเข่าลง ต้นขาควรขนานกับพื้น\n\n**จุดสำคัญ:** เข่าต้องตามแนวนิ้วเท้า น้ำหนักอยู่ที่ส้นเท้า หลังตรง\n\nสถิติฟอร์มเฉลี่ยของคุณ ${avgForm}% ดีมาก!`
-            : `**Perfect Squat Form** 🦵\n\nStand with feet shoulder-width apart, toes slightly turned out. Push hips back and bend knees until thighs are parallel to the floor.\n\n**Key points:** Keep knees tracking over toes, weight in heels, chest up and back straight.\n\nYour average form score is ${avgForm}% — excellent! Focus on depth consistency.`;
+            : `**Perfect Squat Form** 🦵\n\nStand with feet shoulder-width apart, toes slightly turned out. Push hips back and bend knees until thighs are parallel to the floor.\n\n**Key points:** Keep knees tracking over toes, weight in heels, chest up and back straight.\n\nYour average form score is ${avgForm}% — excellent!`;
     }
     if (lower.includes('plank') || lower.includes('แพลงค์')) {
         return lang === 'th'
             ? `**เทคนิคแพลงค์ที่ถูกต้อง** 🧘\n\nวางข้อศอกใต้ไหล่ ลำตัวตรงจากหัวถึงส้นเท้า เกร็งแกนกลาง สะโพก และต้นขา\n\n**เป้าหมาย:** เริ่มที่ 30 วินาที แล้วค่อยๆ เพิ่มเป็น 60, 90 วินาที\n\nแพลงค์ช่วยเสริมความแข็งแกร่งของแกนกลางซึ่งสำคัญมากสำหรับทุกการออกกำลังกาย!`
-            : `**Perfect Plank Form** 🧘\n\nPlace elbows directly under shoulders. Keep your body in a straight line — no sagging hips or raised buttocks. Engage core, glutes, and quads.\n\n**Goal:** Start with 30 seconds, gradually build to 60, 90 seconds, then 2+ minutes.\n\nPlanks build core stability that benefits ALL other exercises. Consistency is key!`;
+            : `**Perfect Plank Form** 🧘\n\nPlace elbows directly under shoulders. Keep your body in a straight line — no sagging hips or raised buttocks. Engage core, glutes, and quads.\n\n**Goal:** Start with 30 seconds, gradually build to 60, 90 seconds, then 2+ minutes.\n\nPlanks build core stability that benefits ALL other exercises!`;
     }
     if (lower.includes('eat') || lower.includes('food') || lower.includes('nutrition') || lower.includes('อาหาร') || lower.includes('กิน')) {
         return lang === 'th'
-            ? `**โภชนาการสำหรับการออกกำลังกาย** 🥗\n\n**ก่อนออกกำลังกาย (1-2 ชม.):** คาร์โบไฮเดรตเชิงซ้อน + โปรตีน เช่น ข้าวกล้อง + ไก่ หรือกล้วย + นมถั่วเหลือง\n\n**หลังออกกำลังกาย (30 นาที):** โปรตีน + คาร์โบไฮเดรต เช่น ไข่ + ข้าว หรือโปรตีนเชค\n\n**ดื่มน้ำ:** อย่างน้อย 2-3 ลิตรต่อวัน และดื่มระหว่างออกกำลังกายด้วย`
-            : `**Nutrition for Fitness** 🥗\n\n**Pre-workout (1-2 hrs before):** Complex carbs + protein — brown rice with chicken, banana with peanut butter, or oats with eggs.\n\n**Post-workout (within 30 min):** Protein + carbs — protein shake, eggs with rice, or Greek yogurt with fruit.\n\n**Hydration:** Drink 2-3 liters daily. Sip water every 15-20 minutes during exercise. Proper hydration improves performance by up to 20%!`;
-    }
-    if (lower.includes('goal') || lower.includes('เป้าหมาย')) {
-        return lang === 'th'
-            ? `**การตั้งเป้าหมายสุขภาพ** 🎯\n\nใช้หลัก SMART Goals:\n• **S**pecific: ระบุให้ชัดเจน เช่น "วิดพื้น 20 ครั้งติดต่อกัน"\n• **M**easurable: วัดได้ เช่น "ฟอร์มสกอร์ 85%+"\n• **A**chievable: ทำได้จริง\n• **R**elevant: สอดคล้องกับชีวิต\n• **T**ime-bound: มีกำหนดเวลา เช่น "ภายใน 4 สัปดาห์"\n\nจากข้อมูลของคุณ แนะนำให้ตั้งเป้า: ออกกำลังกาย 3 ครั้ง/สัปดาห์ และเพิ่มฟอร์มสกอร์เป็น ${Math.min(95, (avgForm || 70) + 10)}%`
-            : `**Setting Smart Fitness Goals** 🎯\n\nUse the SMART framework:\n• **Specific:** "Do 20 consecutive push-ups with good form"\n• **Measurable:** "Achieve 85%+ form score consistently"\n• **Achievable:** Based on your current level\n• **Relevant:** Aligned with your lifestyle\n• **Time-bound:** "Within 4 weeks"\n\nBased on your stats, I recommend: workout 3x/week and target ${Math.min(95, (avgForm || 70) + 10)}% form score. You're on the right track!`;
+            ? `**โภชนาการสำหรับการออกกำลังกาย** 🥗\n\n**ก่อนออกกำลังกาย (1-2 ชม.):** คาร์โบไฮเดรตเชิงซ้อน + โปรตีน เช่น ข้าวกล้อง + ไก่\n\n**หลังออกกำลังกาย (30 นาที):** โปรตีน + คาร์โบไฮเดรต เช่น ไข่ + ข้าว หรือโปรตีนเชค\n\n**ดื่มน้ำ:** อย่างน้อย 2-3 ลิตรต่อวัน`
+            : `**Nutrition for Fitness** 🥗\n\n**Pre-workout (1-2 hrs before):** Complex carbs + protein — brown rice with chicken, banana with peanut butter.\n\n**Post-workout (within 30 min):** Protein + carbs — protein shake, eggs with rice, or Greek yogurt.\n\n**Hydration:** Drink 2-3 liters daily. Sip water every 15-20 minutes during exercise.`;
     }
     return lang === 'th'
-        ? `สวัสดีครับ! ผมเป็น AI Coach ของคุณ 🤖\n\nคุณมีเซสชั่นทั้งหมด **${sessionHistory.length} ครั้ง** และทำ **${totalReps} reps** แล้ว ฟอร์มเฉลี่ย **${avgForm}%**\n\nถามผมได้เลยเรื่อง:\n• เทคนิคการออกกำลังกาย (วิดพื้น สควอท แพลงค์)\n• โภชนาการและอาหาร\n• การตั้งเป้าหมาย\n• การฟื้นฟูร่างกาย`
-        : `Hi there! I'm your FitGuard AI Coach 🤖\n\nYou've completed **${sessionHistory.length} sessions** with **${totalReps} total reps** and **${avgForm}% average form**.\n\nAsk me anything about:\n• Exercise technique (push-ups, squats, planks)\n• Nutrition and meal planning\n• Goal setting and progress\n• Recovery and rest days\n\nWhat would you like to work on today?`;
+        ? `สวัสดีครับ! ผมเป็น AI Coach ของคุณ 🤖\n\nคุณมีเซสชั่นทั้งหมด **${sessionHistory.length} ครั้ง** และทำ **${totalReps} reps** แล้ว ฟอร์มเฉลี่ย **${avgForm}%**\n\nถามผมได้เลยเรื่อง:\n• เทคนิคการออกกำลังกาย\n• โภชนาการและอาหาร\n• การตั้งเป้าหมาย`
+        : `Hi there! I'm your FitGuard AI Coach 🤖\n\nYou've completed **${sessionHistory.length} sessions** with **${totalReps} total reps** and **${avgForm}% average form**.\n\nAsk me anything about exercise technique, nutrition, goal setting, or recovery!`;
 }
 
 // ===================== POST-WORKOUT AI SUMMARY =====================
 async function showPostWorkoutSummary(session) {
     const modal = document.getElementById('workoutSummaryModal');
     const summaryText = document.getElementById('summaryText');
+    if (!modal || !summaryText) return;
     modal.classList.add('open');
     summaryText.textContent = 'Analyzing your workout...';
     const summary = await generateWorkoutSummary(session);
@@ -2200,26 +2849,21 @@ async function showPostWorkoutSummary(session) {
 
 async function generateWorkoutSummary(session) {
     const ex = EXERCISES[session.exercise];
-    const apiKey = document.getElementById('settingsApiKey')?.value || '';
+    const apiKeyEl = document.getElementById('settingsGeminiKey');
+    const apiKey = apiKeyEl ? apiKeyEl.value : '';
     const lang = currentLang;
+    const repsLabel = session.exercise === 'plank' ? formatTime(session.reps) + ' held' : session.reps + ' reps';
 
     if (!apiKey) {
-        // Local summary
         const rating = session.avgForm >= 85 ? '🌟 Excellent' : session.avgForm >= 70 ? '✅ Good' : '⚠️ Needs improvement';
         if (lang === 'th') {
-            return `**สรุปผลการออกกำลังกาย** ${ex?.emoji || ''}\n\n**ท่า:** ${ex?.name || session.exercise}\n**เวลา:** ${formatTime(session.duration)}\n**จำนวนครั้ง:** ${session.reps} reps\n**ฟอร์มสกอร์:** ${session.avgForm}% — ${rating}\n\n${session.avgForm >= 85 ? '🔥 ยอดเยี่ยมมาก! ฟอร์มของคุณดีมาก รักษาระดับนี้ไว้นะครับ' : session.avgForm >= 70 ? '💪 ดีมาก! ยังมีจุดที่ปรับปรุงได้ ลองเน้นที่ความตรงของลำตัวมากขึ้น' : '📚 ยังมีพื้นที่ให้พัฒนา ลองดูวิดีโอสอนท่าและฝึกหน้ากระจกก่อนนะครับ'}\n\n**เคล็ดลับสำหรับครั้งต่อไป:** ${ex?.tips || 'Focus on form quality over quantity.'}`;
+            return `**สรุปผลการออกกำลังกาย** ${ex ? ex.emoji : ''}\n\n**ท่า:** ${ex ? ex.name : session.exercise}\n**เวลา:** ${formatTime(session.duration)}\n**ผลลัพธ์:** ${repsLabel}\n**ฟอร์มสกอร์:** ${session.avgForm}% — ${rating}\n\n${session.avgForm >= 85 ? '🔥 ยอดเยี่ยมมาก! ฟอร์มของคุณดีมาก' : session.avgForm >= 70 ? '💪 ดีมาก! ยังมีจุดที่ปรับปรุงได้' : '📚 ยังมีพื้นที่ให้พัฒนา ลองฝึกหน้ากระจกก่อนนะครับ'}\n\n**เคล็ดลับ:** ${ex ? ex.tips : 'Focus on form quality over quantity.'}`;
         }
-        return `**Workout Summary** ${ex?.emoji || ''}\n\n**Exercise:** ${ex?.name || session.exercise}\n**Duration:** ${formatTime(session.duration)}\n**Reps:** ${session.reps}\n**Form Score:** ${session.avgForm}% — ${rating}\n\n${session.avgForm >= 85 ? '🔥 Outstanding performance! Your form was excellent. Keep up this quality!' : session.avgForm >= 70 ? '💪 Good work! There\'s still room to improve. Focus on body alignment and controlled movement.' : '📚 Keep practicing! Review the exercise guide and focus on form before increasing reps.'}\n\n**Tip for next session:** ${ex?.tips || 'Focus on form quality over quantity.'}`;
+        return `**Workout Summary** ${ex ? ex.emoji : ''}\n\n**Exercise:** ${ex ? ex.name : session.exercise}\n**Duration:** ${formatTime(session.duration)}\n**Result:** ${repsLabel}\n**Form Score:** ${session.avgForm}% — ${rating}\n\n${session.avgForm >= 85 ? '🔥 Outstanding! Your form was excellent.' : session.avgForm >= 70 ? '💪 Good work! Focus on body alignment for improvement.' : '📚 Keep practicing! Review the exercise guide and focus on form.'}\n\n**Tip for next session:** ${ex ? ex.tips : 'Focus on form quality over quantity.'}`;
     }
 
     try {
-        const model = document.getElementById('settingsAIModel')?.value || 'gpt-4o-mini';
-        const prompt = `Analyze this workout session and give a brief, encouraging summary with specific tips:\nExercise: ${ex?.name}\nDuration: ${formatTime(session.duration)}\nReps: ${session.reps}\nForm Score: ${session.avgForm}%\n\nProvide: 1) Performance rating, 2) What went well, 3) One specific improvement tip, 4) Motivation for next session.\nKeep it under 150 words. ${lang === 'th' ? 'Respond in Thai.' : 'Respond in English.'}`;
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 200 })
-        });
+        const prompt = `Analyze this workout session and give a brief, encouraging summary with specific tips:\nExercise: ${ex ? ex.name : session.exercise}\nDuration: ${formatTime(session.duration)}\nResult: ${repsLabel}\nForm Score: ${session.avgForm}%\nLanguage: ${lang === 'th' ? 'Thai' : 'English'}\nKeep it under 150 words.`;
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
         return data.choices[0].message.content;
@@ -2228,7 +2872,11 @@ async function generateWorkoutSummary(session) {
     }
 }
 
-document.getElementById('summaryModalClose')?.addEventListener('click', () => document.getElementById('workoutSummaryModal').classList.remove('open'));
+const _summaryModalClose = document.getElementById('summaryModalClose');
+if (_summaryModalClose) _summaryModalClose.addEventListener('click', () => {
+    const m = document.getElementById('workoutSummaryModal');
+    if (m) m.classList.remove('open');
+});
 
 // ===================== SETTINGS =====================
 function loadSettings() {
@@ -2237,7 +2885,7 @@ function loadSettings() {
     if (settings.sensitivity) { document.getElementById('settingsSensitivity').value = settings.sensitivity; document.getElementById('sensitivityValue').textContent = settings.sensitivity; }
     if (settings.notifications) document.getElementById('settingsNotifications').value = settings.notifications;
     if (settings.language) { document.getElementById('settingsLanguage').value = settings.language; setLanguage(settings.language); }
-    if (settings.aiModel) document.getElementById('settingsAIModel').value = settings.aiModel;
+    
     // Don't load API key for security
 }
 
@@ -2251,7 +2899,7 @@ document.getElementById('saveSettingsButton')?.addEventListener('click', () => {
         sensitivity: document.getElementById('settingsSensitivity').value,
         notifications: document.getElementById('settingsNotifications').value,
         language: document.getElementById('settingsLanguage').value,
-        aiModel: document.getElementById('settingsAIModel').value,
+        
     };
     localStorage.setItem('fitguardSettings', JSON.stringify(settings));
     setLanguage(settings.language);
@@ -2554,7 +3202,6 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         if (!document.getElementById('splashScreen').classList.contains('hidden')) enterSite();
     }, 8000);
-});
-</script>
+});</script>
 </body>
 </html>
