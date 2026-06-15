@@ -205,10 +205,10 @@
         .progress-ring .fill { stroke: var(--green); stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: 314; transition: stroke-dashoffset 0.5s ease; }
         .progress-ring-label { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text); font-weight: 800; }
         /* === LIVE WORKOUT LAYOUT — camera-first === */
-        .live-grid { display: grid; gap: 20px; grid-template-columns: 2fr 1fr; align-items: start; }
-        .camera-card { min-height: 580px; position: relative; overflow: hidden; }
-        .camera-panel { position: relative; height: 100%; min-height: 580px; border-radius: 24px; background: #000; border: 1px solid rgba(0, 212, 255, 0.18); box-shadow: 0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0, 212, 255, 0.06); overflow: hidden; }
-        .camera-feed { width: 100%; height: 100%; min-height: 580px; position: relative; overflow: hidden; background: #000; }
+        .live-grid { display: grid; gap: 20px; grid-template-columns: 4fr 1fr; align-items: start; }
+        .camera-card { min-height: 670px; position: relative; overflow: hidden; }
+        .camera-panel { position: relative; height: 100%; min-height: 670px; border-radius: 24px; background: #000; border: 1px solid rgba(0, 212, 255, 0.18); box-shadow: 0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0, 212, 255, 0.06); overflow: hidden; }
+        .camera-feed { width: 100%; height: 100%; min-height: 670px; position: relative; overflow: hidden; background: #000; }
         /* Video fills entire camera-feed — no letterbox, no cropping of body */
         .camera-feed video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: brightness(1.08) contrast(1.08); }
         /* Canvas overlays video exactly — NO CSS transform (JS handles mirror internally) */
@@ -397,13 +397,47 @@
         @media (max-width: 1100px) {
             .app-shell { grid-template-columns: 1fr; }
             .sidebar { display: none; }
-            .mobile-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(7,27,53,0.96); border-top: 1px solid rgba(0,212,255,0.12); padding: 12px 16px; gap: 8px; z-index: 50; justify-content: space-around; backdrop-filter: blur(20px); }
-            .mobile-nav .tab-item { flex: 1; text-align: center; font-size: 0.78rem; padding: 10px 8px; }
+            .mobile-nav { 
+                display: flex; 
+                position: fixed; 
+                bottom: 0; 
+                left: 0; 
+                right: 0; 
+                background: rgba(7,27,53,0.96); 
+                border-top: 1px solid rgba(0,212,255,0.12); 
+                padding: 10px 8px; 
+                gap: 4px; 
+                z-index: 100; 
+                overflow-x: auto; 
+                -webkit-overflow-scrolling: touch;
+                justify-content: flex-start; 
+                backdrop-filter: blur(20px);
+                scrollbar-width: none; /* Firefox */
+            }
+            .mobile-nav::-webkit-scrollbar { display: none; } /* Chrome, Safari, Opera */
+            .mobile-nav .tab-item { 
+                flex: 0 0 auto; 
+                text-align: center; 
+                font-size: 0.75rem; 
+                padding: 10px 14px; 
+                min-width: 90px;
+                border-radius: 14px;
+                white-space: nowrap;
+                background: rgba(255,255,255,0.04);
+                border: 1px solid rgba(255,255,255,0.08);
+                color: var(--muted);
+                transition: all 0.2s ease;
+            }
+            .mobile-nav .tab-item.active {
+                background: rgba(0,212,255,0.12);
+                border-color: rgba(0,212,255,0.3);
+                color: var(--accent);
+            }
             .main-panel { padding: 20px 16px 80px; }
             .grid-3 { grid-template-columns: 1fr; }
             .grid-2 { grid-template-columns: 1fr; }
             .live-grid { grid-template-columns: 1fr; }
-            .camera-card, .camera-panel, .camera-feed { min-height: 360px; }
+            .camera-card, .camera-panel, .camera-feed { min-height: 720px; }
             .live-rep-value { font-size: 3rem; }
             .exercise-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .mascot-banner { flex-direction: column; text-align: center; }
@@ -1145,11 +1179,17 @@
 
     <!-- MOBILE NAV -->
     <div class="mobile-nav" aria-label="Mobile navigation">
-        <button class="tab-item active" data-page="dashboard">🏠 Dash</button>
-        <button class="tab-item" data-page="live-analysis">🎯 Live</button>
+        <button class="tab-item active" data-page="dashboard">🏠 Dashboard</button>
+        <button class="tab-item" data-page="live-analysis">🎯 Live Workout</button>
         <button class="tab-item" data-page="exercise-guide">🏋️ Guide</button>
-        <button class="tab-item" data-page="ai-coach">🤖 Coach</button>
+        <button class="tab-item" data-page="progress-analytics">📈 Progress</button>
+        <button class="tab-item" data-page="exercise-history">📋 History</button>
+        <button class="tab-item" data-page="workout-reports">📊 Reports</button>
+        <button class="tab-item" data-page="challenges">🏆 Challenges</button>
+        <button class="tab-item" data-page="ai-coach">🤖 AI Coach</button>
+        <button class="tab-item" data-page="achievements">⭐ Achievement</button>
         <button class="tab-item" data-page="profile">👤 Profile</button>
+        <button class="tab-item" data-page="settings">⚙️ Settings</button>
     </div>
 
 <script>
@@ -1505,7 +1545,7 @@ function startCamera() {
     }
     const cs = document.getElementById('liveCameraStatus');
     if (cs) cs.textContent = 'Requesting camera...';
-    navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: 'user', advanced: [{ focusMode: 'continuous' }] }, audio: false })
+    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user',}, audio: false })
         .then(stream => {
             videoEl.srcObject = stream;
             videoEl.onloadedmetadata = () => {
@@ -1546,8 +1586,8 @@ function initPose() {
         if (!pose) {
             pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}` });
             pose.setOptions({
-                modelComplexity: 2,
-                smoothLandmarks: true,
+                modelComplexity: 1,
+                smoothLandmarks: false,
                 enableSegmentation: false,
                 minDetectionConfidence: 0.5,
                 minTrackingConfidence: 0.5
@@ -1611,7 +1651,7 @@ const SKELETON_CONNECTIONS = [
 // ===================== POSE RESULTS =====================
 let smoothedLandmarks = null;
 let landmarkHistory = []; // For Moving Average (5 frames)
-const MOVING_AVG_WINDOW = 5;
+const MOVING_AVG_WINDOW = 2;
 
 function applySmoothing(newLandmarks) {
     // 1. Handle Null/Missing Landmarks (Use previous if available)
@@ -1710,7 +1750,13 @@ function updateRepState(lm) {
 
 
 
+function calculateFormScore(angle) {
 
+    angle = Math.max(70, Math.min(180, angle));
+    let score = ((angle - 70) / (180 - 70)) * 100;
+
+    return Math.round(score);
+}
 function onPoseResults(results) {
     if (!ctxCanvas || !canvasEl) return;
 
@@ -2068,7 +2114,7 @@ function analyzeForm(lm) {
 
     let issues = [], badConnections = [], badJoints = [];
     isFormCorrect = true;
-    let formScore = 100;
+    let formScore = calculateFormScore(elbowAngle);
 
     // ถอดเงื่อนไขตรวจฟอร์มผิดอื่น ๆ ออกให้หมดตามข้อกำหนด
     // เน้นการนับครั้งที่ง่ายที่สุด
@@ -3201,7 +3247,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Auto-hide splash after 6s if user doesn't click
     setTimeout(() => {
         if (!document.getElementById('splashScreen').classList.contains('hidden')) enterSite();
-    }, 8000);
+    }, 120000);
 });</script>
 </body>
 </html>
