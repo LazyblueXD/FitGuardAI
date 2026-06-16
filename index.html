@@ -1418,7 +1418,13 @@ function showExerciseModal(key) {
     if (mc) mc.innerHTML = ex.character;
     if (mt) mt.textContent = `${ex.emoji} ${name}`;
     if (ms) ms.textContent = desc;
-    if (mst) mst.innerHTML = steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+    if (mst) {
+        if (Array.isArray(steps)) {
+            mst.innerHTML = steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+        } else {
+            mst.innerHTML = `<div class="modal-step"><div class="step-num">1</div><div class="step-text">${steps}</div></div>`;
+        }
+    }
     if (mti) {
         const proTipLabel = currentLang === 'th' ? 'เคล็ดลับ:' : 'Pro Tip:';
         mti.innerHTML = `<strong>💡 ${proTipLabel}</strong> ${tips}`;
@@ -1427,7 +1433,13 @@ function showExerciseModal(key) {
     if (dt) dt.textContent = `${ex.emoji} ${name}`;
     if (dd) dd.textContent = desc;
     if (dc) dc.innerHTML = ex.character;
-    if (ds) ds.innerHTML = steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+    if (ds) {
+        if (Array.isArray(steps)) {
+            ds.innerHTML = steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+        } else {
+            ds.innerHTML = `<div class="modal-step"><div class="step-num">1</div><div class="step-text">${steps}</div></div>`;
+        }
+    }
 }
 
 const _modalClose = document.getElementById('modalClose');
@@ -1489,26 +1501,48 @@ let personalRecords = JSON.parse(localStorage.getItem('fitguardPR') || '{"bestRe
 let fpsCounter = 0;
 let lastFpsTime = Date.now();
 
-document.querySelectorAll('.exercise-selection button').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.exercise-selection button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentExercise = btn.dataset.exercise;
-        lastRepState = 'up';
-        repCount = 0;
-        plankSeconds = 0;
-        repFormHistory = [];
-        currentRepPeak = 0;
-        if (peakResetTimer) clearTimeout(peakResetTimer);
-        peakResetTimer = null;
-        updateCounterDisplay();
+    function updateLiveExerciseUI() {
+        const btns = document.querySelectorAll('.exercise-selection button');
+        btns.forEach(btn => {
+            const exKey = btn.dataset.exercise;
+            const ex = EXERCISES[exKey];
+            if (ex) {
+                const name = typeof ex.name === 'object' ? (ex.name[currentLang] || ex.name.en) : ex.name;
+                btn.textContent = `${ex.emoji} ${name}`;
+            }
+        });
         const lbl = document.getElementById('liveExerciseLabel');
-        if (lbl) lbl.textContent = `Exercise: ${EXERCISES[currentExercise] ? EXERCISES[currentExercise].name : currentExercise}`;
-        // Update rep counter label
+        if (lbl) {
+            const ex = EXERCISES[currentExercise];
+            const name = ex ? (typeof ex.name === 'object' ? (ex.name[currentLang] || ex.name.en) : ex.name) : currentExercise;
+            lbl.textContent = (currentLang === 'th' ? 'ท่าออกกำลังกาย: ' : 'Exercise: ') + name;
+        }
         const rcl = document.getElementById('repCounterLabel');
-        if (rcl) rcl.textContent = currentExercise === 'plank' ? 'Hold Time' : 'Reps';
+        if (rcl) {
+            if (currentExercise === 'plank') {
+                rcl.textContent = currentLang === 'th' ? 'เวลาที่ค้าง' : 'Hold Time';
+            } else {
+                rcl.textContent = currentLang === 'th' ? 'จำนวนครั้ง' : 'Reps';
+            }
+        }
+    }
+
+    document.querySelectorAll('.exercise-selection button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.exercise-selection button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentExercise = btn.dataset.exercise;
+            lastRepState = 'up';
+            repCount = 0;
+            plankSeconds = 0;
+            repFormHistory = [];
+            currentRepPeak = 0;
+            if (peakResetTimer) clearTimeout(peakResetTimer);
+            peakResetTimer = null;
+            updateCounterDisplay();
+            updateLiveExerciseUI();
+        });
     });
-});
 
 const startStopButton = document.getElementById('startStopButton');
 if (startStopButton) startStopButton.addEventListener('click', () => {
@@ -2314,11 +2348,17 @@ function updateFeedbackUI(issues) {
     if (!feedbackList) return;
     if (issues && issues.length) {
         const warningSub = currentLang === 'th' ? 'ปรับท่าทางเพื่อป้องกันการบาดเจ็บ' : 'Adjust your form to avoid injury.';
-        feedbackList.innerHTML = issues.map(i => `<div class="error-item"><strong>⚠️ ${i}</strong><span>${warningSub}</span></div>`).join('');
+        feedbackList.innerHTML = issues.map(iss => `<div class="error-item"><strong style="color:#ff6577;">⚠ ${iss}</strong><span>${warningSub}</span></div>`).join('');
     } else {
-        const greatForm = currentLang === 'th' ? '✅ ฟอร์มดีมาก!' : '✅ Great form!';
-        const keepItUp = currentLang === 'th' ? 'ทำต่อไป!' : 'Keep it up!';
-        feedbackList.innerHTML = `<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">${greatForm}</strong><span>${keepItUp}</span></div>`;
+        if (!workoutActive && !sessionActive) {
+            const readyTitle = currentLang === 'th' ? 'พร้อมแล้ว' : 'Ready';
+            const readySub = currentLang === 'th' ? 'เลือกท่าออกกำลังกายและเริ่มเลย' : 'Choose an exercise and start.';
+            feedbackList.innerHTML = `<div class="error-item"><strong>${readyTitle}</strong><span>${readySub}</span></div>`;
+        } else {
+            const greatForm = currentLang === 'th' ? '✅ ฟอร์มดีมาก!' : '✅ Great form!';
+            const keepItUp = currentLang === 'th' ? 'ทำต่อไป!' : 'Keep it up!';
+            feedbackList.innerHTML = `<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">${greatForm}</strong><span>${keepItUp}</span></div>`;
+        }
     }
 }
 
@@ -3723,6 +3763,10 @@ function setLanguage(lang) {
     updateReports();
     // Re-render progress
     updateProgress();
+    // Re-render exercise guide
+    buildExerciseGuide();
+    // Update live exercise UI
+    if (typeof updateLiveExerciseUI === 'function') updateLiveExerciseUI();
     // Re-initialize chat with correct language welcome message
     if (chatInitialized) {
         chatInitialized = false;
@@ -3759,6 +3803,8 @@ function setLanguage(lang) {
     if (lpi && (lpi.textContent === 'None — great form!' || lpi.textContent === 'ไม่มี — ฟอร์มดีมาก!')) {
         lpi.textContent = t.noneGreatForm;
     }
+    // Update feedback ready message
+    updateFeedbackUI([]);
     // Update "Waiting" in profile camera status
     const pcs = document.getElementById('profileCameraStatus');
     if (pcs && (pcs.textContent === 'Waiting' || pcs.textContent === 'รอ')) {
