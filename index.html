@@ -1586,7 +1586,7 @@ function initPose() {
         if (!pose) {
             pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}` });
             pose.setOptions({
-                modelComplexity: 1,
+                modelComplexity: 1.25,
                 smoothLandmarks: false,
                 enableSegmentation: false,
                 minDetectionConfidence: 0.5,
