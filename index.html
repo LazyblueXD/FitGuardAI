@@ -750,7 +750,7 @@
                     <div class="glass-card" style="margin-top:24px;">
                         <div class="card-header"><h2 class="card-title">📋 <span id="recentSessionsTitle">Recent Sessions</span></h2><span class="small-chip" id="recentSessionsChip">Last 5</span></div>
                         <div id="sessionHistoryList" style="display:grid;gap:12px;">
-                            <div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">No sessions yet</span><strong>Start a workout to record</strong></div>
+                            <div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label" id="dashNoSessionsLabel">No sessions yet</span><strong id="dashNoSessionsSub">Start a workout to record</strong></div>
                         </div>
                     </div>
 
@@ -2552,6 +2552,14 @@ function updateDashboard() {
     set('challengeSessions', totalSessions);
     set('challengeBestForm', bestForm ? bestForm + '%' : '-');
     updateDailyChallenge();
+    
+    // Update secondary labels for language change
+    set('dashSec1', tDash.dashSec1);
+    set('dashSec2', tDash.dashSec2);
+    set('dashSec3', tDash.dashSec3);
+    set('dashNoSessionsLabel', tDash.dashNoSessionsLabel);
+    set('dashNoSessionsSub', tDash.dashNoSessionsSub);
+    
     const tCoach = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
     if (currentLang === 'th') {
         set('dashboardCoachTip', totalSessions ? `คุณทำครบ ${totalSessions} เซสชั่น ฟอร์มเฉลี่ย ${avgForm}% ${avgForm > 80 ? 'ยอดเยี่ยมมาก!' : 'โฟกัสที่การรักษาฟอร์มที่ถูกต้อง'}` : tCoach.dashboardCoachTipDefault);
@@ -2582,12 +2590,13 @@ function updateSessionHistory() {
     }
     historyList.innerHTML = sessionHistory.slice(0, 5).map(s => {
         const ex = EXERCISES[s.exercise];
+        const exName = ex ? (typeof ex.name === 'object' ? (ex.name[currentLang] || ex.name.en) : ex.name) : s.exercise;
         const heldLabel = currentLang === 'th' ? 'ถือ' : 'held';
         const repsLabel2 = currentLang === 'th' ? 'ครั้ง' : 'reps';
         const formLabel = currentLang === 'th' ? 'ฟอร์ม' : 'form';
         const label = s.exercise === 'plank'
-            ? `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${formatTime(s.reps)} ${heldLabel} • ${s.avgForm}% ${formLabel}`
-            : `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${s.reps} ${repsLabel2} • ${s.avgForm}% ${formLabel}`;
+            ? `${ex ? ex.emoji : ''} ${exName} • ${formatTime(s.reps)} ${heldLabel} • ${s.avgForm}% ${formLabel}`
+            : `${ex ? ex.emoji : ''} ${exName} • ${s.reps} ${repsLabel2} • ${s.avgForm}% ${formLabel}`;
         return `<div class="metric-bubble"><span class="bubble-label">${new Date(s.date).toLocaleDateString(currentLang === 'th' ? 'th-TH' : 'en-US')}</span><strong>${label}</strong></div>`;
     }).join('');
 }
@@ -2598,7 +2607,8 @@ function updatePersonalRecords() {
     set('prBestForm', personalRecords.bestForm ? personalRecords.bestForm + '%' : '-');
     const mins = Math.floor((personalRecords.longestSession || 0) / 60);
     const secs = (personalRecords.longestSession || 0) % 60;
-    set('prLongestSession', personalRecords.longestSession ? `${mins}m ${secs}s` : '-');
+    const timeStr = currentLang === 'th' ? `${mins}น ${secs}ว` : `${mins}m ${secs}s`;
+    set('prLongestSession', personalRecords.longestSession ? timeStr : '-');
     set('prTotalWorkouts', personalRecords.totalWorkouts || 0);
 }
 
@@ -2623,7 +2633,7 @@ function updateAchievements(sessions, bestForm, totalReps) {
     const unlockedLabel = currentLang === 'th' ? 'ปลดล็อก' : 'Unlocked';
     const lockedLabel = currentLang === 'th' ? '🔒 ล็อก' : '🔒 Locked';
     const noAchievementsMsg = currentLang === 'th' ? 'ทำภารกิจเพื่อปลดล็อกความสำเร็จ' : 'Complete workouts to unlock achievements.';
-    if (list) list.innerHTML = achievements.filter(a => a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong>${a.icon} ${unlockedLabel}</strong></div>`).join('') || `<p style="color:var(--muted)">${noAchievementsMsg}</p>`;
+    if (list) list.innerHTML = achievements.filter(a => a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong>${a.icon} ${unlockedLabel}</strong></div>`).join('') || `<p style="color:var(--muted); padding: 10px;">${noAchievementsMsg}</p>`;
     if (milestones) milestones.innerHTML = achievements.filter(a => !a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong style="color:var(--muted)">${lockedLabel}</strong></div>`).join('');
 }
 
@@ -2638,10 +2648,11 @@ function updateHistory() {
     }
     tbody.innerHTML = sessionHistory.map((s, i) => {
         const ex = EXERCISES[s.exercise];
+        const exName = ex ? (typeof ex.name === 'object' ? (ex.name[currentLang] || ex.name.en) : ex.name) : s.exercise;
         const repsLabel = s.exercise === 'plank' ? formatTime(s.reps) + (currentLang === 'th' ? ' ถือ' : ' held') : s.reps + (currentLang === 'th' ? ' ครั้ง' : ' reps');
         const viewLabel = currentLang === 'th' ? 'ดู' : 'View';
         return `<tr>
-            <td>${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise}</td>
+            <td>${ex ? ex.emoji : ''} ${exName}</td>
             <td>${formatTime(s.duration)}</td>
             <td>${repsLabel}</td>
             <td>${s.avgForm}%</td>
@@ -2696,8 +2707,9 @@ function updateProgress() {
     if (bars) {
         bars.innerHTML = sessionHistory.slice(0, 5).map((s, i) => {
             const ex = EXERCISES[s.exercise];
-            return `<div class="label-row"><span>${ex ? ex.name : s.exercise} #${i+1}</span><span>${s.avgForm}%</span></div>
-                    <div class="bar-track"><div class="bar-value" style="width:${s.avgForm}%"></div></div>`;
+            const exName = ex ? (typeof ex.name === 'object' ? (ex.name[currentLang] || ex.name.en) : ex.name) : s.exercise;
+            return `<div class="label-row"><span>${exName} #${i+1}</span><span>${s.avgForm}%</span></div>
+                    <div class="progress-track"><div class="progress-fill" style="width:${s.avgForm}%"></div></div>`;
         }).join('');
     }
     updateCharts();
@@ -3269,6 +3281,7 @@ const TRANSLATIONS = {
         // Dashboard cards
         dashCardTitle1: 'Workout Performance', dashChip1: 'Live',
         dashSec1: 'Current session form', dashSec2: 'Workout sessions', dashSec3: 'Average accuracy',
+        dashNoSessionsLabel: 'No sessions yet', dashNoSessionsSub: 'Start a workout to record',
         dashCardTitle2: 'Risk Insights', dashChip2: 'Analysis',
         dashLabel1: 'Most frequent issue', dashLabel2: 'Current streak',
         dashLabel3: 'Injury warning', dashLabel4: 'Best form score',
@@ -3407,6 +3420,7 @@ const TRANSLATIONS = {
         // Dashboard cards
         dashCardTitle1: 'ประสิทธิภาพการออกกำลังกาย', dashChip1: 'สด',
         dashSec1: 'ฟอร์มเซสชั่นนี้', dashSec2: 'เซสชั่นออกกำลังกาย', dashSec3: 'ความแม่นยำเฉลี่ย',
+        dashNoSessionsLabel: 'ยังไม่มีเซสชั่น', dashNoSessionsSub: 'เริ่มออกกำลังกายเพื่อบันทึก',
         dashCardTitle2: 'ข้อมูลความเสี่ยง', dashChip2: 'วิเคราะห์',
         dashLabel1: 'ปัญหาที่พบบ่อย', dashLabel2: 'วันติดต่อกัน',
         dashLabel3: 'แจ้งเตือนการบาดเจ็บ', dashLabel4: 'ฟอร์มสูงสุด',
@@ -3568,6 +3582,7 @@ function setLanguage(lang) {
     // ---- DASHBOARD CARDS ----
     set('dashCardTitle1', t.dashCardTitle1); set('dashChip1', t.dashChip1);
     set('dashSec1', t.dashSec1); set('dashSec2', t.dashSec2); set('dashSec3', t.dashSec3);
+    set('dashNoSessionsLabel', t.dashNoSessionsLabel); set('dashNoSessionsSub', t.dashNoSessionsSub);
     set('dashCardTitle2', t.dashCardTitle2); set('dashChip2', t.dashChip2);
     set('dashLabel1', t.dashLabel1); set('dashLabel2', t.dashLabel2);
     set('dashLabel3', t.dashLabel3); set('dashLabel4', t.dashLabel4);
@@ -3649,6 +3664,10 @@ function setLanguage(lang) {
 
     // ---- ACHIEVEMENTS ----
     set('achievementsTitle', t.achievementsTitle); set('milestonesTitle', t.milestonesTitle);
+    const sessions = sessionHistory.length;
+    const bestForm = sessionHistory.length ? Math.max(...sessionHistory.map(s => s.avgForm)) : 0;
+    const totalReps = sessionHistory.reduce((acc, s) => acc + (s.reps || 0), 0);
+    updateAchievements(sessions, bestForm, totalReps);
 
     // ---- PROFILE ----
     set('accountTitle', t.accountTitle);
@@ -3824,7 +3843,10 @@ function setDCCard(barId, countId, statusId, cardId, pct, current, target, done,
     const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
     if (bar) bar.style.width = pct + '%';
     if (count) count.textContent = current;
-    if (status) status.textContent = done ? t.dcDone : `🔒 ${currentLang === 'th' ? 'ยังไม่ครบ' : 'Not yet'} (${current}/${target}${unit})`;
+    if (status) {
+        const notYetLabel = currentLang === 'th' ? 'ยังไม่ครบ' : 'Not yet';
+        status.textContent = done ? t.dcDone : `🔒 ${notYetLabel} (${current}/${target}${unit})`;
+    }
     if (card) card.classList.toggle('completed', done);
 }
 
@@ -3841,7 +3863,9 @@ function updateChallengeHistory() {
     const days = Object.keys(byDate).sort().reverse().slice(0, 7);
     const tCH = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
     if (!days.length) {
-        list.innerHTML = `<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">${currentLang === 'th' ? 'ยังไม่มีประวัติ' : 'No history yet'}</span><strong>${currentLang === 'th' ? 'เริ่มออกกำลังกายเพื่อบันทึก' : 'Start a workout to record'}</strong></div>`;
+        const noHistoryLabel = currentLang === 'th' ? 'ยังไม่มีประวัติ' : 'No history yet';
+        const startToRecordLabel = currentLang === 'th' ? 'เริ่มออกกำลังกายเพื่อบันทึก' : 'Start a workout to record';
+        list.innerHTML = `<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">${noHistoryLabel}</span><strong>${startToRecordLabel}</strong></div>`;
         return;
     }
     list.innerHTML = days.map(day => {
