@@ -212,8 +212,8 @@
         /* === LIVE WORKOUT LAYOUT — camera-first === */
         .live-grid { display: grid; gap: 20px; grid-template-columns: 4fr 1fr; align-items: start; }
         .camera-card { min-height: 670px; position: relative; overflow: hidden; }
-        .camera-panel { position: relative; height: 100%; min-height: 670px; border-radius: 24px; background: #000; border: 1px solid rgba(0, 212, 255, 0.18); box-shadow: 0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0, 212, 255, 0.06); overflow: hidden; }
-        .camera-feed { width: 100%; height: auto; aspect-ratio: 16/9; min-height: 400px; position: relative; overflow: hidden; background: #000; }
+        .camera-panel { position: relative; height: 670px; min-height: 670px; border-radius: 24px; background: #000; border: 1px solid rgba(0, 212, 255, 0.18); box-shadow: 0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0, 212, 255, 0.06); overflow: hidden; }
+        .camera-feed { width: 100%; height: 100%; min-height: 670px; position: relative; overflow: hidden; background: #000; }
         /* Video fills entire camera-feed — responsive */
         .camera-feed video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: brightness(1.08) contrast(1.08); }
         /* Canvas overlays video exactly — responsive */
@@ -573,11 +573,11 @@
         <div class="workout-summary-content">
             <button class="modal-close" id="summaryModalClose" style="position:absolute;top:20px;right:20px;">✕</button>
             <div class="summary-ai-avatar">🤖</div>
-            <h2 style="margin:0 0 16px;font-size:1.4rem;">AI Workout Summary</h2>
+            <h2 style="margin:0 0 16px;font-size:1.4rem;" id="summaryModalTitle">AI Workout Summary</h2>
             <div class="summary-text" id="summaryText">Analyzing your workout...</div>
             <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
-                <button class="tab-item" onclick="navigateTo('ai-coach');document.getElementById('workoutSummaryModal').classList.remove('open')">Chat with AI Coach →</button>
-                <button class="tab-item" onclick="document.getElementById('workoutSummaryModal').classList.remove('open')">Close</button>
+                <button class="tab-item" id="chatWithCoachBtn" onclick="navigateTo('ai-coach');document.getElementById('workoutSummaryModal').classList.remove('open')">Chat with AI Coach →</button>
+                <button class="tab-item" id="summaryCloseBtn" onclick="document.getElementById('workoutSummaryModal').classList.remove('open')">Close</button>
             </div>
         </div>
     </div>
@@ -592,43 +592,43 @@
                     </svg>
                     FitGuard AI
                 </div>
-                <p class="brand-desc">AI-driven workout analysis and injury prevention using live camera posture intelligence.</p>
+                <p class="brand-desc" id="brandDesc">AI-driven workout analysis and injury prevention using live camera posture intelligence.</p>
             </div>
             <div class="sidebar-summary">
-                <h3>Session Summary</h3>
-                <div class="metric-block"><strong id="summaryWorkoutCount">0</strong><span class="metric-caption">Workouts completed</span></div>
-                <div class="metric-block"><strong id="summaryAverageForm">-</strong><span class="metric-caption">Average form score</span></div>
+                <h3 id="sidebarSessionSummaryTitle">Session Summary</h3>
+                <div class="metric-block"><strong id="summaryWorkoutCount">0</strong><span class="metric-caption" id="sidebarWorkoutsCompleted">Workouts completed</span></div>
+                <div class="metric-block"><strong id="summaryAverageForm">-</strong><span class="metric-caption" id="sidebarAvgFormScore">Average form score</span></div>
             </div>
             <nav class="nav-list" aria-label="Primary navigation">
-                <button class="nav-item active" data-page="dashboard"><span>🏠 Dashboard</span><span class="nav-badge">01</span></button>
-                <button class="nav-item" data-page="live-analysis"><span>🎯 Live Workout</span><span class="nav-badge">02</span></button>
-                <button class="nav-item" data-page="exercise-guide"><span>🏋️ Exercise Guide</span><span class="nav-badge">03</span></button>
-                <button class="nav-item" data-page="progress-analytics"><span>📈 Progress</span><span class="nav-badge">04</span></button>
-                <button class="nav-item" data-page="exercise-history"><span>📋 History</span><span class="nav-badge">05</span></button>
-                <button class="nav-item" data-page="workout-reports"><span>📊 Reports</span><span class="nav-badge">06</span></button>
-                <button class="nav-item" data-page="ai-coach"><span>🤖 AI Coach</span><span class="nav-badge">07</span></button>
-                <button class="nav-item" data-page="challenges"><span>🏆 Challenges</span><span class="nav-badge">08</span></button>
-                <button class="nav-item" data-page="achievements"><span>⭐ Achievements</span><span class="nav-badge">09</span></button>
-                <button class="nav-item" data-page="profile"><span>👤 Profile</span><span class="nav-badge">10</span></button>
-                <button class="nav-item" data-page="settings"><span>⚙️ Settings</span><span class="nav-badge">11</span></button>
+                <button class="nav-item active" data-page="dashboard"><span>🏠 <span id="nav1">Dashboard</span></span><span class="nav-badge">01</span></button>
+                <button class="nav-item" data-page="live-analysis"><span>🎯 <span id="nav2">Live Workout</span></span><span class="nav-badge">02</span></button>
+                <button class="nav-item" data-page="exercise-guide"><span>🏋️ <span id="nav3">Exercise Guide</span></span><span class="nav-badge">03</span></button>
+                <button class="nav-item" data-page="progress-analytics"><span>📈 <span id="nav4">Progress</span></span><span class="nav-badge">04</span></button>
+                <button class="nav-item" data-page="exercise-history"><span>📋 <span id="nav5">History</span></span><span class="nav-badge">05</span></button>
+                <button class="nav-item" data-page="workout-reports"><span>📊 <span id="nav6">Reports</span></span><span class="nav-badge">06</span></button>
+                <button class="nav-item" data-page="ai-coach"><span>🤖 <span id="nav7">AI Coach</span></span><span class="nav-badge">07</span></button>
+                <button class="nav-item" data-page="challenges"><span>🏆 <span id="nav8">Challenges</span></span><span class="nav-badge">08</span></button>
+                <button class="nav-item" data-page="achievements"><span>⭐ <span id="nav9">Achievements</span></span><span class="nav-badge">09</span></button>
+                <button class="nav-item" data-page="profile"><span>👤 <span id="nav10">Profile</span></span><span class="nav-badge">10</span></button>
+                <button class="nav-item" data-page="settings"><span>⚙️ <span id="nav11">Settings</span></span><span class="nav-badge">11</span></button>
             </nav>
             <div class="sidebar-footer">
-                <p class="footer-title">Pro tip</p>
-                <div class="footer-chip">Place camera at your side to capture full body!</div>
+                <p class="footer-title" id="sidebarProTip">Pro tip</p>
+                <div class="footer-chip" id="sidebarProTipText">Place camera at your side to capture full body!</div>
             </div>
         </aside>
 
         <div class="main-panel">
             <header class="topbar">
                 <div>
-                    <h1 class="page-title">FitGuard AI Control Center</h1>
-                    <p class="page-subtitle">Every insight is generated from live pose landmarks, joint angles, and exercise analysis.</p>
+                    <h1 class="page-title" id="pageTitle">FitGuard AI Control Center</h1>
+                    <p class="page-subtitle" id="pageSubtitle">Every insight is generated from live pose landmarks, joint angles, and exercise analysis.</p>
                 </div>
                 <div class="topbar-actions">
                     <div class="topbar-search-wrap" style="position:relative;">
                         <label class="topbar-search">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                            <input type="search" id="globalSearchInput" placeholder="Search workouts, analytics, tips…" autocomplete="off" />
+                            <input type="search" id="globalSearchInput" placeholder="Search workouts, analytics, tips…" autocomplete="off" data-placeholder-en="Search workouts, analytics, tips…" data-placeholder-th="ค้นหาการออกกำลังกาย, สถิติ, เทคนิค…" />
                         </label>
                         <div id="searchDropdown" style="display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:rgba(7,27,53,0.98);border:1px solid rgba(0,212,255,0.2);border-radius:16px;z-index:999;max-height:320px;overflow-y:auto;backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,0.4);"></div>
                     </div>
@@ -667,37 +667,37 @@
                         <button class="banner-cta" onclick="navigateTo('live-analysis')" id="bannerCta">Start Workout →</button>
                     </div>
                     <div class="quick-actions">
-                        <div class="action-card" onclick="navigateTo('live-analysis')"><span class="action-icon">🎯</span><p class="action-label">Start Workout</p></div>
-                        <div class="action-card" onclick="navigateTo('exercise-guide')"><span class="action-icon">📚</span><p class="action-label">Exercise Guide</p></div>
-                        <div class="action-card" onclick="navigateTo('progress-analytics')"><span class="action-icon">📈</span><p class="action-label">View Progress</p></div>
-                        <div class="action-card" onclick="navigateTo('ai-coach')"><span class="action-icon">🤖</span><p class="action-label">AI Coach</p></div>
+                        <div class="action-card" onclick="navigateTo('live-analysis')"><span class="action-icon">🎯</span><p class="action-label" id="qa1">Start Workout</p></div>
+                        <div class="action-card" onclick="navigateTo('exercise-guide')"><span class="action-icon">📚</span><p class="action-label" id="qa2">Exercise Guide</p></div>
+                        <div class="action-card" onclick="navigateTo('progress-analytics')"><span class="action-icon">📈</span><p class="action-label" id="qa3">View Progress</p></div>
+                        <div class="action-card" onclick="navigateTo('ai-coach')"><span class="action-icon">🤖</span><p class="action-label" id="qa4">AI Coach</p></div>
                     </div>
                     <div class="stats-grid">
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatSessions">0</p><p class="stat-mini-label">Total Sessions</p></div>
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatForm">-</p><p class="stat-mini-label">Avg Form</p></div>
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatStreak">0</p><p class="stat-mini-label">Day Streak</p></div>
-                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatReps">0</p><p class="stat-mini-label">Total Reps</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatSessions">0</p><p class="stat-mini-label" id="qs1">Total Sessions</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatForm">-</p><p class="stat-mini-label" id="qs2">Avg Form</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatStreak">0</p><p class="stat-mini-label" id="qs3">Day Streak</p></div>
+                        <div class="stat-mini-card"><p class="stat-mini-value" id="quickStatReps">0</p><p class="stat-mini-label" id="qs4">Total Reps</p></div>
                     </div>
                     <div class="layout-grid grid-3">
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Workout Performance</h2><span class="small-chip">Live</span></div>
+                            <div class="card-header"><h2 class="card-title" id="dashCardTitle1">Workout Performance</h2><span class="small-chip" id="dashChip1">Live</span></div>
                             <div class="stat-row">
-                                <div class="stat-card"><p class="stat-value" id="dashboardFitnessScore">-</p><p class="stat-secondary">Current session form</p></div>
-                                <div class="stat-card"><p class="stat-value" id="dashboardWorkoutCount">0</p><p class="stat-secondary">Workout sessions</p></div>
-                                <div class="stat-card"><p class="stat-value" id="dashboardFormAccuracy">-</p><p class="stat-secondary">Average accuracy</p></div>
+                                <div class="stat-card"><p class="stat-value" id="dashboardFitnessScore">-</p><p class="stat-secondary" id="dashSec1">Current session form</p></div>
+                                <div class="stat-card"><p class="stat-value" id="dashboardWorkoutCount">0</p><p class="stat-secondary" id="dashSec2">Workout sessions</p></div>
+                                <div class="stat-card"><p class="stat-value" id="dashboardFormAccuracy">-</p><p class="stat-secondary" id="dashSec3">Average accuracy</p></div>
                             </div>
                         </div>
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Risk Insights</h2><span class="small-chip">Analysis</span></div>
+                            <div class="card-header"><h2 class="card-title" id="dashCardTitle2">Risk Insights</h2><span class="small-chip" id="dashChip2">Analysis</span></div>
                             <div class="metric-list">
-                                <div class="metric-bubble"><span class="bubble-label">Most frequent issue</span><strong id="dashboardTopIssue">None</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Current streak</span><strong id="dashboardStreak">0 days</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Injury warning</span><strong id="dashboardWarning">None</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Best form score</span><strong id="dashboardBestForm">-</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel1">Most frequent issue</span><strong id="dashboardTopIssue">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel2">Current streak</span><strong id="dashboardStreak">0 days</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel3">Injury warning</span><strong id="dashboardWarning">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel4">Best form score</span><strong id="dashboardBestForm">-</strong></div>
                             </div>
                         </div>
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Live Session</h2><span class="small-chip">Status</span></div>
+                            <div class="card-header"><h2 class="card-title" id="dashCardTitle3">Live Session</h2><span class="small-chip" id="dashChip3">Status</span></div>
                             <div class="progress-ring" style="margin:0 auto;">
                                 <svg viewBox="0 0 120 120" aria-hidden="true">
                                     <circle class="track" cx="60" cy="60" r="50"></circle>
@@ -712,13 +712,13 @@
                     <!-- LINE CHART: Form Score History -->
                     <div class="layout-grid grid-2" style="margin-top:24px;">
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">📈 Form Score History</h2><span class="small-chip">Trend</span></div>
+                            <div class="card-header"><h2 class="card-title">📈 <span id="chartTitle1">Form Score History</span></h2><span class="small-chip" id="chartChip1">Trend</span></div>
                             <div class="chart-canvas-wrapper">
                                 <canvas id="formScoreLineChart"></canvas>
                             </div>
                         </div>
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">💪 Reps per Session</h2><span class="small-chip">Progress</span></div>
+                            <div class="card-header"><h2 class="card-title">💪 <span id="chartTitle2">Reps per Session</span></h2><span class="small-chip" id="chartChip2">Progress</span></div>
                             <div class="chart-canvas-wrapper">
                                 <canvas id="repsLineChart"></canvas>
                             </div>
@@ -727,28 +727,28 @@
 
                     <div class="layout-grid grid-2" style="margin-top:24px;">
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Session Summary</h2></div>
+                            <div class="card-header"><h2 class="card-title" id="dashCardTitle4">Session Summary</h2></div>
                             <div class="metric-list">
-                                <div class="metric-bubble"><span class="bubble-label">Total active minutes</span><strong id="dashboardActiveMinutes">0</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="dashboardTotalReps">0</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Completed drills</span><strong id="dashboardDrills">0</strong></div>
-                                <div class="metric-bubble"><span class="bubble-label">Most common error</span><strong id="dashboardCommonError">None</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel5">Total active minutes</span><strong id="dashboardActiveMinutes">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel6">Total reps</span><strong id="dashboardTotalReps">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel7">Completed drills</span><strong id="dashboardDrills">0</strong></div>
+                                <div class="metric-bubble"><span class="bubble-label" id="dashLabel8">Most common error</span><strong id="dashboardCommonError">None</strong></div>
                             </div>
                         </div>
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">AI Coach Tip</h2></div>
+                            <div class="card-header"><h2 class="card-title" id="dashCardTitle5">AI Coach Tip</h2></div>
                             <p id="dashboardCoachTip">Select Live Workout and start a session to receive posture guidance.</p>
                             <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-                                <span class="small-chip">💡 Keep core tight</span>
-                                <span class="small-chip">🎯 Form first</span>
-                                <span class="small-chip">💧 Stay hydrated</span>
+                                <span class="small-chip">💡 <span id="chip1">Keep core tight</span></span>
+                                <span class="small-chip">🎯 <span id="chip2">Form first</span></span>
+                                <span class="small-chip">💧 <span id="chip3">Stay hydrated</span></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Recent Sessions -->
                     <div class="glass-card" style="margin-top:24px;">
-                        <div class="card-header"><h2 class="card-title">📋 Recent Sessions</h2><span class="small-chip">Last 5</span></div>
+                        <div class="card-header"><h2 class="card-title">📋 <span id="recentSessionsTitle">Recent Sessions</span></h2><span class="small-chip" id="recentSessionsChip">Last 5</span></div>
                         <div id="sessionHistoryList" style="display:grid;gap:12px;">
                             <div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">No sessions yet</span><strong>Start a workout to record</strong></div>
                         </div>
@@ -756,12 +756,12 @@
 
                     <!-- Personal Records -->
                     <div class="glass-card" style="margin-top:24px;">
-                        <div class="card-header"><h2 class="card-title">🏆 Personal Records</h2><span class="small-chip">All Time</span></div>
+                        <div class="card-header"><h2 class="card-title">🏆 <span id="prTitle">Personal Records</span></h2><span class="small-chip" id="prChip">All Time</span></div>
                         <div class="metric-list">
-                            <div class="metric-bubble"><span class="bubble-label">Best Reps</span><strong id="prBestReps">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Best Form</span><strong id="prBestForm">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Longest Session</span><strong id="prLongestSession">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Total Workouts</span><strong id="prTotalWorkouts">0</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="prLabel1">Best Reps</span><strong id="prBestReps">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="prLabel2">Best Form</span><strong id="prBestForm">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="prLabel3">Longest Session</span><strong id="prLongestSession">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="prLabel4">Total Workouts</span><strong id="prTotalWorkouts">0</strong></div>
                         </div>
                     </div>
                 </section>
@@ -769,8 +769,8 @@
                 <!-- LIVE ANALYSIS -->
                 <section class="page" id="live-analysis">
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <div class="card-header"><h2 class="card-title">🏋️ Choose Your Exercise</h2><span class="small-chip">Real-time AI Analysis</span></div>
-                        <p style="color:var(--muted);margin:0 0 12px;font-size:0.9rem;">📌 Tip: Place camera to your side so it can see your full body for best pose detection.</p>
+                        <div class="card-header"><h2 class="card-title">🏋️ <span id="liveTitle">Choose Your Exercise</span></h2><span class="small-chip" id="liveChip">Real-time AI Analysis</span></div>
+                        <p style="color:var(--muted);margin:0 0 12px;font-size:0.9rem;" id="liveTip">📌 Tip: Place camera to your side so it can see your full body for best pose detection.</p>
                         <div class="exercise-selection">
                             <button class="active" data-exercise="pushup">💪 Push-Up</button>
                             <button data-exercise="squat">🦵 Squat</button>
@@ -817,7 +817,7 @@
 
                             <!-- Form Ring -->
                             <div style="text-align:center;">
-                                <h3 style="font-size:0.78rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.07em;">Form Quality</h3>
+                                <h3 style="font-size:0.78rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.07em;" id="formQualityLabel">Form Quality</h3>
                                 <div class="progress-ring" style="width:90px;height:90px;margin:0 auto;">
                                     <svg viewBox="0 0 120 120" aria-hidden="true">
                                         <circle class="track" cx="60" cy="60" r="50"></circle>
@@ -829,10 +829,10 @@
 
                             <!-- Quick stats -->
                             <div style="display:grid;gap:8px;">
-                                <div class="live-form-badge"><span class="badge-label">Duration</span><strong class="badge-value" id="liveDuration">0s</strong></div>
-                                <div class="live-form-badge"><span class="badge-label">Avg Form</span><strong class="badge-value" id="liveAvgForm">0%</strong></div>
-                                <div class="live-form-badge"><span class="badge-label">Stability</span><strong class="badge-value" id="liveStability">-</strong></div>
-                                <div class="live-form-badge"><span class="badge-label">Core</span><strong class="badge-value" id="liveCoreScore">-</strong></div>
+                                <div class="live-form-badge"><span class="badge-label" id="liveBadge1">Duration</span><strong class="badge-value" id="liveDuration">0s</strong></div>
+                                <div class="live-form-badge"><span class="badge-label" id="liveBadge2">Avg Form</span><strong class="badge-value" id="liveAvgForm">0%</strong></div>
+                                <div class="live-form-badge"><span class="badge-label" id="liveBadge3">Stability</span><strong class="badge-value" id="liveStability">-</strong></div>
+                                <div class="live-form-badge"><span class="badge-label" id="liveBadge4">Core</span><strong class="badge-value" id="liveCoreScore">-</strong></div>
                             </div>
 
                             <!-- Feedback -->
@@ -842,27 +842,27 @@
 
                     <!-- Joint Angles -->
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <div class="card-header"><h2 class="card-title">🦴 Joint Angles — Real-time</h2><span class="small-chip">Color = Status</span></div>
+                        <div class="card-header"><h2 class="card-title">🦴 <span id="jointAnglesTitle">Joint Angles — Real-time</span></h2><span class="small-chip" id="jointAnglesChip">Color = Status</span></div>
                         <div class="layout-grid grid-3">
                             <div>
-                                <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;">Shoulders</h3>
+                                <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;" id="shoulderGroupLabel">Shoulders</h3>
                                 <div class="angle-display">
-                                    <div class="angle-item" id="angleItemLeftShoulder"><span class="angle-label">Left Shoulder</span><span class="angle-value" id="angleLeftShoulder">-</span></div>
-                                    <div class="angle-item" id="angleItemRightShoulder"><span class="angle-label">Right Shoulder</span><span class="angle-value" id="angleRightShoulder">-</span></div>
+                                    <div class="angle-item" id="angleItemLeftShoulder"><span class="angle-label" id="angleLabel1">Left Shoulder</span><span class="angle-value" id="angleLeftShoulder">-</span></div>
+                                    <div class="angle-item" id="angleItemRightShoulder"><span class="angle-label" id="angleLabel2">Right Shoulder</span><span class="angle-value" id="angleRightShoulder">-</span></div>
                                 </div>
                             </div>
                             <div>
-                                <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;">Knees</h3>
+                                <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;" id="kneeGroupLabel">Knees</h3>
                                 <div class="angle-display">
-                                    <div class="angle-item" id="angleItemLeftKnee"><span class="angle-label">Left Knee</span><span class="angle-value" id="angleLeftKnee">-</span></div>
-                                    <div class="angle-item" id="angleItemRightKnee"><span class="angle-label">Right Knee</span><span class="angle-value" id="angleRightKnee">-</span></div>
+                                    <div class="angle-item" id="angleItemLeftKnee"><span class="angle-label" id="angleLabel3">Left Knee</span><span class="angle-value" id="angleLeftKnee">-</span></div>
+                                    <div class="angle-item" id="angleItemRightKnee"><span class="angle-label" id="angleLabel4">Right Knee</span><span class="angle-value" id="angleRightKnee">-</span></div>
                                 </div>
                             </div>
                             <div>
-                                <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;">Hip & Back</h3>
+                                <h3 style="font-size:0.85rem;color:var(--muted);margin:0 0 10px;text-transform:uppercase;" id="hipGroupLabel">Hip &amp; Back</h3>
                                 <div class="angle-display">
-                                    <div class="angle-item" id="angleItemHip"><span class="angle-label">Hip Angle</span><span class="angle-value" id="angleHip">-</span></div>
-                                    <div class="angle-item" id="angleItemElbow"><span class="angle-label">Elbow Angle</span><span class="angle-value" id="angleElbow">-</span></div>
+                                    <div class="angle-item" id="angleItemHip"><span class="angle-label" id="angleLabel5">Hip Angle</span><span class="angle-value" id="angleHip">-</span></div>
+                                    <div class="angle-item" id="angleItemElbow"><span class="angle-label" id="angleLabel6">Elbow Angle</span><span class="angle-value" id="angleElbow">-</span></div>
                                 </div>
                             </div>
                         </div>
@@ -870,19 +870,19 @@
 
                     <!-- Primary Issue -->
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <div class="card-header"><h2 class="card-title">⚠️ Primary Issue</h2></div>
+                        <div class="card-header"><h2 class="card-title">⚠️ <span id="primaryIssueTitle">Primary Issue</span></h2></div>
                         <p id="livePrimaryIssue" style="font-size:1.1rem;font-weight:600;">None — great form!</p>
                     </div>
 
                     <!-- Debug Panel -->
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <div class="card-header"><h2 class="card-title">🔧 Debug Panel</h2><span class="small-chip">Diagnostics</span></div>
+                        <div class="card-header"><h2 class="card-title">🔧 <span id="debugPanelTitle">Debug Panel</span></h2><span class="small-chip" id="debugPanelChip">Diagnostics</span></div>
                         <div class="metric-list">
-                            <div class="metric-bubble"><span class="bubble-label">Camera</span><strong id="debugCameraStatus">Unknown</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">MediaPipe</span><strong id="debugMediaPipeStatus">Idle</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">FPS</span><strong id="debugFPS">0</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Confidence</span><strong id="debugDetectionConfidence">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Landmarks</span><strong id="debugLandmarkCount">0</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="debugLabel1">Camera</span><strong id="debugCameraStatus">Unknown</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="debugLabel2">MediaPipe</span><strong id="debugMediaPipeStatus">Idle</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="debugLabel3">FPS</span><strong id="debugFPS">0</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="debugLabel4">Confidence</span><strong id="debugDetectionConfidence">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="debugLabel5">Landmarks</span><strong id="debugLandmarkCount">0</strong></div>
                         </div>
                         <div class="error-panel" id="debugErrorLog" style="margin-top:16px;"></div>
                     </div>
@@ -891,8 +891,8 @@
                 <!-- EXERCISE GUIDE -->
                 <section class="page" id="exercise-guide">
                     <div class="glass-card">
-                        <div class="card-header"><h2 class="card-title">🏋️ Exercise Guide</h2><span class="small-chip">Interactive</span></div>
-                        <p style="color:var(--muted);margin:0;">Click on any exercise to learn the correct form, steps, and safety tips.</p>
+                        <div class="card-header"><h2 class="card-title">🏋️ <span id="guideTitle">Exercise Guide</span></h2><span class="small-chip" id="guideChip">Interactive</span></div>
+                        <p style="color:var(--muted);margin:0;" id="guideDesc">Click on any exercise to learn the correct form, steps, and safety tips.</p>
                     </div>
                     <div class="exercise-guide-grid" id="exerciseGuideGrid"></div>
                     <div class="glass-card" style="margin-top:24px;" id="exerciseDetailPanel">
@@ -910,34 +910,34 @@
                 <!-- PROGRESS -->
                 <section class="page" id="progress-analytics">
                     <div class="glass-card">
-                        <div class="card-header"><h2 class="card-title">Progress Analytics</h2></div>
-                        <div class="label-row"><span>Recent sessions</span><strong id="progressSummary">Tracking form and reps over completed workouts.</strong></div>
+                        <div class="card-header"><h2 class="card-title" id="progressTitle">Progress Analytics</h2></div>
+                        <div class="label-row"><span id="progressRecentLabel">Recent sessions</span><strong id="progressSummary">Tracking form and reps over completed workouts.</strong></div>
                         <div class="bar-graph" id="progressBars" style="margin-top:16px;"></div>
                     </div>
                     <div class="glass-card" style="margin-top:24px;">
-                        <div class="card-header"><h2 class="card-title">📊 Form Score Over Time</h2><span class="small-chip">Line Chart</span></div>
+                        <div class="card-header"><h2 class="card-title">📊 <span id="progressChartTitle">Form Score Over Time</span></h2><span class="small-chip" id="progressChartChip">Line Chart</span></div>
                         <div class="chart-canvas-wrapper">
                             <canvas id="progressLineChart"></canvas>
                         </div>
                     </div>
                     <div class="layout-grid grid-3" style="margin-top:24px;">
-                        <div class="glass-card"><h2 class="card-title">Total minutes</h2><p id="progressMinutes" style="font-size:2rem;font-weight:800;color:var(--accent);">0</p></div>
-                        <div class="glass-card"><h2 class="card-title">Average rep rate</h2><p id="progressRepRate" style="font-size:2rem;font-weight:800;color:var(--accent);">0</p></div>
-                        <div class="glass-card"><h2 class="card-title">Most common issue</h2><p id="progressCommonIssue" style="font-size:1.2rem;font-weight:700;">None</p></div>
+                        <div class="glass-card"><h2 class="card-title" id="progStatLabel1">Total minutes</h2><p id="progressMinutes" style="font-size:2rem;font-weight:800;color:var(--accent);">0</p></div>
+                        <div class="glass-card"><h2 class="card-title" id="progStatLabel2">Average rep rate</h2><p id="progressRepRate" style="font-size:2rem;font-weight:800;color:var(--accent);">0</p></div>
+                        <div class="glass-card"><h2 class="card-title" id="progStatLabel3">Most common issue</h2><p id="progressCommonIssue" style="font-size:1.2rem;font-weight:700;">None</p></div>
                     </div>
                 </section>
 
                 <!-- HISTORY -->
                 <section class="page" id="exercise-history">
                     <div class="glass-card">
-                        <div class="card-header"><h2 class="card-title">Exercise History</h2></div>
+                        <div class="card-header"><h2 class="card-title" id="historyPageTitle">Exercise History</h2></div>
                         <div class="label-row" style="flex-wrap:wrap;gap:14px;margin-bottom:16px;">
-                            <div><label>Filter exercise</label><select id="historyFilterExercise" style="margin-left:8px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;"><option value="all">All</option><option value="pushup">Push-Up</option><option value="squat">Squat</option><option value="plank">Plank</option></select></div>
-                            <div><label>Search date</label><input type="date" id="historyFilterDate" style="margin-left:8px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;"></div>
+                            <div><label id="historyFilterLabel1">Filter exercise</label><select id="historyFilterExercise" style="margin-left:8px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;"><option value="all">All</option><option value="pushup">Push-Up</option><option value="squat">Squat</option><option value="plank">Plank</option></select></div>
+                            <div><label id="historyFilterLabel2">Search date</label><input type="date" id="historyFilterDate" style="margin-left:8px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;"></div>
                             <button class="tab-item" id="historyApplyFilterButton">Apply filters</button>
                         </div>
                         <div style="overflow-x:auto;">
-                            <table><thead><tr><th>Exercise</th><th>Duration</th><th>Reps</th><th>Avg Form</th><th>Top issue</th><th>Actions</th></tr></thead>
+                            <table><thead><tr><th id="thExercise">Exercise</th><th id="thDuration">Duration</th><th id="thReps">Reps</th><th id="thAvgForm">Avg Form</th><th id="thTopIssue">Top issue</th><th id="thActions">Actions</th></tr></thead>
                             <tbody id="historyTableBody"><tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr></tbody></table>
                         </div>
                         <div style="margin-top:18px;display:flex;gap:12px;">
@@ -950,19 +950,19 @@
                 <!-- REPORTS -->
                 <section class="page" id="workout-reports">
                     <div class="glass-card">
-                        <div class="card-header"><h2 class="card-title">Workout Reports</h2></div>
+                        <div class="card-header"><h2 class="card-title" id="reportsPageTitle">Workout Reports</h2></div>
                         <div class="label-row" style="margin-bottom:16px;gap:14px;flex-wrap:wrap;">
-                            <div><label>Select report</label><select id="reportSelect" style="margin-left:8px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;"></select></div>
+                            <div><label id="reportSelectLabel">Select report</label><select id="reportSelect" style="margin-left:8px;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;"></select></div>
                         </div>
                         <div class="metric-list">
-                            <div class="metric-bubble"><span class="bubble-label">Exercise Type</span><strong id="reportExerciseType">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Duration</span><strong id="reportDuration">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Total reps</span><strong id="reportReps">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Form accuracy</span><strong id="reportFormAccuracy">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Stability</span><strong id="reportStability">-</strong></div>
-                            <div class="metric-bubble"><span class="bubble-label">Injury risk</span><strong id="reportInjuryRisk">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="reportLabel1">Exercise Type</span><strong id="reportExerciseType">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="reportLabel2">Duration</span><strong id="reportDuration">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="reportLabel3">Total reps</span><strong id="reportReps">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="reportLabel4">Form accuracy</span><strong id="reportFormAccuracy">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="reportLabel5">Stability</span><strong id="reportStability">-</strong></div>
+                            <div class="metric-bubble"><span class="bubble-label" id="reportLabel6">Injury risk</span><strong id="reportInjuryRisk">-</strong></div>
                         </div>
-                        <div class="glass-card" style="margin-top:20px;"><div class="card-header"><h2 class="card-title">Timeline analysis</h2></div><div id="reportTimeline"></div></div>
+                        <div class="glass-card" style="margin-top:20px;"><div class="card-header"><h2 class="card-title" id="reportTimelineTitle">Timeline analysis</h2></div><div id="reportTimeline"></div></div>
                     </div>
                 </section>
 
@@ -987,16 +987,16 @@
 
                         <!-- Quick replies -->
                         <div class="chat-quick-replies" id="quickReplies">
-                            <button class="quick-reply-btn" onclick="sendQuickReply('How do I improve my push-up form?')">💪 Push-up form</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('What should I eat before a workout?')">🥗 Pre-workout nutrition</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('Analyze my recent workout performance and give me tips')">📊 Analyze my progress</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('How do I set realistic fitness goals?')">🎯 Goal setting</button>
-                            <button class="quick-reply-btn" onclick="sendQuickReply('What are the best recovery strategies after intense training?')">😴 Recovery tips</button>
+                            <button class="quick-reply-btn" id="qr1" onclick="sendQuickReply(currentLang==='th'?'วิธีปรับปรุงฟอร์มวิดพื้นให้ดีขึ้นได้อย่างไร?':'How do I improve my push-up form?')">💪 <span id="qr1text">Push-up form</span></button>
+                            <button class="quick-reply-btn" id="qr2" onclick="sendQuickReply(currentLang==='th'?'ควรกินอะไรก่อนออกกำลังกาย?':'What should I eat before a workout?')">🥗 <span id="qr2text">Pre-workout nutrition</span></button>
+                            <button class="quick-reply-btn" id="qr3" onclick="sendQuickReply(currentLang==='th'?'วิเคราะห์ผลการออกกำลังกายล่าสุดของฉันและให้คำแนะนำ':'Analyze my recent workout performance and give me tips')">📊 <span id="qr3text">Analyze my progress</span></button>
+                            <button class="quick-reply-btn" id="qr4" onclick="sendQuickReply(currentLang==='th'?'วิธีตั้งเป้าหมายด้านฟิตเนสที่เป็นจริง?':'How do I set realistic fitness goals?')">🎯 <span id="qr4text">Goal setting</span></button>
+                            <button class="quick-reply-btn" id="qr5" onclick="sendQuickReply(currentLang==='th'?'วิธีฟื้นฟูร่างกายที่ดีที่สุดหลังออกกำลังกายหนัก?':'What are the best recovery strategies after intense training?')">😴 <span id="qr5text">Recovery tips</span></button>
                         </div>
 
                         <!-- Input area -->
                         <div class="chat-input-area">
-                            <textarea class="chat-input" id="chatInput" placeholder="Ask anything about fitness, nutrition, or your progress..." rows="1"></textarea>
+                            <textarea class="chat-input" id="chatInput" placeholder="Ask anything about fitness, nutrition, or your progress..." data-placeholder-en="Ask anything about fitness, nutrition, or your progress..." data-placeholder-th="ถามเรื่องฟิตเนส, โภชนาการ, หรือความก้าวหน้าของคุณ..." rows="1"></textarea>
                             <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                             </button>
@@ -1011,55 +1011,55 @@
                             <h2 class="card-title">🏆 Daily Challenge</h2>
                             <span class="small-chip" id="dailyChallengeDate"></span>
                         </div>
-                        <p style="color:var(--muted);margin:0 0 16px;font-size:0.9rem;">ทำครบทุกท่าขั้นต่ำในวันนี้เพื่อรับ Daily Challenge! เป้าหมายขั้นต่ำที่ต้องทำให้ครบ:</p>
+                        <p style="color:var(--muted);margin:0 0 16px;font-size:0.9rem;" id="challengeDesc">Complete all minimum exercises today to earn the Daily Challenge! Minimum targets to complete:</p>
                         <div class="layout-grid grid-3" style="gap:16px;">
                             <div class="daily-challenge-card" id="dcPushupCard">
                                 <div class="dc-icon">💪</div>
                                 <div class="dc-name">Push-Up</div>
-                                <div class="dc-target">ขั้นต่ำ 5 reps</div>
+                                <div class="dc-target" id="dcPushupTarget">Min 5 reps</div>
                                 <div class="dc-progress-wrap">
                                     <div class="dc-progress-bar"><div class="dc-progress-fill" id="dcPushupBar" style="width:0%"></div></div>
                                     <div class="dc-count"><span id="dcPushupCount">0</span> / 5</div>
                                 </div>
-                                <div class="dc-status" id="dcPushupStatus">🔒 ยังไม่ครบ</div>
+                                <div class="dc-status" id="dcPushupStatus">🔒 Not yet</div>
                             </div>
                             <div class="daily-challenge-card" id="dcSquatCard">
                                 <div class="dc-icon">🦵</div>
                                 <div class="dc-name">Squat</div>
-                                <div class="dc-target">ขั้นต่ำ 5 reps</div>
+                                <div class="dc-target" id="dcSquatTarget">Min 5 reps</div>
                                 <div class="dc-progress-wrap">
                                     <div class="dc-progress-bar"><div class="dc-progress-fill" id="dcSquatBar" style="width:0%"></div></div>
                                     <div class="dc-count"><span id="dcSquatCount">0</span> / 5</div>
                                 </div>
-                                <div class="dc-status" id="dcSquatStatus">🔒 ยังไม่ครบ</div>
+                                <div class="dc-status" id="dcSquatStatus">🔒 Not yet</div>
                             </div>
                             <div class="daily-challenge-card" id="dcPlankCard">
                                 <div class="dc-icon">🧘</div>
                                 <div class="dc-name">Plank</div>
-                                <div class="dc-target">ขั้นต่ำ 15 วินาที</div>
+                                <div class="dc-target" id="dcPlankTarget">Min 15 sec</div>
                                 <div class="dc-progress-wrap">
                                     <div class="dc-progress-bar"><div class="dc-progress-fill" id="dcPlankBar" style="width:0%"></div></div>
                                     <div class="dc-count"><span id="dcPlankCount">0</span> / 15s</div>
                                 </div>
-                                <div class="dc-status" id="dcPlankStatus">🔒 ยังไม่ครบ</div>
+                                <div class="dc-status" id="dcPlankStatus">🔒 Not yet</div>
                             </div>
                         </div>
                         <div id="dcCompleteBanner" style="display:none;margin-top:20px;padding:18px 24px;border-radius:18px;background:linear-gradient(135deg,rgba(124,255,107,0.15),rgba(0,230,195,0.15));border:1px solid rgba(124,255,107,0.35);text-align:center;">
                             <div style="font-size:2rem;">🎉</div>
-                            <div style="font-size:1.2rem;font-weight:800;color:var(--green);margin:6px 0;">Daily Challenge สำเร็จ!</div>
-                            <div style="color:var(--muted);font-size:0.9rem;">ยอดเยี่ยมมาก! คุณทำครบทุกท่าขั้นต่ำแล้ววันนี้ 💪</div>
+                            <div style="font-size:1.2rem;font-weight:800;color:var(--green);margin:6px 0;" id="dcCompleteTitle">Daily Challenge Complete!</div>
+                            <div style="color:var(--muted);font-size:0.9rem;" id="dcCompleteText">Amazing! You've completed all minimum exercises today 💪</div>
                         </div>
                     </div>
                     <div class="glass-card" style="margin-top:20px;">
-                        <div class="card-header"><h2 class="card-title">Mission Status</h2></div>
+                        <div class="card-header"><h2 class="card-title" id="missionStatusTitle">Mission Status</h2></div>
                         <div class="metric-list">
-                            <div class="metric-bubble"><strong id="challengeSessions">0</strong><span class="bubble-label">Completed workouts</span></div>
-                            <div class="metric-bubble"><strong id="challengeBestForm">-</strong><span class="bubble-label">Best form score</span></div>
-                            <div class="metric-bubble"><strong id="challengeConsistency">-</strong><span class="bubble-label">Consistency rating</span></div>
+                            <div class="metric-bubble"><strong id="challengeSessions">0</strong><span class="bubble-label" id="missionLabel1">Completed workouts</span></div>
+                            <div class="metric-bubble"><strong id="challengeBestForm">-</strong><span class="bubble-label" id="missionLabel2">Best form score</span></div>
+                            <div class="metric-bubble"><strong id="challengeConsistency">-</strong><span class="bubble-label" id="missionLabel3">Consistency rating</span></div>
                         </div>
                     </div>
                     <div class="glass-card" style="margin-top:20px;">
-                        <div class="card-header"><h2 class="card-title">📅 Challenge History</h2><span class="small-chip">Last 7 days</span></div>
+                        <div class="card-header"><h2 class="card-title">📅 <span id="challengeHistoryTitle">Challenge History</span></h2><span class="small-chip" id="challengeHistoryChip">Last 7 days</span></div>
                         <div id="challengeHistoryList" style="display:grid;gap:10px;"></div>
                     </div>
                 </section>
@@ -1067,8 +1067,8 @@
                 <!-- ACHIEVEMENTS -->
                 <section class="page" id="achievements">
                     <div class="layout-grid grid-2">
-                        <div class="glass-card"><h2 class="card-title">Achievements</h2><div id="achievementList" class="metric-list"></div></div>
-                        <div class="glass-card"><h2 class="card-title">Unlocked Milestones</h2><div id="achievementMilestones" class="metric-list"></div></div>
+                        <div class="glass-card"><h2 class="card-title" id="achievementsTitle">Achievements</h2><div id="achievementList" class="metric-list"></div></div>
+                        <div class="glass-card"><h2 class="card-title" id="milestonesTitle">Unlocked Milestones</h2><div id="achievementMilestones" class="metric-list"></div></div>
                     </div>
                 </section>
 
@@ -1076,7 +1076,7 @@
                 <section class="page" id="profile">
                     <!-- Google Login Section -->
                     <div class="glass-card" style="margin-bottom:24px;">
-                        <div class="card-header"><h2 class="card-title">🔐 Account</h2></div>
+                        <div class="card-header"><h2 class="card-title">🔐 <span id="accountTitle">Account</span></h2></div>
                         <div id="profileLoginSection">
                             <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
                                 <div id="profileAvatarWrap">
@@ -1084,16 +1084,15 @@
                                 </div>
                                 <div style="flex:1;">
                                     <div id="profileLoginStatus">
-                                        <span class="login-status-badge logged-out">● Not signed in</span>
-                                        <p style="color:var(--muted);margin:10px 0 16px;font-size:0.9rem;">Sign in with Google to save your workout data, sync across devices, and unlock personalized AI coaching.</p>
+                                        <span class="login-status-badge logged-out" id="notSignedInBadge">● Not signed in</span>
+                                        <p style="color:var(--muted);margin:10px 0 16px;font-size:0.9rem;" id="signInDesc">Sign in with Google to save your workout data, sync across devices, and unlock personalized AI coaching.</p>
                                         <div id="googleSignInBtn"></div>
-                                        <p style="font-size:0.8rem;color:var(--muted);margin-top:8px;">* กรุณากรอก Google Client ID ในหน้า Settings เพื่อใช้งานระบบ Login</p>
                                     </div>
                                     <div id="profileLoggedInSection" style="display:none;">
-                                        <span class="login-status-badge logged-in">● Signed in</span>
+                                        <span class="login-status-badge logged-in" id="signedInBadge">● Signed in</span>
                                         <p id="profileUserName" style="font-size:1.2rem;font-weight:700;margin:10px 0 4px;"></p>
                                         <p id="profileUserEmail" style="color:var(--muted);margin:0 0 16px;font-size:0.9rem;"></p>
-                                        <button class="tab-item" onclick="handleGoogleSignOut()">Sign Out</button>
+                                        <button class="tab-item" id="signOutBtn" onclick="handleGoogleSignOut()">Sign Out</button>
                                     </div>
                                 </div>
                             </div>
@@ -1102,16 +1101,16 @@
 
                     <div class="profile-grid">
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">User Profile</h2></div>
+                            <div class="card-header"><h2 class="card-title" id="userProfileTitle">User Profile</h2></div>
                             <div class="info-list" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                                <div class="info-item"><label>Name</label><input id="profileNameInput" type="text" value="Athlete"></div>
-                                <div class="info-item"><label>Height (cm)</label><input id="profileHeightInput" type="number" min="100" max="230" value="178"></div>
-                                <div class="info-item"><label>Weight (kg)</label><input id="profileWeightInput" type="number" min="40" max="180" value="72"></div>
-                                <div class="info-item"><label>Age</label><input id="profileAgeInput" type="number" min="16" max="80" value="30"></div>
-                                <div class="info-item"><label>Fitness level</label><select id="profileFitnessLevelInput"><option>Beginner</option><option selected>Intermediate</option><option>Advanced</option></select></div>
-                                <div class="info-item"><label>Goal</label><select id="profileGoalInput"><option>Lose Weight</option><option selected>Build Muscle</option><option>Improve Endurance</option><option>Stay Active</option></select></div>
-                                <div class="info-item"><label>Estimated calories</label><strong id="profileCalories">-</strong></div>
-                                <div class="info-item"><label>BMI</label><strong id="profileBMI">22.7</strong></div>
+                                <div class="info-item"><label id="profileLabel1">Name</label><input id="profileNameInput" type="text" value="Athlete"></div>
+                                <div class="info-item"><label id="profileLabel2">Height (cm)</label><input id="profileHeightInput" type="number" min="100" max="230" value="178"></div>
+                                <div class="info-item"><label id="profileLabel3">Weight (kg)</label><input id="profileWeightInput" type="number" min="40" max="180" value="72"></div>
+                                <div class="info-item"><label id="profileLabel4">Age</label><input id="profileAgeInput" type="number" min="16" max="80" value="30"></div>
+                                <div class="info-item"><label id="profileLabel5">Fitness level</label><select id="profileFitnessLevelInput"><option id="fitnessOpt1">Beginner</option><option id="fitnessOpt2" selected>Intermediate</option><option id="fitnessOpt3">Advanced</option></select></div>
+                                <div class="info-item"><label id="profileLabel6">Goal</label><select id="profileGoalInput"><option id="goalOpt1">Lose Weight</option><option id="goalOpt2" selected>Build Muscle</option><option id="goalOpt3">Improve Endurance</option><option id="goalOpt4">Stay Active</option></select></div>
+                                <div class="info-item"><label id="profileLabel7">Estimated calories</label><strong id="profileCalories">-</strong></div>
+                                <div class="info-item"><label id="profileLabel8">BMI</label><strong id="profileBMI">22.7</strong></div>
                             </div>
                             <div style="margin-top:16px;display:flex;gap:12px;">
                                 <button class="tab-item" id="saveProfileButton">Save profile</button>
@@ -1119,11 +1118,11 @@
                             </div>
                         </div>
                         <div class="glass-card">
-                            <div class="card-header"><h2 class="card-title">Stats</h2></div>
+                            <div class="card-header"><h2 class="card-title" id="profileStatsTitle">Stats</h2></div>
                             <div class="info-list">
-                                <div class="info-item"><strong id="profileCameraStatus">Waiting</strong><span>Camera status</span></div>
-                                <div class="info-item"><strong id="profileSessionCount">0</strong><span>Sessions recorded</span></div>
-                                <div class="info-item"><strong id="profileAverageForm">-</strong><span>Average form</span></div>
+                                <div class="info-item"><strong id="profileCameraStatus">Waiting</strong><span id="profileStatLabel1">Camera status</span></div>
+                                <div class="info-item"><strong id="profileSessionCount">0</strong><span id="profileStatLabel2">Sessions recorded</span></div>
+                                <div class="info-item"><strong id="profileAverageForm">-</strong><span id="profileStatLabel3">Average form</span></div>
                             </div>
                         </div>
                     </div>
@@ -1132,54 +1131,45 @@
                 <!-- SETTINGS -->
                 <section class="page" id="settings">
                     <div class="glass-card" style="max-width:900px;margin:0 auto;">
-                        <div class="card-header"><h2 class="card-title">⚙️ Settings</h2></div>
+                        <div class="card-header"><h2 class="card-title">⚙️ <span id="settingsPageTitle">Settings</span></h2></div>
                         <div class="settings-grid">
                             <div class="setting-item">
-                                <label>Camera</label>
+                                <label id="settingLabel1">Camera</label>
                                 <select id="settingsCameraSelect"></select>
                             </div>
                             <div class="setting-item">
-                                <label>FPS target</label>
+                                <label id="settingLabel2">FPS target</label>
                                 <input type="number" id="settingsFPS" min="15" max="60" step="5" value="30">
                             </div>
                             <div class="setting-item">
-                                <label>Detection sensitivity</label>
+                                <label id="settingLabel3">Detection sensitivity</label>
                                 <input type="range" id="settingsSensitivity" min="0.3" max="0.9" step="0.05" value="0.5">
                                 <span id="sensitivityValue">0.5</span>
                             </div>
                             <div class="setting-item">
-                                <label>Notification alerts</label>
+                                <label id="settingLabel4">Notification alerts</label>
                                 <select id="settingsNotifications">
-                                    <option value="all">All</option>
-                                    <option value="form">Form only</option>
-                                    <option value="none">None</option>
+                                    <option value="all" id="notifOpt1">All</option>
+                                    <option value="form" id="notifOpt2">Form only</option>
+                                    <option value="none" id="notifOpt3">None</option>
                                 </select>
                             </div>
                             <div class="setting-item">
-                                <label>Language</label>
+                                <label id="settingLabel5">Language</label>
                                 <select id="settingsLanguage">
                                     <option value="en">English</option>
                                     <option value="th">Thai</option>
                                 </select>
                             </div>
                             <div class="setting-item">
-                                <label>AI Coach Model</label>
+                                <label id="settingLabel6">AI Coach Model</label>
                                 <select id="settingsAIModel" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;font-size:0.9rem;">
                                     <option value="gemini-2.5-flash">🚀 Gemini 2.5 Flash (Recommended)</option>
                                     <option value="gemini-1.5-pro">⚡ Gemini 1.5 Pro</option>
                                     <option value="gemini-1.5-flash">💨 Gemini 1.5 Flash</option>
                                 </select>
                             </div>
-                            <div class="setting-item" style="grid-column:1/-1;">
-                                <label>Google Gemini API Key (for AI Coach)</label>
-                                <input type="password" id="settingsGeminiKey" placeholder="AIza... (กรอกที่นี่เพื่อใช้งาน Gemini 2.5 Flash)">
-                                <p style="color:var(--muted);font-size:0.8rem;margin:4px 0 0;">Your key is stored locally and never sent to our servers.</p>
-                            </div>
-                            <div class="setting-item" style="grid-column:1/-1;">
-                                <label>Google OAuth Client ID</label>
-                                <input type="text" id="settingsGoogleClientId" placeholder="123456789-xxxx.apps.googleusercontent.com">
-                                <p style="color:var(--muted);font-size:0.8rem;margin:4px 0 0;">กรอก Client ID เพื่อใช้งานระบบ Google Login จริง</p>
-                            </div>
+
                         </div>
                         <div style="margin-top:22px;display:flex;gap:12px;">
                             <button class="tab-item" id="saveSettingsButton">Save settings</button>
@@ -1194,17 +1184,17 @@
 
     <!-- MOBILE NAV -->
     <div class="mobile-nav" aria-label="Mobile navigation">
-        <button class="tab-item active" data-page="dashboard">🏠 Dashboard</button>
-        <button class="tab-item" data-page="live-analysis">🎯 Live Workout</button>
-        <button class="tab-item" data-page="exercise-guide">🏋️ Guide</button>
-        <button class="tab-item" data-page="progress-analytics">📈 Progress</button>
-        <button class="tab-item" data-page="exercise-history">📋 History</button>
-        <button class="tab-item" data-page="workout-reports">📊 Reports</button>
-        <button class="tab-item" data-page="challenges">🏆 Challenges</button>
-        <button class="tab-item" data-page="ai-coach">🤖 AI Coach</button>
-        <button class="tab-item" data-page="achievements">⭐ Achievement</button>
-        <button class="tab-item" data-page="profile">👤 Profile</button>
-        <button class="tab-item" data-page="settings">⚙️ Settings</button>
+        <button class="tab-item active" data-page="dashboard">🏠 <span id="mnav1">Dashboard</span></button>
+        <button class="tab-item" data-page="live-analysis">🎯 <span id="mnav2">Live Workout</span></button>
+        <button class="tab-item" data-page="exercise-guide">🏋️ <span id="mnav3">Guide</span></button>
+        <button class="tab-item" data-page="progress-analytics">📈 <span id="mnav4">Progress</span></button>
+        <button class="tab-item" data-page="exercise-history">📋 <span id="mnav5">History</span></button>
+        <button class="tab-item" data-page="workout-reports">📊 <span id="mnav6">Reports</span></button>
+        <button class="tab-item" data-page="challenges">🏆 <span id="mnav7">Challenges</span></button>
+        <button class="tab-item" data-page="ai-coach">🤖 <span id="mnav8">AI Coach</span></button>
+        <button class="tab-item" data-page="achievements">⭐ <span id="mnav9">Achievement</span></button>
+        <button class="tab-item" data-page="profile">👤 <span id="mnav10">Profile</span></button>
+        <button class="tab-item" data-page="settings">⚙️ <span id="mnav11">Settings</span></button>
     </div>
 
 <script>
@@ -1277,20 +1267,31 @@ function setSplashLang(lang) {
 // ===================== EXERCISE DATA =====================
 const EXERCISES = {
     pushup: {
-        name: 'Push-Up', emoji: '💪', badge: 'Upper Body',
-        desc: 'Classic upper body exercise targeting chest, shoulders, and triceps.',
-        steps: [
-            'Start in a high plank position with hands slightly wider than shoulder-width.',
-            'Keep your body in a straight line from head to heels.',
-            'Lower your chest toward the floor by bending your elbows.',
-            'Push back up to the starting position, fully extending your arms.',
-            'Repeat for desired reps, keeping core engaged throughout.'
-        ],
-        tips: 'Keep your hips level — do not let them sag or rise. Breathe in on the way down, out on the way up.',
+        name: { en: 'Push-Up', th: 'วิดพื้น' },
+        emoji: '💪', 
+        badge: { en: 'Upper Body', th: 'ร่างกายส่วนบน' },
+        desc: { en: 'Classic upper body exercise targeting chest, shoulders, and triceps.', th: 'ท่าออกกำลังกายส่วนบนพื้นฐานที่เน้นหน้าอก หัวไหล่ และหลังแขน' },
+        steps: {
+            en: [
+                'Start in a high plank position with hands slightly wider than shoulder-width.',
+                'Keep your body in a straight line from head to heels.',
+                'Lower your chest toward the floor by bending your elbows.',
+                'Push back up to the starting position, fully extending your arms.',
+                'Repeat for desired reps, keeping core engaged throughout.'
+            ],
+            th: [
+                'เริ่มในท่าไฮแพลงก์ โดยวางมือให้กว้างกว่าช่วงไหล่เล็กน้อย',
+                'รักษาลำตัวให้เป็นเส้นตรงตั้งแต่ศีรษะจรดส้นเท้า',
+                'ลดหน้าอกลงหาพื้นโดยการงอข้อศอก',
+                'ดันตัวกลับขึ้นสู่ท่าเริ่มต้น โดยยืดแขนให้สุด',
+                'ทำซ้ำตามจำนวนครั้งที่ต้องการ โดยเกร็งหน้าท้องไว้ตลอดเวลา'
+            ]
+        },
+        tips: { en: 'Keep your hips level — do not let them sag or rise. Breathe in on the way down, out on the way up.', th: 'รักษาความสูงของสะโพกให้คงที่ อย่าให้หย่อนหรือโด่งเกินไป หายใจเข้าตอนลง หายใจออกตอนขึ้น' },
         color: '#00d4ff',
         angles: {
-            elbow: { min: 70, max: 110, label: 'Elbow (down phase)' },
-            hip: { min: 160, max: 180, label: 'Hip alignment' }
+            elbow: { min: 70, max: 110, label: { en: 'Elbow (down phase)', th: 'ข้อศอก (จังหวะลง)' } },
+            hip: { min: 160, max: 180, label: { en: 'Hip alignment', th: 'แนวสะโพก' } }
         },
         character: `<circle cx="60" cy="28" r="18" fill="#0d2b52" stroke="#00d4ff" stroke-width="2"/>
             <circle cx="54" cy="24" r="3.5" fill="#00d4ff"/><circle cx="66" cy="24" r="3.5" fill="#00d4ff"/>
@@ -1302,20 +1303,31 @@ const EXERCISES = {
             <path d="M68 74 L80 100" stroke="#00d4ff" stroke-width="4" stroke-linecap="round"/>`,
     },
     squat: {
-        name: 'Squat', emoji: '🦵', badge: 'Lower Body',
-        desc: 'Fundamental lower body exercise for quads, glutes, and hamstrings.',
-        steps: [
-            'Stand with feet shoulder-width apart, toes slightly turned out.',
-            'Brace your core and keep your chest up.',
-            'Push your hips back and bend your knees to lower down.',
-            'Lower until thighs are parallel to the floor (or as low as comfortable).',
-            'Drive through your heels to return to standing.'
-        ],
-        tips: 'Keep knees tracking over your toes. Do not let your knees cave inward. Keep weight in your heels.',
+        name: { en: 'Squat', th: 'สควอท' },
+        emoji: '🦵', 
+        badge: { en: 'Lower Body', th: 'ร่างกายส่วนล่าง' },
+        desc: { en: 'Fundamental lower body exercise for quads, glutes, and hamstrings.', th: 'ท่าพื้นฐานสำหรับร่างกายส่วนล่าง เน้นหน้าขา สะโพก และต้นขาด้านหลัง' },
+        steps: {
+            en: [
+                'Stand with feet shoulder-width apart, toes slightly turned out.',
+                'Brace your core and keep your chest up.',
+                'Push your hips back and bend your knees to lower down.',
+                'Lower until thighs are parallel to the floor (or as low as comfortable).',
+                'Drive through your heels to return to standing.'
+            ],
+            th: [
+                'ยืนแยกเท้ากว้างเท่าช่วงไหล่ เปิดปลายเท้าออกเล็กน้อย',
+                'เกร็งหน้าท้องและยืดอกไว้เสมอ',
+                'ดันสะโพกไปด้านหลังและงอเข่าเพื่อลดตัวลง',
+                'ลงจนต้นขาขนานกับพื้น (หรือลึกที่สุดเท่าที่ไหว)',
+                'ออกแรงดันจากส้นเท้าเพื่อกลับสู่ท่ายืน'
+            ]
+        },
+        tips: { en: 'Keep knees tracking over your toes. Do not let your knees cave inward. Keep weight in your heels.', th: 'ให้หัวเข่าชี้ไปทางเดียวกับปลายเท้า อย่าให้เข่าบิดเข้าด้านใน ทิ้งน้ำหนักลงที่ส้นเท้า' },
         color: '#7cff6b',
         angles: {
-            knee: { min: 80, max: 100, label: 'Knee (bottom phase)' },
-            hip: { min: 60, max: 100, label: 'Hip bend' }
+            knee: { min: 80, max: 100, label: { en: 'Knee (bottom phase)', th: 'เข่า (จังหวะลง)' } },
+            hip: { min: 60, max: 100, label: { en: 'Hip bend', th: 'การพับสะโพก' } }
         },
         character: `<circle cx="60" cy="22" r="16" fill="#0d2b52" stroke="#7cff6b" stroke-width="2"/>
             <circle cx="55" cy="19" r="3" fill="#7cff6b"/><circle cx="65" cy="19" r="3" fill="#7cff6b"/>
@@ -1327,20 +1339,31 @@ const EXERCISES = {
             <path d="M68 60 L80 85 L86 100" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 68 60;25 68 60;0 68 60" dur="0.8s" repeatCount="indefinite"/></path>`,
     },
     plank: {
-        name: 'Plank', emoji: '🧘', badge: 'Core',
-        desc: 'Isometric core exercise that builds stability and endurance.',
-        steps: [
-            'Start in a forearm plank position with elbows under shoulders.',
-            'Keep your body in a straight line from head to heels.',
-            'Engage your core, glutes, and quads throughout.',
-            'Hold the position for the target duration.',
-            'Breathe steadily — do not hold your breath.'
-        ],
-        tips: 'Avoid letting your hips sag or pike up. Keep your neck neutral — look at the floor.',
+        name: { en: 'Plank', th: 'แพลงก์' },
+        emoji: '🧘', 
+        badge: { en: 'Core', th: 'แกนกลางลำตัว' },
+        desc: { en: 'Isometric core exercise that builds stability and endurance.', th: 'ท่าสร้างความแข็งแรงและความทนทานให้แกนกลางลำตัวแบบไม่เคลื่อนที่' },
+        steps: {
+            en: [
+                'Start in a forearm plank position with elbows under shoulders.',
+                'Keep your body in a straight line from head to heels.',
+                'Engage your core, glutes, and quads throughout.',
+                'Hold the position for the target duration.',
+                'Breathe steadily — do not hold your breath.'
+            ],
+            th: [
+                'เริ่มในท่าโฟร์อาร์มแพลงก์ โดยวางข้อศอกให้ตรงกับหัวไหล่',
+                'รักษาลำตัวให้เป็นเส้นตรงตั้งแต่ศีรษะจรดส้นเท้า',
+                'เกร็งหน้าท้อง ก้น และหน้าขาไว้ตลอดเวลา',
+                'ค้างท่าไว้ตามระยะเวลาที่กำหนด',
+                'หายใจเข้าออกอย่างสม่ำเสมอ อย่ากลั้นหายใจ'
+            ]
+        },
+        tips: { en: 'Avoid letting your hips sag or pike up. Keep your neck neutral — look at the floor.', th: 'อย่าให้สะโพกหย่อนหรือโด่งขึ้น รักษาคอให้เป็นกลางโดยมองที่พื้น' },
         color: '#00e6c3',
         angles: {
-            hip: { min: 160, max: 180, label: 'Hip alignment (straight)' },
-            shoulder: { min: 80, max: 100, label: 'Shoulder angle' }
+            hip: { min: 160, max: 180, label: { en: 'Hip alignment (straight)', th: 'แนวสะโพก (แนวตรง)' } },
+            shoulder: { min: 80, max: 100, label: { en: 'Shoulder angle', th: 'มุมหัวไหล่' } }
         },
         character: `<circle cx="60" cy="20" r="15" fill="#0d2b52" stroke="#00e6c3" stroke-width="2"/>
             <circle cx="55" cy="17" r="3" fill="#00e6c3"/><circle cx="65" cy="17" r="3" fill="#00e6c3"/>
@@ -1358,21 +1381,30 @@ const EXERCISES = {
 // ===================== EXERCISE GUIDE =====================
 function buildExerciseGuide() {
     const grid = document.getElementById('exerciseGuideGrid');
-    if (!grid || grid.dataset.built) return;
-    grid.dataset.built = '1';
-    grid.innerHTML = Object.entries(EXERCISES).map(([key, ex]) => `
-        <div class="exercise-guide-card" onclick="showExerciseModal('${key}')">
-            <svg class="guide-character" viewBox="0 0 120 120">${ex.character}</svg>
-            <div class="guide-name">${ex.emoji} ${ex.name}</div>
-            <div class="guide-badge">${ex.badge}</div>
-            <div class="guide-tip">${ex.desc.substring(0, 60)}...</div>
-        </div>
-    `).join('');
+    if (!grid) return;
+    grid.innerHTML = Object.entries(EXERCISES).map(([key, ex]) => {
+        const name = typeof ex.name === 'object' ? (ex.name[currentLang] || ex.name.en) : ex.name;
+        const badge = typeof ex.badge === 'object' ? (ex.badge[currentLang] || ex.badge.en) : ex.badge;
+        const desc = typeof ex.desc === 'object' ? (ex.desc[currentLang] || ex.desc.en) : ex.desc;
+        return `
+            <div class="exercise-guide-card" onclick="showExerciseModal('${key}')">
+                <svg class="guide-character" viewBox="0 0 120 120">${ex.character}</svg>
+                <div class="guide-name">${ex.emoji} ${name}</div>
+                <div class="guide-badge">${badge}</div>
+                <div class="guide-tip">${desc.substring(0, 60)}...</div>
+            </div>
+        `;
+    }).join('');
 }
 
 function showExerciseModal(key) {
     const ex = EXERCISES[key];
     if (!ex) return;
+    const name = typeof ex.name === 'object' ? (ex.name[currentLang] || ex.name.en) : ex.name;
+    const desc = typeof ex.desc === 'object' ? (ex.desc[currentLang] || ex.desc.en) : ex.desc;
+    const steps = typeof ex.steps === 'object' ? (ex.steps[currentLang] || ex.steps.en) : ex.steps;
+    const tips = typeof ex.tips === 'object' ? (ex.tips[currentLang] || ex.tips.en) : ex.tips;
+
     const mc = document.getElementById('modalCharacter');
     const mt = document.getElementById('modalTitle');
     const ms = document.getElementById('modalSubtitle');
@@ -1384,15 +1416,18 @@ function showExerciseModal(key) {
     const dc = document.getElementById('detailCharacter');
     const ds = document.getElementById('detailSteps');
     if (mc) mc.innerHTML = ex.character;
-    if (mt) mt.textContent = `${ex.emoji} ${ex.name}`;
-    if (ms) ms.textContent = ex.desc;
-    if (mst) mst.innerHTML = ex.steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
-    if (mti) mti.innerHTML = `<strong>💡 Pro Tip:</strong> ${ex.tips}`;
+    if (mt) mt.textContent = `${ex.emoji} ${name}`;
+    if (ms) ms.textContent = desc;
+    if (mst) mst.innerHTML = steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+    if (mti) {
+        const proTipLabel = currentLang === 'th' ? 'เคล็ดลับ:' : 'Pro Tip:';
+        mti.innerHTML = `<strong>💡 ${proTipLabel}</strong> ${tips}`;
+    }
     if (em) em.classList.add('open');
-    if (dt) dt.textContent = `${ex.emoji} ${ex.name}`;
-    if (dd) dd.textContent = ex.desc;
+    if (dt) dt.textContent = `${ex.emoji} ${name}`;
+    if (dd) dd.textContent = desc;
     if (dc) dc.innerHTML = ex.character;
-    if (ds) ds.innerHTML = ex.steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+    if (ds) ds.innerHTML = steps.map((s, i) => `<div class="modal-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
 }
 
 const _modalClose = document.getElementById('modalClose');
@@ -1419,6 +1454,7 @@ function navigateTo(pageId) {
     if (pageId === 'workout-reports') updateReports();
     if (pageId === 'ai-coach') initChatIfNeeded();
     if (pageId === 'challenges') updateDailyChallenge();
+    if (pageId === 'profile') showGoogleSignInButton();
 }
 document.querySelectorAll('[data-page]').forEach(btn => {
     btn.addEventListener('click', () => navigateTo(btn.dataset.page));
@@ -1428,7 +1464,7 @@ document.querySelectorAll('[data-page]').forEach(btn => {
 let workoutActive = false;
 let workoutTimer = null;
 let workoutSeconds = 0;
-let repCount = 0;
+
 let trackingState = 'User Missing'; // 'Tracking Good', 'Tracking Weak', 'User Missing'
 let sideViewStatus = 'RED';         // 'RED', 'YELLOW', 'GREEN'
 let poseBuffer = [];const BUFFER_SIZE = 1;
@@ -1436,7 +1472,13 @@ let isFormCorrect = true;
 let plankTimerActive = false;
 let plankSeconds = 0;               // separate plank hold timer
 let plankTimerInterval = null;
-let formScores = [];
+
+let repCount = 0;
+let formScores = []; // Frame-based scores (used for Plank or live feedback)
+let repFormHistory = []; // New: stores peak score of each completed rep
+let currentRepPeak = 0; // New: tracks peak score of current rep
+let peakResetTimer = null; // New: timer for 6s timeout
+
 let currentExercise = 'pushup';
 let lastRepState = 'up';
 let sessionActive = false;
@@ -1455,6 +1497,10 @@ document.querySelectorAll('.exercise-selection button').forEach(btn => {
         lastRepState = 'up';
         repCount = 0;
         plankSeconds = 0;
+        repFormHistory = [];
+        currentRepPeak = 0;
+        if (peakResetTimer) clearTimeout(peakResetTimer);
+        peakResetTimer = null;
         updateCounterDisplay();
         const lbl = document.getElementById('liveExerciseLabel');
         if (lbl) lbl.textContent = `Exercise: ${EXERCISES[currentExercise] ? EXERCISES[currentExercise].name : currentExercise}`;
@@ -1476,14 +1522,18 @@ function startWorkout() {
     repCount = 0;
     plankSeconds = 0;
     formScores = [];
+    repFormHistory = [];
+    currentRepPeak = 0;
+    if (peakResetTimer) clearTimeout(peakResetTimer);
+    peakResetTimer = null;
     lastRepState = 'up';
     isFormCorrect = true;
     plankTimerActive = false;
-    if (startStopButton) startStopButton.textContent = '⏹️ Stop';
+    if (startStopButton) startStopButton.textContent = currentLang === 'th' ? '⏹️ หยุด' : '⏹️ Stop';
     sessionActive = true;
     sessionStartTime = Date.now();
     const cs = document.getElementById('liveCameraStatus');
-    if (cs) cs.textContent = 'Tracking: Active';
+    if (cs) cs.textContent = currentLang === 'th' ? 'ติดตาม: ใช้งาน' : 'Tracking: Active';
     workoutTimer = setInterval(() => {
         workoutSeconds++;
         const m = Math.floor(workoutSeconds / 60), s = workoutSeconds % 60;
@@ -1512,12 +1562,17 @@ function stopWorkout() {
     clearInterval(workoutTimer);
     clearInterval(plankTimerInterval);
     plankTimerInterval = null;
-    if (startStopButton) startStopButton.textContent = '▶️ Start';
+    if (startStopButton) startStopButton.textContent = currentLang === 'th' ? '▶️ เริ่ม' : '▶️ Start';
     const cs = document.getElementById('liveCameraStatus');
-    if (cs) cs.textContent = 'Tracking: Paused';
+    if (cs) cs.textContent = currentLang === 'th' ? 'ติดตาม: หยุดชั่วคราว' : 'Tracking: Paused';
     // Do NOT clear canvas — skeleton stays visible after stopping
     sessionDuration = Math.round((Date.now() - sessionStartTime) / 1000);
-    const avgForm = formScores.length ? Math.round(formScores.reduce((a,b) => a+b, 0) / formScores.length) : 0;
+        let avgForm = 0;
+    if (currentExercise === 'plank') {
+        avgForm = formScores.length ? Math.round(formScores.reduce((a,b) => a+b, 0) / formScores.length) : 0;
+    } else {
+        avgForm = repFormHistory.length ? Math.round(repFormHistory.reduce((a,b) => a+b, 0) / repFormHistory.length) : 0;
+    }
     // For plank, store seconds held as the "reps" value for history
     const storedReps = currentExercise === 'plank' ? plankSeconds : repCount;
     const session = {
@@ -1573,11 +1628,11 @@ function startCamera() {
                 canvasEl.width = videoEl.videoWidth;
                 canvasEl.height = videoEl.videoHeight;
                 const dcs = document.getElementById('debugCameraStatus');
-                if (dcs) dcs.textContent = 'Active';
+                if (dcs) dcs.textContent = currentLang === 'th' ? 'ใช้งาน' : 'Active';
                 const pcs = document.getElementById('profileCameraStatus');
-                if (pcs) pcs.textContent = 'Active';
+                if (pcs) pcs.textContent = currentLang === 'th' ? 'ใช้งาน' : 'Active';
                 const cs2 = document.getElementById('liveCameraStatus');
-                if (cs2) cs2.textContent = 'Camera: Active — Position side-view';
+                if (cs2) cs2.textContent = currentLang === 'th' ? 'กล้อง: ใช้งาน — วางกล้องด้านข้าง' : 'Camera: Active — Position side-view';
                 initPose();
             };
         })
@@ -1593,7 +1648,7 @@ function startCamera() {
 function initPose() {
     if (typeof Pose === 'undefined') {
         const dmp = document.getElementById('debugMediaPipeStatus');
-        if (dmp) dmp.textContent = 'Loading...';
+        if (dmp) dmp.textContent = currentLang === 'th' ? 'โหลด...' : 'Loading...';
         setTimeout(initPose, 1500);
         return;
     }
@@ -1616,7 +1671,7 @@ function initPose() {
         }
 
         const dmp = document.getElementById('debugMediaPipeStatus');
-        if (dmp) dmp.textContent = 'Active';
+        if (dmp) dmp.textContent = currentLang === 'th' ? 'ใช้งาน' : 'Active';
 
         if (typeof Camera !== 'undefined' && !camera) {
             camera = new Camera(videoEl, {
@@ -1746,6 +1801,7 @@ function updateRepState(lm) {
             repState.status = 'DOWN';
         } else if (repState.status === 'DOWN' && angle > 145) {
             repCount++;
+            if (currentRepPeak > 0) { repFormHistory.push(currentRepPeak); currentRepPeak = 0; if (peakResetTimer) { clearTimeout(peakResetTimer); peakResetTimer = null; } }
             updateCounterDisplay();
             repState.lastRepTime = now;
             repState.status = 'UP';
@@ -1781,6 +1837,7 @@ function updateRepState(lm) {
         } else if (repState.status === 'DOWN') {
             if (leftKneeAngle > 145 && rightKneeAngle > 145) {
                 repCount++;
+                if (currentRepPeak > 0) { repFormHistory.push(currentRepPeak); currentRepPeak = 0; if (peakResetTimer) { clearTimeout(peakResetTimer); peakResetTimer = null; } }
                 updateCounterDisplay();
                 repState.lastRepTime = now;
                 repState.status = 'UP';
@@ -1950,17 +2007,17 @@ function updatePoseIndicator() {
     const el = document.getElementById('poseIndicator');
     if (!el) return;
     if (sideViewStatus === 'GREEN') {
-        el.textContent = '🟢 Side-view ready';
+        el.textContent = currentLang === 'th' ? '🟢 พร้อมออกกำลังกาย (ด้านข้าง)' : '🟢 Side-view ready';
         el.style.background = 'rgba(124,255,107,0.2)';
         el.style.border = '1px solid rgba(124,255,107,0.5)';
         el.style.color = '#7cff6b';
     } else if (sideViewStatus === 'YELLOW') {
-        el.textContent = '🟡 Turn sideways to camera';
+        el.textContent = currentLang === 'th' ? '🟡 กรุณาหันข้างให้กล้อง' : '🟡 Turn sideways to camera';
         el.style.background = 'rgba(255,213,107,0.2)';
         el.style.border = '1px solid rgba(255,213,107,0.5)';
         el.style.color = '#ffd56b';
     } else {
-        el.textContent = '🔴 Full body not visible';
+        el.textContent = currentLang === 'th' ? '🔴 ไม่เห็นร่างกายทั้งหมด' : '🔴 Full body not visible';
         el.style.background = 'rgba(255,101,119,0.2)';
         el.style.border = '1px solid rgba(255,101,119,0.5)';
         el.style.color = '#ff6577';
@@ -2180,29 +2237,59 @@ function analyzeForm(lm) {
         const plankAngle = calcAngle(sh, hi, an);
         formScore = (plankAngle >= 140 && plankAngle <= 180) ? 100 : 60;
         if (plankAngle < 140 || plankAngle > 180) {
-            issues.push('Adjust your posture to keep the timer running');
+            issues.push(currentLang === 'th' ? 'ปรับท่าทางเพื่อให้ตัวนับเวลาทำงาน' : 'Adjust your posture to keep the timer running');
         }
     }
 
     formScore = Math.round(Math.min(100, formScore));
-    if (workoutActive) formScores.push(formScore);
+    if (workoutActive) {
+        if (currentExercise !== 'plank') {
+            if (formScore > currentRepPeak) {
+                currentRepPeak = formScore;
+                if (peakResetTimer) clearTimeout(peakResetTimer);
+                peakResetTimer = setTimeout(() => { currentRepPeak = 0; peakResetTimer = null; }, 6000);
+            }
+        } else {
+            formScores.push(formScore);
+        }
+    }
 
     // Update form ring and metrics
     updateLiveFormRing(formScore);
     const lfa = document.getElementById('liveFormAccuracy');
     if (lfa) lfa.textContent = formScore + '%';
     const ls = document.getElementById('liveStability');
-    if (ls) ls.textContent = formScore > 75 ? 'Good' : formScore > 50 ? 'Fair' : 'Poor';
+    if (ls) {
+        if (currentLang === 'th') {
+            ls.textContent = formScore > 75 ? 'ดี' : formScore > 50 ? 'พอใช้' : 'ต้องปรับปรุง';
+        } else {
+            ls.textContent = formScore > 75 ? 'Good' : formScore > 50 ? 'Fair' : 'Poor';
+        }
+    }
     const lcs = document.getElementById('liveCoreScore');
-    if (lcs) lcs.textContent = formScore > 80 ? 'Strong' : 'Needs work';
-    const recentForms = formScores.slice(-20);
-    const avgForm = recentForms.length ? Math.round(recentForms.reduce((a,b) => a+b, 0) / recentForms.length) : 0;
+    if (lcs) {
+        if (currentLang === 'th') {
+            lcs.textContent = formScore > 80 ? 'แข็งแรง' : 'ต้องปรับปรุง';
+        } else {
+            lcs.textContent = formScore > 80 ? 'Strong' : 'Needs work';
+        }
+    }
+        let avgForm = 0;
+    if (currentExercise === 'plank') {
+        const recentForms = formScores.slice(-20);
+        avgForm = recentForms.length ? Math.round(recentForms.reduce((a,b) => a+b, 0) / recentForms.length) : 0;
+    } else {
+        avgForm = repFormHistory.length ? Math.round(repFormHistory.reduce((a,b) => a+b, 0) / repFormHistory.length) : 0;
+    }
     const laf = document.getElementById('liveAvgForm');
     if (laf) laf.textContent = avgForm + '%';
 
     // Primary issue
     const lpi = document.getElementById('livePrimaryIssue');
-    if (lpi) lpi.textContent = issues.length ? issues[0] : 'None — great form!';
+    if (lpi) {
+        const tLive = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+        lpi.textContent = issues.length ? issues[0] : tLive.noneGreatForm;
+    }
 
     updateFeedbackUI(issues);
 
@@ -2226,9 +2313,12 @@ function updateFeedbackUI(issues) {
     const feedbackList = document.getElementById('liveFeedbackList');
     if (!feedbackList) return;
     if (issues && issues.length) {
-        feedbackList.innerHTML = issues.map(i => `<div class="error-item"><strong>⚠️ ${i}</strong><span>Adjust your form to avoid injury.</span></div>`).join('');
+        const warningSub = currentLang === 'th' ? 'ปรับท่าทางเพื่อป้องกันการบาดเจ็บ' : 'Adjust your form to avoid injury.';
+        feedbackList.innerHTML = issues.map(i => `<div class="error-item"><strong>⚠️ ${i}</strong><span>${warningSub}</span></div>`).join('');
     } else {
-        feedbackList.innerHTML = '<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">✅ Great form!</strong><span>Keep it up!</span></div>';
+        const greatForm = currentLang === 'th' ? '✅ ฟอร์มดีมาก!' : '✅ Great form!';
+        const keepItUp = currentLang === 'th' ? 'ทำต่อไป!' : 'Keep it up!';
+        feedbackList.innerHTML = `<div class="error-item" style="border-color:rgba(124,255,107,0.2);background:rgba(124,255,107,0.06);"><strong style="color:#7cff6b;">${greatForm}</strong><span>${keepItUp}</span></div>`;
     }
 }
 
@@ -2261,22 +2351,16 @@ function addDebugError(msg) {
 
 // ===================== GOOGLE SIGN IN (Real OAuth 2.0) =====================
 let currentUser = JSON.parse(localStorage.getItem('fitguardUser') || 'null');
-const GOOGLE_CLIENT_ID = localStorage.getItem('googleClientId') || 'YOUR_GOOGLE_CLIENT_ID_HERE';
+const GOOGLE_CLIENT_ID = '382465308053-mnihfhlp4mrlbcgfp52ecgbjj3dbduh3.apps.googleusercontent.com';
 
 function handleGoogleSignIn() {
-    if (typeof google !== 'undefined' && google.accounts && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID_HERE') {
+    if (typeof google !== 'undefined' && google.accounts) {
         google.accounts.id.initialize({
             client_id: GOOGLE_CLIENT_ID,
             callback: handleGoogleCredential,
-            auto_select: false
+            ux_mode: 'popup'
         });
-        google.accounts.id.prompt((notification) => {
-            if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                showGoogleSignInButton();
-            }
-        });
-    } else {
-        showGoogleSignInButton();
+        google.accounts.id.prompt();
     }
 }
 
@@ -2284,10 +2368,16 @@ function showGoogleSignInButton() {
     const signInBtn = document.getElementById('googleSignInBtn');
     if (signInBtn && typeof google !== 'undefined' && google.accounts) {
         try {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCredential,
+                ux_mode: 'popup'
+            });
             google.accounts.id.renderButton(signInBtn, {
                 theme: 'dark',
                 size: 'large',
-                text: 'signin_with'
+                text: 'signin_with',
+                locale: currentLang === 'th' ? 'th' : 'en'
             });
         } catch(e) {
             console.warn('Google button render error:', e);
@@ -2347,6 +2437,9 @@ function updateProfileUI() {
         loginSection.style.display = 'block';
         loggedInSection.style.display = 'none';
         if (avatarPlaceholder) avatarPlaceholder.textContent = '?';
+        const signInBtn = document.getElementById('googleSignInBtn');
+        if (signInBtn) signInBtn.style.display = 'block';
+        showGoogleSignInButton();
     }
 }
 
@@ -2381,7 +2474,7 @@ function initCharts() {
         try {
             formScoreChart = new Chart(formCtx, {
                 type: 'line',
-                data: { labels: [], datasets: [{ label: 'Form Score', data: [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', borderWidth: 2.5, pointBackgroundColor: '#00d4ff', pointRadius: 4, tension: 0.4, fill: true, segment: { borderColor: ctx => ctx.p0DataIndex === ctx.p1DataIndex - 1 ? '#00d4ff' : 'transparent' } }] },
+                data: { labels: [], datasets: [{ label: currentLang === 'th' ? 'คะแนนฟอร์ม' : 'Form Score', data: [], borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.1)', borderWidth: 2.5, pointBackgroundColor: '#00d4ff', pointRadius: 4, tension: 0.4, fill: true, segment: { borderColor: ctx => ctx.p0DataIndex === ctx.p1DataIndex - 1 ? '#00d4ff' : 'transparent' } }] },
                 options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
             });
         } catch(e) { console.error('Form chart error:', e); }
@@ -2391,7 +2484,7 @@ function initCharts() {
         try {
             repsChart = new Chart(repsCtx, {
                 type: 'line',
-                data: { labels: [], datasets: [{ label: 'Reps', data: [], borderColor: '#7cff6b', backgroundColor: 'rgba(124,255,107,0.1)', borderWidth: 2.5, pointBackgroundColor: '#7cff6b', pointRadius: 4, tension: 0.4, fill: true }] },
+                data: { labels: [], datasets: [{ label: currentLang === 'th' ? 'ครั้ง' : 'Reps', data: [], borderColor: '#7cff6b', backgroundColor: 'rgba(124,255,107,0.1)', borderWidth: 2.5, pointBackgroundColor: '#7cff6b', pointRadius: 4, tension: 0.4, fill: true }] },
                 options: { ...chartDefaults }
             });
         } catch(e) { console.error('Reps chart error:', e); }
@@ -2401,7 +2494,7 @@ function initCharts() {
         try {
             progressChart = new Chart(progressCtx, {
                 type: 'line',
-                data: { labels: [], datasets: [{ label: 'Form Score', data: [], borderColor: '#00e6c3', backgroundColor: 'rgba(0,230,195,0.1)', borderWidth: 2.5, pointBackgroundColor: '#00e6c3', pointRadius: 4, tension: 0.4, fill: true }] },
+                data: { labels: [], datasets: [{ label: currentLang === 'th' ? 'คะแนนฟอร์ม' : 'Form Score', data: [], borderColor: '#00e6c3', backgroundColor: 'rgba(0,230,195,0.1)', borderWidth: 2.5, pointBackgroundColor: '#00e6c3', pointRadius: 4, tension: 0.4, fill: true }] },
                 options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
             });
         } catch(e) { console.error('Progress chart error:', e); }
@@ -2436,9 +2529,17 @@ function updateDashboard() {
     set('summaryAverageForm', avgForm ? avgForm + '%' : '-');
     set('dashboardBestForm', bestForm ? bestForm + '%' : '-');
     set('dashboardTotalReps', totalReps);
-    set('dashboardActiveMinutes', totalMins + ' min');
-    set('dashboardActiveMinutes2', totalMins + ' min');
+    const minLabel = currentLang === 'th' ? ' นาที' : ' min';
+    set('dashboardActiveMinutes', totalMins + minLabel);
+    set('dashboardActiveMinutes2', totalMins + minLabel);
     set('dashboardDrills', totalSessions);
+    const tNone = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    const topIssueEl = document.getElementById('dashboardTopIssue');
+    if (topIssueEl) topIssueEl.textContent = sessionHistory.length ? (sessionHistory[0].issues?.[0] || tNone.noneText) : tNone.noneText;
+    const streakEl = document.getElementById('dashboardStreak');
+    if (streakEl) streakEl.textContent = totalSessions > 0 ? Math.ceil(totalSessions / 2) + (currentLang === 'th' ? ' วัน' : ' days') : tNone.noneDays;
+    const warningEl = document.getElementById('dashboardWarning');
+    if (warningEl) warningEl.textContent = avgForm < 60 && totalSessions > 0 ? (currentLang === 'th' ? 'ตรวจสอบฟอร์ม!' : 'Check form!') : tNone.noneText;
     set('profileSessionCount', totalSessions);
     set('profileAverageForm', avgForm ? avgForm + '%' : '-');
     set('quickStatSessions', totalSessions);
@@ -2446,18 +2547,25 @@ function updateDashboard() {
     set('quickStatStreak', totalSessions > 0 ? Math.ceil(totalSessions / 2) : '0');
     set('quickStatReps', totalReps);
     set('dashboardFitnessScore', avgForm ? avgForm + '%' : '-');
-    set('dashboardStability', avgForm > 80 ? 'Excellent' : avgForm > 60 ? 'Good' : avgForm ? 'Fair' : '-');
+    const tDash = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    set('dashboardStability', avgForm > 80 ? tDash.dashboardStabilityExcellent : avgForm > 60 ? tDash.dashboardStabilityGood : avgForm ? tDash.dashboardStabilityFair : '-');
     set('challengeSessions', totalSessions);
     set('challengeBestForm', bestForm ? bestForm + '%' : '-');
     updateDailyChallenge();
-    set('dashboardCoachTip', totalSessions ? `You've completed ${totalSessions} session(s) with an average form of ${avgForm}%. ${avgForm > 80 ? 'Excellent work!' : 'Focus on maintaining proper form.'}` : 'Select Live Workout and start a session to receive posture guidance.');
+    const tCoach = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    if (currentLang === 'th') {
+        set('dashboardCoachTip', totalSessions ? `คุณทำครบ ${totalSessions} เซสชั่น ฟอร์มเฉลี่ย ${avgForm}% ${avgForm > 80 ? 'ยอดเยี่ยมมาก!' : 'โฟกัสที่การรักษาฟอร์มที่ถูกต้อง'}` : tCoach.dashboardCoachTipDefault);
+    } else {
+        set('dashboardCoachTip', totalSessions ? `You've completed ${totalSessions} session(s) with an average form of ${avgForm}%. ${avgForm > 80 ? 'Excellent work!' : 'Focus on maintaining proper form.'}` : tCoach.dashboardCoachTipDefault);
+    }
 
     const pct = Math.min(100, avgForm);
     const offset = 314 - (314 * pct / 100);
     const fill = document.getElementById('dashboardProgressFill');
     if (fill) fill.style.strokeDashoffset = offset;
     set('dashboardProgressLabel', pct + '%');
-    set('dashboardProgressText', totalSessions ? `${totalSessions} session(s) completed.` : 'Start a workout to populate metrics.');
+    const tProg = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    set('dashboardProgressText', totalSessions ? (currentLang === 'th' ? `${totalSessions} เซสชั่นที่เสร็จสิ้น` : `${totalSessions} session(s) completed.`) : tProg.dashboardProgressTextDefault);
 
     updateSessionHistory();
     updateAchievements(totalSessions, bestForm, totalReps);
@@ -2467,16 +2575,20 @@ function updateDashboard() {
 function updateSessionHistory() {
     const historyList = document.getElementById('sessionHistoryList');
     if (!historyList) return;
+    const tSH = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
     if (sessionHistory.length === 0) {
-        historyList.innerHTML = '<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">No sessions yet</span><strong>Start a workout to record</strong></div>';
+        historyList.innerHTML = `<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">${tSH.noSessionsYet}</span><strong>${tSH.startWorkoutToRecord}</strong></div>`;
         return;
     }
     historyList.innerHTML = sessionHistory.slice(0, 5).map(s => {
         const ex = EXERCISES[s.exercise];
+        const heldLabel = currentLang === 'th' ? 'ถือ' : 'held';
+        const repsLabel2 = currentLang === 'th' ? 'ครั้ง' : 'reps';
+        const formLabel = currentLang === 'th' ? 'ฟอร์ม' : 'form';
         const label = s.exercise === 'plank'
-            ? `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${formatTime(s.reps)} held • ${s.avgForm}% form`
-            : `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${s.reps} reps • ${s.avgForm}% form`;
-        return `<div class="metric-bubble"><span class="bubble-label">${new Date(s.date).toLocaleDateString()}</span><strong>${label}</strong></div>`;
+            ? `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${formatTime(s.reps)} ${heldLabel} • ${s.avgForm}% ${formLabel}`
+            : `${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise} • ${s.reps} ${repsLabel2} • ${s.avgForm}% ${formLabel}`;
+        return `<div class="metric-bubble"><span class="bubble-label">${new Date(s.date).toLocaleDateString(currentLang === 'th' ? 'th-TH' : 'en-US')}</span><strong>${label}</strong></div>`;
     }).join('');
 }
 
@@ -2493,36 +2605,48 @@ function updatePersonalRecords() {
 function updateAchievements(sessions, bestForm, totalReps) {
     const list = document.getElementById('achievementList');
     const milestones = document.getElementById('achievementMilestones');
+    
+    const names = {
+        en: ['First Workout', '5 Sessions', '10 Sessions', 'Perfect Form', '100 Reps', 'Consistency'],
+        th: ['ออกกำลังกายครั้งแรก', '5 เซสชั่น', '10 เซสชั่น', 'ฟอร์มเพอร์เฟกต์', '100 ครั้ง', 'ความสม่ำเสมอ']
+    };
+    const langNames = names[currentLang] || names.en;
+
     const achievements = [
-        { name: 'First Workout', unlocked: sessions >= 1, icon: '🏅' },
-        { name: '5 Sessions', unlocked: sessions >= 5, icon: '🥈' },
-        { name: '10 Sessions', unlocked: sessions >= 10, icon: '🥇' },
-        { name: 'Perfect Form', unlocked: bestForm >= 95, icon: '⭐' },
-        { name: '100 Reps', unlocked: totalReps >= 100, icon: '💪' },
-        { name: 'Consistency', unlocked: sessions >= 3, icon: '🔥' },
+        { name: langNames[0], unlocked: sessions >= 1, icon: '🏅' },
+        { name: langNames[1], unlocked: sessions >= 5, icon: '🥈' },
+        { name: langNames[2], unlocked: sessions >= 10, icon: '🥇' },
+        { name: langNames[3], unlocked: sessions >= 95, icon: '⭐' },
+        { name: langNames[4], unlocked: totalReps >= 100, icon: '💪' },
+        { name: langNames[5], unlocked: sessions >= 3, icon: '🔥' },
     ];
-    if (list) list.innerHTML = achievements.filter(a => a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong>${a.icon} Unlocked</strong></div>`).join('') || '<p style="color:var(--muted)">Complete workouts to unlock achievements.</p>';
-    if (milestones) milestones.innerHTML = achievements.filter(a => !a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong style="color:var(--muted)">🔒 Locked</strong></div>`).join('');
+    const unlockedLabel = currentLang === 'th' ? 'ปลดล็อก' : 'Unlocked';
+    const lockedLabel = currentLang === 'th' ? '🔒 ล็อก' : '🔒 Locked';
+    const noAchievementsMsg = currentLang === 'th' ? 'ทำภารกิจเพื่อปลดล็อกความสำเร็จ' : 'Complete workouts to unlock achievements.';
+    if (list) list.innerHTML = achievements.filter(a => a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong>${a.icon} ${unlockedLabel}</strong></div>`).join('') || `<p style="color:var(--muted)">${noAchievementsMsg}</p>`;
+    if (milestones) milestones.innerHTML = achievements.filter(a => !a.unlocked).map(a => `<div class="metric-bubble"><span class="bubble-label">${a.name}</span><strong style="color:var(--muted)">${lockedLabel}</strong></div>`).join('');
 }
 
 // ===================== HISTORY =====================
 function updateHistory() {
     const tbody = document.getElementById('historyTableBody');
     if (!tbody) return;
+    const tH = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
     if (!sessionHistory.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);">No completed sessions yet.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" style="color:var(--muted);">${currentLang === 'th' ? 'ยังไม่มีเซสชั่น' : 'No completed sessions yet.'}</td></tr>`;
         return;
     }
     tbody.innerHTML = sessionHistory.map((s, i) => {
         const ex = EXERCISES[s.exercise];
-        const repsLabel = s.exercise === 'plank' ? formatTime(s.reps) + ' held' : s.reps + ' reps';
+        const repsLabel = s.exercise === 'plank' ? formatTime(s.reps) + (currentLang === 'th' ? ' ถือ' : ' held') : s.reps + (currentLang === 'th' ? ' ครั้ง' : ' reps');
+        const viewLabel = currentLang === 'th' ? 'ดู' : 'View';
         return `<tr>
             <td>${ex ? ex.emoji : ''} ${ex ? ex.name : s.exercise}</td>
             <td>${formatTime(s.duration)}</td>
             <td>${repsLabel}</td>
             <td>${s.avgForm}%</td>
-            <td>${(s.issues && s.issues.length) ? s.issues.join(', ') : 'None'}</td>
-            <td><button class="badge-pill" onclick="viewSessionDetail(${i})">View</button></td>
+            <td>${(s.issues && s.issues.length) ? s.issues.join(', ') : tH.noneText}</td>
+            <td><button class="badge-pill" onclick="viewSessionDetail(${i})">${viewLabel}</button></td>
         </tr>`;
     }).join('');
 }
@@ -2537,7 +2661,7 @@ function viewSessionDetail(i) {
 
 const _clearHistoryButton = document.getElementById('clearHistoryButton');
 if (_clearHistoryButton) _clearHistoryButton.addEventListener('click', () => {
-    if (confirm('Clear all history?')) {
+    if (confirm(currentLang === 'th' ? 'ลบประวัติทั้งหมด?' : 'Clear all history?')) {
         sessionHistory = [];
         localStorage.setItem('fitguardSessions', '[]');
         updateHistory();
@@ -2566,7 +2690,8 @@ function updateProgress() {
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('progressMinutes', totalMins);
     set('progressRepRate', avgRepRate);
-    set('progressCommonIssue', 'None');
+    const tPr = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    set('progressCommonIssue', tPr.noneText);
     const bars = document.getElementById('progressBars');
     if (bars) {
         bars.innerHTML = sessionHistory.slice(0, 5).map((s, i) => {
@@ -2587,7 +2712,7 @@ function updateReports() {
             const ex = EXERCISES[s.exercise];
             return `<option value="${i}">${ex ? ex.name : s.exercise} — ${new Date(s.date).toLocaleDateString()}</option>`;
           }).join('')
-        : '<option>No sessions yet</option>';
+        : `<option>${currentLang === 'th' ? 'ยังไม่มีเซสชั่น' : 'No sessions yet'}</option>`;
     if (sessionHistory.length) showReport(0);
     select.onchange = () => showReport(parseInt(select.value));
 }
@@ -2602,10 +2727,22 @@ function showReport(i) {
     set('reportDuration', formatTime(s.duration));
     set('reportReps', repsLabel);
     set('reportFormAccuracy', s.avgForm + '%');
-    set('reportStability', s.avgForm > 80 ? 'Excellent' : s.avgForm > 60 ? 'Good' : 'Fair');
-    set('reportInjuryRisk', s.avgForm > 80 ? 'Low' : s.avgForm > 60 ? 'Moderate' : 'High');
+    const tRep = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    if (currentLang === 'th') {
+        set('reportStability', s.avgForm > 80 ? tRep.dashboardStabilityExcellent : s.avgForm > 60 ? tRep.dashboardStabilityGood : tRep.dashboardStabilityFair);
+        set('reportInjuryRisk', s.avgForm > 80 ? 'ต่ำ' : s.avgForm > 60 ? 'ปานกลาง' : 'สูง');
+    } else {
+        set('reportStability', s.avgForm > 80 ? 'Excellent' : s.avgForm > 60 ? 'Good' : 'Fair');
+        set('reportInjuryRisk', s.avgForm > 80 ? 'Low' : s.avgForm > 60 ? 'Moderate' : 'High');
+    }
     const timeline = document.getElementById('reportTimeline');
-    if (timeline) timeline.innerHTML = `<p style="color:var(--muted);">Session on ${new Date(s.date).toLocaleString()} — ${repsLabel} in ${formatTime(s.duration)} with ${s.avgForm}% average form.</p>`;
+    if (timeline) {
+        if (currentLang === 'th') {
+            timeline.innerHTML = `<p style="color:var(--muted);">เซสชั่นเมื่อ ${new Date(s.date).toLocaleString('th-TH')} — ${repsLabel} ใน ${formatTime(s.duration)} ฟอร์มเฉลี่ย ${s.avgForm}%</p>`;
+        } else {
+            timeline.innerHTML = `<p style="color:var(--muted);">Session on ${new Date(s.date).toLocaleString()} — ${repsLabel} in ${formatTime(s.duration)} with ${s.avgForm}% average form.</p>`;
+        }
+    }
 }
 
 // ===================== AI COACH CHAT (AI AGENT) =====================
@@ -2804,8 +2941,7 @@ if (_chatInput) {
 
 // ===== GEMINI AI COACH REPLACEMENT =====
 async function callAICoach(userMessage) {
-    const apiKeyEl = document.getElementById('settingsGeminiKey');
-    const apiKey = (apiKeyEl ? apiKeyEl.value.trim() : '') || '';
+    const apiKey = 'AQ.Ab8RN6JpEn_JLTzrEf1zV3gTnWGb95pXS9IraYyY6YG2EO2Atw';
 
     // Build user context from session data
     const totalReps = sessionHistory.reduce((a,s) => a + (s.reps || 0), 0);
@@ -2836,7 +2972,7 @@ async function callAICoach(userMessage) {
     - User Profile: ${profileName}, Goal: ${profileGoal}, Level: ${fitnessLevel}.
     - Exercise: ${EXERCISES[currentExercise] ? EXERCISES[currentExercise].name : currentExercise}.
     - Formatting: Use **bold** for emphasis, bullet lists for steps.
-    - Language: Respond in ${lang} only.`;
+    - Language: ${lang === 'Thai' ? 'IMPORTANT: You MUST respond entirely in Thai (ภาษาไทย). Do not use English at all.' : 'Respond in English only.'}`;
 
     // Build messages for Gemini: convert to Gemini format
     const geminiHistory = chatHistory.slice(-20).map(msg => ({
@@ -2866,7 +3002,7 @@ async function callAICoach(userMessage) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                system: { parts: [{ text: systemPrompt }] },
+                systemInstruction: { parts: [{ text: systemPrompt }] },
                 contents: [
                     ...geminiHistory,
                     { role: 'user', parts: [{ text: userMessage }] }
@@ -2947,15 +3083,15 @@ async function showPostWorkoutSummary(session) {
     const summaryText = document.getElementById('summaryText');
     if (!modal || !summaryText) return;
     modal.classList.add('open');
-    summaryText.textContent = 'Analyzing your workout...';
+    const tModal = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    summaryText.textContent = tModal.summaryAnalyzing;
     const summary = await generateWorkoutSummary(session);
     summaryText.innerHTML = formatChatText(summary);
 }
 
 async function generateWorkoutSummary(session) {
     const ex = EXERCISES[session.exercise];
-    const apiKeyEl = document.getElementById('settingsGeminiKey');
-    const apiKey = apiKeyEl ? apiKeyEl.value : '';
+    const apiKey = 'AQ.Ab8RN6JpEn_JLTzrEf1zV3gTnWGb95pXS9IraYyY6YG2EO2Atw';
     const lang = currentLang;
     const repsLabel = session.exercise === 'plank' ? formatTime(session.reps) + ' held' : session.reps + ' reps';
 
@@ -2968,10 +3104,21 @@ async function generateWorkoutSummary(session) {
     }
 
     try {
-        const prompt = `Analyze this workout session and give a brief, encouraging summary with specific tips:\nExercise: ${ex ? ex.name : session.exercise}\nDuration: ${formatTime(session.duration)}\nResult: ${repsLabel}\nForm Score: ${session.avgForm}%\nLanguage: ${lang === 'th' ? 'Thai' : 'English'}\nKeep it under 150 words.`;
+        const langInstruction = lang === 'th' ? 'IMPORTANT: You MUST respond entirely in Thai language (ภาษาไทย). Do not use English.' : 'Respond in English.';
+        const prompt = `${langInstruction}\n\nAnalyze this workout session and give a brief, encouraging summary with specific tips:\nExercise: ${ex ? ex.name : session.exercise}\nDuration: ${formatTime(session.duration)}\nResult: ${repsLabel}\nForm Score: ${session.avgForm}%\nKeep it under 150 words.`;
+        
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                systemInstruction: { parts: [{ text: "You are a fitness coach summarizing a workout." }] },
+                contents: [{ role: 'user', parts: [{ text: prompt }] }]
+            })
+        });
+
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
-        return data.choices[0].message.content;
+        return data.candidates[0].content.parts[0].text;
     } catch(e) {
         return generateLocalCoachResponse('workout summary');
     }
@@ -2998,13 +3145,9 @@ document.getElementById('settingsSensitivity')?.addEventListener('input', (e) =>
     document.getElementById('sensitivityValue').textContent = e.target.value;
 });
 
-document.getElementById('saveSettingsButton')?.addEventListener('click', () => {
-    const geminiKey = document.getElementById('settingsGeminiKey').value;
-    const googleId = document.getElementById('settingsGoogleClientId').value;
+document.getElementById('saveSettingsButton')?.addEventListener('click', (event) => {
+    event.preventDefault();
     const model = document.getElementById('settingsAIModel').value;
-    
-    if (geminiKey) localStorage.setItem('geminiApiKey', geminiKey);
-    if (googleId) localStorage.setItem('googleClientId', googleId);
     localStorage.setItem('selectedAIModel', model);
 
     const settings = {
@@ -3016,8 +3159,7 @@ document.getElementById('saveSettingsButton')?.addEventListener('click', () => {
     };
     localStorage.setItem('fitguardSettings', JSON.stringify(settings));
     setLanguage(settings.language);
-    alert(currentLang === 'th' ? 'บันทึกการตั้งค่าแล้ว! กรุณารีเฟรชหน้าเว็บเพื่อใช้ค่าใหม่' : 'Settings saved! Please refresh to apply changes.');
-    location.reload();
+    alert(currentLang === 'th' ? 'บันทึกการตั้งค่าเรียบร้อย!' : 'Settings saved!');
 });
 
 document.getElementById('settingsLanguage')?.addEventListener('change', (e) => setLanguage(e.target.value));
@@ -3034,8 +3176,10 @@ async function loadCameraDevices() {
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const cameras = devices.filter(d => d.kind === 'videoinput');
-        select.innerHTML = cameras.map((c, i) => `<option value="${c.deviceId}">${c.label || 'Camera ' + (i+1)}</option>`).join('') || '<option>Default camera</option>';
-    } catch(e) { select.innerHTML = '<option>Default camera</option>'; }
+        const camLabel = currentLang === 'th' ? 'กล้อง ' : 'Camera ';
+        const defCamLabel = currentLang === 'th' ? 'กล้องเริ่มต้น' : 'Default camera';
+        select.innerHTML = cameras.map((c, i) => `<option value="${c.deviceId}">${c.label || camLabel + (i+1)}</option>`).join('') || `<option>${defCamLabel}</option>`;
+    } catch(e) { select.innerHTML = `<option>${currentLang === 'th' ? 'กล้องเริ่มต้น' : 'Default camera'}</option>`; }
 }
 
 // ===================== PROFILE =====================
@@ -3052,7 +3196,7 @@ document.getElementById('saveProfileButton')?.addEventListener('click', () => {
     updateProfileCalcs();
     // If signed in, also save to user object
     if (currentUser) { currentUser.profile = profile; localStorage.setItem('fitguardUser', JSON.stringify(currentUser)); }
-    alert(currentLang === 'th' ? 'บันทึกโปรไฟล์แล้ว!' : 'Profile saved!');
+    alert(currentLang === 'th' ? 'บันทึกโปรไฟล์เรียบร้อย!' : 'Profile saved!');
 });
 
 document.getElementById('resetProfileButton')?.addEventListener('click', () => {
@@ -3084,11 +3228,10 @@ function loadProfile() {
 
 // ===================== LANGUAGE =====================
 let currentLang = localStorage.getItem('fitguardLang') || 'en';
+
 const TRANSLATIONS = {
     en: {
-        bannerTitle: 'Welcome back, Athlete! 🔥',
-        bannerText: 'Your AI fitness companion is ready. Start a live workout session to get real-time posture analysis.',
-        bannerCta: 'Start Workout →',
+        // Splash
         splashBadge: 'AI-Powered Fitness',
         splashTitle: 'FitGuard',
         splashTagline: 'Next-Gen Fitness Intelligence',
@@ -3097,12 +3240,136 @@ const TRANSLATIONS = {
         enterBtn: 'Enter Website',
         splashHint: 'Powered by MediaPipe & Computer Vision',
         statLabel1: 'Exercise Types', statLabel2: 'Body Landmarks', statLabel3: 'Form Analysis', statLabel4: 'Coaching',
-        mascotLabel: 'FitBot says:', mascotTip: 'Ready to crush your workout? Let\'s go! 💪',
+        mascotLabel: 'FitBot says:', mascotTip: "Ready to crush your workout? Let's go! 💪",
+        // Sidebar
+        brandDesc: 'AI-driven workout analysis and injury prevention using live camera posture intelligence.',
+        sidebarSessionSummaryTitle: 'Session Summary',
+        sidebarWorkoutsCompleted: 'Workouts completed',
+        sidebarAvgFormScore: 'Average form score',
+        nav1: 'Dashboard', nav2: 'Live Workout', nav3: 'Exercise Guide', nav4: 'Progress',
+        nav5: 'History', nav6: 'Reports', nav7: 'AI Coach', nav8: 'Challenges',
+        nav9: 'Achievements', nav10: 'Profile', nav11: 'Settings',
+        sidebarProTip: 'Pro tip',
+        sidebarProTipText: 'Place camera at your side to capture full body!',
+        // Topbar
+        pageTitle: 'FitGuard AI Control Center',
+        pageSubtitle: 'Every insight is generated from live pose landmarks, joint angles, and exercise analysis.',
+        // Mobile nav
+        mnav1: 'Dashboard', mnav2: 'Live Workout', mnav3: 'Guide', mnav4: 'Progress',
+        mnav5: 'History', mnav6: 'Reports', mnav7: 'Challenges', mnav8: 'AI Coach',
+        mnav9: 'Achievement', mnav10: 'Profile', mnav11: 'Settings',
+        // Dashboard banner
+        bannerTitle: 'Welcome back, Athlete! 🔥',
+        bannerText: 'Your AI fitness companion is ready. Start a live workout session to get real-time posture analysis and personalized coaching tips.',
+        bannerCta: 'Start Workout →',
+        // Quick actions
+        qa1: 'Start Workout', qa2: 'Exercise Guide', qa3: 'View Progress', qa4: 'AI Coach',
+        // Quick stats
+        qs1: 'Total Sessions', qs2: 'Avg Form', qs3: 'Day Streak', qs4: 'Total Reps',
+        // Dashboard cards
+        dashCardTitle1: 'Workout Performance', dashChip1: 'Live',
+        dashSec1: 'Current session form', dashSec2: 'Workout sessions', dashSec3: 'Average accuracy',
+        dashCardTitle2: 'Risk Insights', dashChip2: 'Analysis',
+        dashLabel1: 'Most frequent issue', dashLabel2: 'Current streak',
+        dashLabel3: 'Injury warning', dashLabel4: 'Best form score',
+        dashCardTitle3: 'Live Session', dashChip3: 'Status',
+        chartTitle1: 'Form Score History', chartChip1: 'Trend',
+        chartTitle2: 'Reps per Session', chartChip2: 'Progress',
+        dashCardTitle4: 'Session Summary',
+        dashLabel5: 'Total active minutes', dashLabel6: 'Total reps',
+        dashLabel7: 'Completed drills', dashLabel8: 'Most common error',
+        dashCardTitle5: 'AI Coach Tip',
+        chip1: 'Keep core tight', chip2: 'Form first', chip3: 'Stay hydrated',
+        recentSessionsTitle: 'Recent Sessions', recentSessionsChip: 'Last 5',
+        prTitle: 'Personal Records', prChip: 'All Time',
+        prLabel1: 'Best Reps', prLabel2: 'Best Form', prLabel3: 'Longest Session', prLabel4: 'Total Workouts',
+        // Live Analysis
+        liveTitle: 'Choose Your Exercise', liveChip: 'Real-time AI Analysis',
+        liveTip: '📌 Tip: Place camera to your side so it can see your full body for best pose detection.',
+        formQualityLabel: 'Form Quality',
+        liveBadge1: 'Duration', liveBadge2: 'Avg Form', liveBadge3: 'Stability', liveBadge4: 'Core',
+        jointAnglesTitle: 'Joint Angles — Real-time', jointAnglesChip: 'Color = Status',
+        shoulderGroupLabel: 'Shoulders', kneeGroupLabel: 'Knees', hipGroupLabel: 'Hip & Back',
+        angleLabel1: 'Left Shoulder', angleLabel2: 'Right Shoulder',
+        angleLabel3: 'Left Knee', angleLabel4: 'Right Knee',
+        angleLabel5: 'Hip Angle', angleLabel6: 'Elbow Angle',
+        primaryIssueTitle: 'Primary Issue',
+        debugPanelTitle: 'Debug Panel', debugPanelChip: 'Diagnostics',
+        debugLabel1: 'Camera', debugLabel2: 'MediaPipe', debugLabel3: 'FPS',
+        debugLabel4: 'Confidence', debugLabel5: 'Landmarks',
+        // Exercise Guide
+        guideTitle: 'Exercise Guide', guideChip: 'Interactive',
+        guideDesc: 'Click on any exercise to learn the correct form, steps, and safety tips.',
+        // Progress
+        progressTitle: 'Progress Analytics', progressRecentLabel: 'Recent sessions',
+        progressChartTitle: 'Form Score Over Time', progressChartChip: 'Line Chart',
+        progStatLabel1: 'Total minutes', progStatLabel2: 'Average rep rate', progStatLabel3: 'Most common issue',
+        // History
+        historyPageTitle: 'Exercise History',
+        historyFilterLabel1: 'Filter exercise', historyFilterLabel2: 'Search date',
+        historyApplyFilterButton: 'Apply filters',
+        thExercise: 'Exercise', thDuration: 'Duration', thReps: 'Reps',
+        thAvgForm: 'Avg Form', thTopIssue: 'Top issue', thActions: 'Actions',
+        exportHistoryButton: 'Export CSV', clearHistoryButton: 'Clear history',
+        // Reports
+        reportsPageTitle: 'Workout Reports', reportSelectLabel: 'Select report',
+        reportLabel1: 'Exercise Type', reportLabel2: 'Duration', reportLabel3: 'Total reps',
+        reportLabel4: 'Form accuracy', reportLabel5: 'Stability', reportLabel6: 'Injury risk',
+        reportTimelineTitle: 'Timeline analysis',
+        // AI Coach
+        aiCoachStatusText: 'Fitness • Nutrition • Health Goals',
+        qr1text: 'Push-up form', qr2text: 'Pre-workout nutrition',
+        qr3text: 'Analyze my progress', qr4text: 'Goal setting', qr5text: 'Recovery tips',
+        // Challenges
+        challengeDesc: 'Complete all minimum exercises today to earn the Daily Challenge! Minimum targets to complete:',
+        dcPushupTarget: 'Min 5 reps', dcSquatTarget: 'Min 5 reps', dcPlankTarget: 'Min 15 sec',
+        dcNotYet: '🔒 Not yet', dcDone: '✅ Done!',
+        dcCompleteTitle: 'Daily Challenge Complete!',
+        dcCompleteText: "Amazing! You've completed all minimum exercises today 💪",
+        missionStatusTitle: 'Mission Status',
+        missionLabel1: 'Completed workouts', missionLabel2: 'Best form score', missionLabel3: 'Consistency rating',
+        challengeHistoryTitle: 'Challenge History', challengeHistoryChip: 'Last 7 days',
+        // Achievements
+        achievementsTitle: 'Achievements', milestonesTitle: 'Unlocked Milestones',
+        // Profile
+        accountTitle: 'Account',
+        notSignedInBadge: '● Not signed in',
+        signInDesc: 'Sign in with Google to save your workout data, sync across devices, and unlock personalized AI coaching.',
+        signedInBadge: '● Signed in',
+        signOutBtn: 'Sign Out',
+        userProfileTitle: 'User Profile',
+        profileLabel1: 'Name', profileLabel2: 'Height (cm)', profileLabel3: 'Weight (kg)',
+        profileLabel4: 'Age', profileLabel5: 'Fitness level', profileLabel6: 'Goal',
+        profileLabel7: 'Estimated calories', profileLabel8: 'BMI',
+        fitnessOpt1: 'Beginner', fitnessOpt2: 'Intermediate', fitnessOpt3: 'Advanced',
+        goalOpt1: 'Lose Weight', goalOpt2: 'Build Muscle', goalOpt3: 'Improve Endurance', goalOpt4: 'Stay Active',
+        saveProfileButton: 'Save profile', resetProfileButton: 'Reset',
+        profileStatsTitle: 'Stats',
+        profileStatLabel1: 'Camera status', profileStatLabel2: 'Sessions recorded', profileStatLabel3: 'Average form',
+        // Settings
+        settingsPageTitle: 'Settings',
+        settingLabel1: 'Camera', settingLabel2: 'FPS target', settingLabel3: 'Detection sensitivity',
+        settingLabel4: 'Notification alerts', settingLabel5: 'Language', settingLabel6: 'AI Coach Model',
+        notifOpt1: 'All', notifOpt2: 'Form only', notifOpt3: 'None',
+        saveSettingsButton: 'Save settings', resetSettingsButton: 'Reset defaults',
+        // Post-workout modal
+        summaryModalTitle: 'AI Workout Summary',
+        chatWithCoachBtn: 'Chat with AI Coach →',
+        summaryCloseBtn: 'Close',
+        summaryAnalyzing: 'Analyzing your workout...',
+        // Modal
+        modalSubtitle: 'How to perform correctly',
+        // Dynamic texts
+        noSessionsYet: 'No sessions yet',
+        startWorkoutToRecord: 'Start a workout to record',
+        dashboardProgressTextDefault: 'Start a workout to populate metrics.',
+        dashboardCoachTipDefault: 'Select Live Workout and start a session to receive posture guidance.',
+        dashboardStabilityExcellent: 'Excellent', dashboardStabilityGood: 'Good', dashboardStabilityFair: 'Fair',
+        noneText: 'None', noneDays: '0 days', noneGreatForm: 'None — great form!',
+        waitingText: 'Waiting',
     },
     th: {
-        bannerTitle: 'ยินดีต้อนรับกลับมา นักกีฬา! 🔥',
-        bannerText: 'AI โค้ชส่วนตัวของคุณพร้อมแล้ว เริ่มเซสชั่นออกกำลังกายเพื่อรับการวิเคราะห์ท่าทางแบบเรียลไทม์',
-        bannerCta: 'เริ่มออกกำลังกาย →',
+        // Splash
         splashBadge: 'ฟิตเนสพลัง AI',
         splashTitle: 'FitGuard',
         splashTagline: 'เทคโนโลยีฟิตเนสยุคใหม่',
@@ -3112,25 +3379,377 @@ const TRANSLATIONS = {
         splashHint: 'ขับเคลื่อนด้วย MediaPipe และ Computer Vision',
         statLabel1: 'ประเภทท่า', statLabel2: 'จุดบนร่างกาย', statLabel3: 'วิเคราะห์ฟอร์ม', statLabel4: 'AI โค้ช',
         mascotLabel: 'FitBot บอกว่า:', mascotTip: 'พร้อมออกกำลังกายหรือยัง? ไปกันเลย! 💪',
+        // Sidebar
+        brandDesc: 'วิเคราะห์การออกกำลังกายและป้องกันการบาดเจ็บด้วย AI ผ่านกล้องแบบเรียลไทม์',
+        sidebarSessionSummaryTitle: 'สรุปเซสชั่น',
+        sidebarWorkoutsCompleted: 'ออกกำลังกายแล้ว',
+        sidebarAvgFormScore: 'ฟอร์มเฉลี่ย',
+        nav1: 'แดชบอร์ด', nav2: 'ออกกำลังกายสด', nav3: 'คู่มือท่า', nav4: 'ความก้าวหน้า',
+        nav5: 'ประวัติ', nav6: 'รายงาน', nav7: 'AI โค้ช', nav8: 'ภารกิจ',
+        nav9: 'ความสำเร็จ', nav10: 'โปรไฟล์', nav11: 'ตั้งค่า',
+        sidebarProTip: 'เคล็ดลับ',
+        sidebarProTipText: 'วางกล้องด้านข้างเพื่อให้เห็นร่างกายทั้งหมด!',
+        // Topbar
+        pageTitle: 'ศูนย์ควบคุม FitGuard AI',
+        pageSubtitle: 'ทุกข้อมูลมาจากการวิเคราะห์ท่าทาง มุมข้อต่อ และการออกกำลังกายแบบเรียลไทม์',
+        // Mobile nav
+        mnav1: 'แดชบอร์ด', mnav2: 'ออกกำลังกาย', mnav3: 'คู่มือ', mnav4: 'ความก้าวหน้า',
+        mnav5: 'ประวัติ', mnav6: 'รายงาน', mnav7: 'ภารกิจ', mnav8: 'AI โค้ช',
+        mnav9: 'ความสำเร็จ', mnav10: 'โปรไฟล์', mnav11: 'ตั้งค่า',
+        // Dashboard banner
+        bannerTitle: 'ยินดีต้อนรับกลับมา นักกีฬา! 🔥',
+        bannerText: 'AI โค้ชส่วนตัวของคุณพร้อมแล้ว เริ่มเซสชั่นออกกำลังกายเพื่อรับการวิเคราะห์ท่าทางแบบเรียลไทม์',
+        bannerCta: 'เริ่มออกกำลังกาย →',
+        // Quick actions
+        qa1: 'เริ่มออกกำลังกาย', qa2: 'คู่มือท่าออกกำลังกาย', qa3: 'ดูความก้าวหน้า', qa4: 'AI โค้ช',
+        // Quick stats
+        qs1: 'เซสชั่นทั้งหมด', qs2: 'ฟอร์มเฉลี่ย', qs3: 'วันติดต่อกัน', qs4: 'ครั้งทั้งหมด',
+        // Dashboard cards
+        dashCardTitle1: 'ประสิทธิภาพการออกกำลังกาย', dashChip1: 'สด',
+        dashSec1: 'ฟอร์มเซสชั่นนี้', dashSec2: 'เซสชั่นออกกำลังกาย', dashSec3: 'ความแม่นยำเฉลี่ย',
+        dashCardTitle2: 'ข้อมูลความเสี่ยง', dashChip2: 'วิเคราะห์',
+        dashLabel1: 'ปัญหาที่พบบ่อย', dashLabel2: 'วันติดต่อกัน',
+        dashLabel3: 'แจ้งเตือนการบาดเจ็บ', dashLabel4: 'ฟอร์มสูงสุด',
+        dashCardTitle3: 'เซสชั่นสด', dashChip3: 'สถานะ',
+        chartTitle1: 'ประวัติคะแนนฟอร์ม', chartChip1: 'แนวโน้ม',
+        chartTitle2: 'ครั้งต่อเซสชั่น', chartChip2: 'ความก้าวหน้า',
+        dashCardTitle4: 'สรุปเซสชั่น',
+        dashLabel5: 'นาทีออกกำลังกายทั้งหมด', dashLabel6: 'ครั้งทั้งหมด',
+        dashLabel7: 'ท่าที่ทำครบ', dashLabel8: 'ข้อผิดพลาดที่พบบ่อย',
+        dashCardTitle5: 'เคล็ดลับ AI โค้ช',
+        chip1: 'เกร็งแกนกลาง', chip2: 'ฟอร์มมาก่อน', chip3: 'ดื่มน้ำเยอะๆ',
+        recentSessionsTitle: 'เซสชั่นล่าสุด', recentSessionsChip: '5 ล่าสุด',
+        prTitle: 'สถิติส่วนตัว', prChip: 'ตลอดกาล',
+        prLabel1: 'ครั้งสูงสุด', prLabel2: 'ฟอร์มสูงสุด', prLabel3: 'เซสชั่นยาวสุด', prLabel4: 'ออกกำลังกายทั้งหมด',
+        // Live Analysis
+        liveTitle: 'เลือกท่าออกกำลังกาย', liveChip: 'วิเคราะห์ด้วย AI แบบเรียลไทม์',
+        liveTip: '📌 เคล็ดลับ: วางกล้องด้านข้างเพื่อให้เห็นร่างกายทั้งหมดสำหรับการตรวจจับที่ดีที่สุด',
+        formQualityLabel: 'คุณภาพฟอร์ม',
+        liveBadge1: 'ระยะเวลา', liveBadge2: 'ฟอร์มเฉลี่ย', liveBadge3: 'ความมั่นคง', liveBadge4: 'แกนกลาง',
+        jointAnglesTitle: 'มุมข้อต่อ — เรียลไทม์', jointAnglesChip: 'สี = สถานะ',
+        shoulderGroupLabel: 'ไหล่', kneeGroupLabel: 'เข่า', hipGroupLabel: 'สะโพก & หลัง',
+        angleLabel1: 'ไหล่ซ้าย', angleLabel2: 'ไหล่ขวา',
+        angleLabel3: 'เข่าซ้าย', angleLabel4: 'เข่าขวา',
+        angleLabel5: 'มุมสะโพก', angleLabel6: 'มุมข้อศอก',
+        primaryIssueTitle: 'ปัญหาหลัก',
+        debugPanelTitle: 'แผงดีบัก', debugPanelChip: 'วินิจฉัย',
+        debugLabel1: 'กล้อง', debugLabel2: 'MediaPipe', debugLabel3: 'FPS',
+        debugLabel4: 'ความมั่นใจ', debugLabel5: 'จุดสังเกต',
+        // Exercise Guide
+        guideTitle: 'คู่มือท่าออกกำลังกาย', guideChip: 'โต้ตอบได้',
+        guideDesc: 'คลิกที่ท่าออกกำลังกายเพื่อเรียนรู้ฟอร์มที่ถูกต้อง ขั้นตอน และเคล็ดลับความปลอดภัย',
+        // Progress
+        progressTitle: 'วิเคราะห์ความก้าวหน้า', progressRecentLabel: 'เซสชั่นล่าสุด',
+        progressChartTitle: 'คะแนนฟอร์มตามเวลา', progressChartChip: 'กราฟเส้น',
+        progStatLabel1: 'นาทีทั้งหมด', progStatLabel2: 'อัตราครั้งเฉลี่ย', progStatLabel3: 'ปัญหาที่พบบ่อย',
+        // History
+        historyPageTitle: 'ประวัติการออกกำลังกาย',
+        historyFilterLabel1: 'กรองท่า', historyFilterLabel2: 'ค้นหาวันที่',
+        historyApplyFilterButton: 'กรองข้อมูล',
+        thExercise: 'ท่า', thDuration: 'ระยะเวลา', thReps: 'ครั้ง',
+        thAvgForm: 'ฟอร์มเฉลี่ย', thTopIssue: 'ปัญหาหลัก', thActions: 'จัดการ',
+        exportHistoryButton: 'ส่งออก CSV', clearHistoryButton: 'ลบประวัติ',
+        // Reports
+        reportsPageTitle: 'รายงานการออกกำลังกาย', reportSelectLabel: 'เลือกรายงาน',
+        reportLabel1: 'ประเภทท่า', reportLabel2: 'ระยะเวลา', reportLabel3: 'ครั้งทั้งหมด',
+        reportLabel4: 'ความแม่นยำฟอร์ม', reportLabel5: 'ความมั่นคง', reportLabel6: 'ความเสี่ยงบาดเจ็บ',
+        reportTimelineTitle: 'วิเคราะห์ตามเวลา',
+        // AI Coach
+        aiCoachStatusText: 'ฟิตเนส • โภชนาการ • เป้าหมาย',
+        qr1text: 'ฟอร์มวิดพื้น', qr2text: 'โภชนาการก่อนออกกำลังกาย',
+        qr3text: 'วิเคราะห์ความก้าวหน้า', qr4text: 'ตั้งเป้าหมาย', qr5text: 'เคล็ดลับฟื้นฟู',
+        // Challenges
+        challengeDesc: 'ทำครบทุกท่าขั้นต่ำในวันนี้เพื่อรับ Daily Challenge! เป้าหมายขั้นต่ำที่ต้องทำให้ครบ:',
+        dcPushupTarget: 'ขั้นต่ำ 5 ครั้ง', dcSquatTarget: 'ขั้นต่ำ 5 ครั้ง', dcPlankTarget: 'ขั้นต่ำ 15 วินาที',
+        dcNotYet: '🔒 ยังไม่ครบ', dcDone: '✅ สำเร็จแล้ว!',
+        dcCompleteTitle: 'Daily Challenge สำเร็จ!',
+        dcCompleteText: 'ยอดเยี่ยมมาก! คุณทำครบทุกท่าขั้นต่ำแล้ววันนี้ 💪',
+        missionStatusTitle: 'สถานะภารกิจ',
+        missionLabel1: 'ออกกำลังกายครบแล้ว', missionLabel2: 'ฟอร์มสูงสุด', missionLabel3: 'ความสม่ำเสมอ',
+        challengeHistoryTitle: 'ประวัติภารกิจ', challengeHistoryChip: '7 วันล่าสุด',
+        // Achievements
+        achievementsTitle: 'ความสำเร็จ', milestonesTitle: 'เหรียญที่ปลดล็อก',
+        // Profile
+        accountTitle: 'บัญชี',
+        notSignedInBadge: '● ยังไม่ได้เข้าสู่ระบบ',
+        signInDesc: 'เข้าสู่ระบบด้วย Google เพื่อบันทึกข้อมูล ซิงค์ข้ามอุปกรณ์ และรับการโค้ชจาก AI แบบส่วนตัว',
+        signedInBadge: '● เข้าสู่ระบบแล้ว',
+        signOutBtn: 'ออกจากระบบ',
+        userProfileTitle: 'โปรไฟล์ผู้ใช้',
+        profileLabel1: 'ชื่อ', profileLabel2: 'ส่วนสูง (ซม.)', profileLabel3: 'น้ำหนัก (กก.)',
+        profileLabel4: 'อายุ', profileLabel5: 'ระดับฟิตเนส', profileLabel6: 'เป้าหมาย',
+        profileLabel7: 'แคลอรี่โดยประมาณ', profileLabel8: 'BMI',
+        fitnessOpt1: 'ผู้เริ่มต้น', fitnessOpt2: 'ระดับกลาง', fitnessOpt3: 'ขั้นสูง',
+        goalOpt1: 'ลดน้ำหนัก', goalOpt2: 'เพิ่มกล้ามเนื้อ', goalOpt3: 'เพิ่มความทนทาน', goalOpt4: 'ออกกำลังกายสม่ำเสมอ',
+        saveProfileButton: 'บันทึกโปรไฟล์', resetProfileButton: 'รีเซ็ต',
+        profileStatsTitle: 'สถิติ',
+        profileStatLabel1: 'สถานะกล้อง', profileStatLabel2: 'เซสชั่นที่บันทึก', profileStatLabel3: 'ฟอร์มเฉลี่ย',
+        // Settings
+        settingsPageTitle: 'การตั้งค่า',
+        settingLabel1: 'กล้อง', settingLabel2: 'เป้าหมาย FPS', settingLabel3: 'ความไวในการตรวจจับ',
+        settingLabel4: 'การแจ้งเตือน', settingLabel5: 'ภาษา', settingLabel6: 'โมเดล AI โค้ช',
+        notifOpt1: 'ทั้งหมด', notifOpt2: 'เฉพาะฟอร์ม', notifOpt3: 'ปิด',
+        saveSettingsButton: 'บันทึกการตั้งค่า', resetSettingsButton: 'รีเซ็ตค่าเริ่มต้น',
+        // Post-workout modal
+        summaryModalTitle: 'สรุปผลการออกกำลังกาย AI',
+        chatWithCoachBtn: 'คุยกับ AI โค้ช →',
+        summaryCloseBtn: 'ปิด',
+        summaryAnalyzing: 'กำลังวิเคราะห์การออกกำลังกาย...',
+        // Modal
+        modalSubtitle: 'วิธีปฏิบัติที่ถูกต้อง',
+        // Dynamic texts
+        noSessionsYet: 'ยังไม่มีเซสชั่น',
+        startWorkoutToRecord: 'เริ่มออกกำลังกายเพื่อบันทึก',
+        dashboardProgressTextDefault: 'เริ่มออกกำลังกายเพื่อดูสถิติ',
+        dashboardCoachTipDefault: 'เลือก "ออกกำลังกายสด" และเริ่มเซสชั่นเพื่อรับคำแนะนำท่าทาง',
+        dashboardStabilityExcellent: 'ยอดเยี่ยม', dashboardStabilityGood: 'ดี', dashboardStabilityFair: 'พอใช้',
+        noneText: 'ไม่มี', noneDays: '0 วัน', noneGreatForm: 'ไม่มี — ฟอร์มดีมาก!',
+        waitingText: 'รอ',
     }
 };
 
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('fitguardLang', lang);
-    document.getElementById('langEn')?.classList.toggle('active', lang === 'en');
-    document.getElementById('langTh')?.classList.toggle('active', lang === 'th');
-    document.getElementById('splashLangEn')?.classList.toggle('active', lang === 'en');
-    document.getElementById('splashLangTh')?.classList.toggle('active', lang === 'th');
+
+    // Toggle active state on language buttons (topbar + splash)
+    ['langEn','splashLangEn'].forEach(id => document.getElementById(id)?.classList.toggle('active', lang === 'en'));
+    ['langTh','splashLangTh'].forEach(id => document.getElementById(id)?.classList.toggle('active', lang === 'th'));
+
     const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('bannerTitle', t.bannerTitle); set('bannerText', t.bannerText); set('bannerCta', t.bannerCta);
-    set('splashBadgeText', t.splashBadge); set('splashTagline', t.splashTagline); set('splashSubtitle', t.splashSubtitle);
+
+    // Helper: set textContent
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.textContent = val; };
+    // Helper: set placeholder
+    const setPlaceholder = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.placeholder = val; };
+    // Helper: set attribute
+    const setAttr = (id, attr, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.setAttribute(attr, val); };
+
+    // ---- SPLASH ----
+    set('splashBadgeText', t.splashBadge);
+    set('splashTagline', t.splashTagline);
+    set('splashSubtitle', t.splashSubtitle);
     set('pill1', t.pill1); set('pill2', t.pill2); set('pill3', t.pill3);
-    set('enterBtnText', t.enterBtn); set('splashHintText', t.splashHint);
-    set('statLabel1', t.statLabel1); set('statLabel2', t.statLabel2); set('statLabel3', t.statLabel3); set('statLabel4', t.statLabel4);
+    set('enterBtnText', t.enterBtn);
+    set('splashHintText', t.splashHint);
+    set('statLabel1', t.statLabel1); set('statLabel2', t.statLabel2);
+    set('statLabel3', t.statLabel3); set('statLabel4', t.statLabel4);
     set('mascotLabel', t.mascotLabel); set('mascotTipText', t.mascotTip);
-    if (document.getElementById('settingsLanguage')) document.getElementById('settingsLanguage').value = lang;
+
+    // ---- SIDEBAR ----
+    set('brandDesc', t.brandDesc);
+    set('sidebarSessionSummaryTitle', t.sidebarSessionSummaryTitle);
+    set('sidebarWorkoutsCompleted', t.sidebarWorkoutsCompleted);
+    set('sidebarAvgFormScore', t.sidebarAvgFormScore);
+    for (let i = 1; i <= 11; i++) set('nav' + i, t['nav' + i]);
+    set('sidebarProTip', t.sidebarProTip);
+    set('sidebarProTipText', t.sidebarProTipText);
+
+    // ---- TOPBAR ----
+    set('pageTitle', t.pageTitle);
+    set('pageSubtitle', t.pageSubtitle);
+    const searchInput = document.getElementById('globalSearchInput');
+    if (searchInput) searchInput.placeholder = lang === 'th' ? searchInput.getAttribute('data-placeholder-th') : searchInput.getAttribute('data-placeholder-en');
+
+    // ---- MOBILE NAV ----
+    for (let i = 1; i <= 11; i++) set('mnav' + i, t['mnav' + i]);
+
+    // ---- DASHBOARD BANNER ----
+    set('bannerTitle', t.bannerTitle);
+    set('bannerText', t.bannerText);
+    set('bannerCta', t.bannerCta);
+
+    // ---- QUICK ACTIONS ----
+    set('qa1', t.qa1); set('qa2', t.qa2); set('qa3', t.qa3); set('qa4', t.qa4);
+
+    // ---- QUICK STATS ----
+    set('qs1', t.qs1); set('qs2', t.qs2); set('qs3', t.qs3); set('qs4', t.qs4);
+
+    // ---- DASHBOARD CARDS ----
+    set('dashCardTitle1', t.dashCardTitle1); set('dashChip1', t.dashChip1);
+    set('dashSec1', t.dashSec1); set('dashSec2', t.dashSec2); set('dashSec3', t.dashSec3);
+    set('dashCardTitle2', t.dashCardTitle2); set('dashChip2', t.dashChip2);
+    set('dashLabel1', t.dashLabel1); set('dashLabel2', t.dashLabel2);
+    set('dashLabel3', t.dashLabel3); set('dashLabel4', t.dashLabel4);
+    set('dashCardTitle3', t.dashCardTitle3); set('dashChip3', t.dashChip3);
+    set('chartTitle1', t.chartTitle1); set('chartChip1', t.chartChip1);
+    set('chartTitle2', t.chartTitle2); set('chartChip2', t.chartChip2);
+    set('dashCardTitle4', t.dashCardTitle4);
+    set('dashLabel5', t.dashLabel5); set('dashLabel6', t.dashLabel6);
+    set('dashLabel7', t.dashLabel7); set('dashLabel8', t.dashLabel8);
+    set('dashCardTitle5', t.dashCardTitle5);
+    set('chip1', t.chip1); set('chip2', t.chip2); set('chip3', t.chip3);
+    set('recentSessionsTitle', t.recentSessionsTitle); set('recentSessionsChip', t.recentSessionsChip);
+    set('prTitle', t.prTitle); set('prChip', t.prChip);
+    set('prLabel1', t.prLabel1); set('prLabel2', t.prLabel2);
+    set('prLabel3', t.prLabel3); set('prLabel4', t.prLabel4);
+
+    // ---- LIVE ANALYSIS ----
+    set('liveTitle', t.liveTitle); set('liveChip', t.liveChip);
+    set('liveTip', t.liveTip);
+    set('formQualityLabel', t.formQualityLabel);
+    set('liveBadge1', t.liveBadge1); set('liveBadge2', t.liveBadge2);
+    set('liveBadge3', t.liveBadge3); set('liveBadge4', t.liveBadge4);
+    set('jointAnglesTitle', t.jointAnglesTitle); set('jointAnglesChip', t.jointAnglesChip);
+    set('shoulderGroupLabel', t.shoulderGroupLabel);
+    set('kneeGroupLabel', t.kneeGroupLabel);
+    set('hipGroupLabel', t.hipGroupLabel);
+    set('angleLabel1', t.angleLabel1); set('angleLabel2', t.angleLabel2);
+    set('angleLabel3', t.angleLabel3); set('angleLabel4', t.angleLabel4);
+    set('angleLabel5', t.angleLabel5); set('angleLabel6', t.angleLabel6);
+    set('primaryIssueTitle', t.primaryIssueTitle);
+    set('debugPanelTitle', t.debugPanelTitle); set('debugPanelChip', t.debugPanelChip);
+    set('debugLabel1', t.debugLabel1); set('debugLabel2', t.debugLabel2);
+    set('debugLabel3', t.debugLabel3); set('debugLabel4', t.debugLabel4); set('debugLabel5', t.debugLabel5);
+
+    // ---- EXERCISE GUIDE ----
+    set('guideTitle', t.guideTitle); set('guideChip', t.guideChip);
+    set('guideDesc', t.guideDesc);
+
+    // ---- PROGRESS ----
+    set('progressTitle', t.progressTitle);
+    set('progressRecentLabel', t.progressRecentLabel);
+    set('progressChartTitle', t.progressChartTitle); set('progressChartChip', t.progressChartChip);
+    set('progStatLabel1', t.progStatLabel1); set('progStatLabel2', t.progStatLabel2); set('progStatLabel3', t.progStatLabel3);
+
+    // ---- HISTORY ----
+    set('historyPageTitle', t.historyPageTitle);
+    set('historyFilterLabel1', t.historyFilterLabel1); set('historyFilterLabel2', t.historyFilterLabel2);
+    set('historyApplyFilterButton', t.historyApplyFilterButton);
+    set('thExercise', t.thExercise); set('thDuration', t.thDuration); set('thReps', t.thReps);
+    set('thAvgForm', t.thAvgForm); set('thTopIssue', t.thTopIssue); set('thActions', t.thActions);
+    set('exportHistoryButton', t.exportHistoryButton); set('clearHistoryButton', t.clearHistoryButton);
+
+    // ---- REPORTS ----
+    set('reportsPageTitle', t.reportsPageTitle); set('reportSelectLabel', t.reportSelectLabel);
+    set('reportLabel1', t.reportLabel1); set('reportLabel2', t.reportLabel2); set('reportLabel3', t.reportLabel3);
+    set('reportLabel4', t.reportLabel4); set('reportLabel5', t.reportLabel5); set('reportLabel6', t.reportLabel6);
+    set('reportTimelineTitle', t.reportTimelineTitle);
+
+    // ---- AI COACH ----
+    const aiStatus = document.getElementById('aiCoachStatus');
+    if (aiStatus && !aiStatus.classList.contains('ai-status-thinking')) aiStatus.textContent = t.aiCoachStatusText;
+    set('qr1text', t.qr1text); set('qr2text', t.qr2text); set('qr3text', t.qr3text);
+    set('qr4text', t.qr4text); set('qr5text', t.qr5text);
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) chatInput.placeholder = lang === 'th' ? chatInput.getAttribute('data-placeholder-th') : chatInput.getAttribute('data-placeholder-en');
+
+    // ---- CHALLENGES ----
+    set('challengeDesc', t.challengeDesc);
+    set('dcPushupTarget', t.dcPushupTarget);
+    set('dcSquatTarget', t.dcSquatTarget);
+    set('dcPlankTarget', t.dcPlankTarget);
+    set('dcCompleteTitle', t.dcCompleteTitle);
+    set('dcCompleteText', t.dcCompleteText);
+    set('missionStatusTitle', t.missionStatusTitle);
+    set('missionLabel1', t.missionLabel1); set('missionLabel2', t.missionLabel2); set('missionLabel3', t.missionLabel3);
+    set('challengeHistoryTitle', t.challengeHistoryTitle); set('challengeHistoryChip', t.challengeHistoryChip);
+    // Re-render challenge statuses with correct language
+    updateDailyChallenge();
+
+    // ---- ACHIEVEMENTS ----
+    set('achievementsTitle', t.achievementsTitle); set('milestonesTitle', t.milestonesTitle);
+
+    // ---- PROFILE ----
+    set('accountTitle', t.accountTitle);
+    set('notSignedInBadge', t.notSignedInBadge);
+    set('signInDesc', t.signInDesc);
+    set('signedInBadge', t.signedInBadge);
+    set('signOutBtn', t.signOutBtn);
+    set('userProfileTitle', t.userProfileTitle);
+    set('profileLabel1', t.profileLabel1); set('profileLabel2', t.profileLabel2);
+    set('profileLabel3', t.profileLabel3); set('profileLabel4', t.profileLabel4);
+    set('profileLabel5', t.profileLabel5); set('profileLabel6', t.profileLabel6);
+    set('profileLabel7', t.profileLabel7); set('profileLabel8', t.profileLabel8);
+    set('fitnessOpt1', t.fitnessOpt1); set('fitnessOpt2', t.fitnessOpt2); set('fitnessOpt3', t.fitnessOpt3);
+    set('goalOpt1', t.goalOpt1); set('goalOpt2', t.goalOpt2); set('goalOpt3', t.goalOpt3); set('goalOpt4', t.goalOpt4);
+    set('saveProfileButton', t.saveProfileButton); set('resetProfileButton', t.resetProfileButton);
+    set('profileStatsTitle', t.profileStatsTitle);
+    set('profileStatLabel1', t.profileStatLabel1); set('profileStatLabel2', t.profileStatLabel2); set('profileStatLabel3', t.profileStatLabel3);
+
+    // ---- SETTINGS ----
+    set('settingsPageTitle', t.settingsPageTitle);
+    set('settingLabel1', t.settingLabel1); set('settingLabel2', t.settingLabel2);
+    set('settingLabel3', t.settingLabel3); set('settingLabel4', t.settingLabel4);
+    set('settingLabel5', t.settingLabel5); set('settingLabel6', t.settingLabel6);
+    set('notifOpt1', t.notifOpt1); set('notifOpt2', t.notifOpt2); set('notifOpt3', t.notifOpt3);
+    set('saveSettingsButton', t.saveSettingsButton); set('resetSettingsButton', t.resetSettingsButton);
+    const settingsLang = document.getElementById('settingsLanguage');
+    if (settingsLang) settingsLang.value = lang;
+
+    // ---- POST-WORKOUT MODAL ----
+    set('summaryModalTitle', t.summaryModalTitle);
+    set('chatWithCoachBtn', t.chatWithCoachBtn);
+    set('summaryCloseBtn', t.summaryCloseBtn);
+
+    // ---- EXERCISE MODAL ----
+    set('modalSubtitle', t.modalSubtitle);
+
+    // ---- DAILY CHALLENGE DATE LOCALE ----
+    const dateEl = document.getElementById('dailyChallengeDate');
+    if (dateEl) {
+        const d = new Date();
+        dateEl.textContent = d.toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    
+    // Update page title
+    document.title = lang === 'th' ? 'FitGuard AI - โค้ชฟิตเนสส่วนตัว' : 'FitGuard AI - Personal Fitness Coach';
+
+    // ---- RE-RENDER DYNAMIC CONTENT ----
+    // Re-render session history list with correct language
+    updateSessionHistory();
+    // Re-render history table
+    updateHistory();
+    // Re-render reports
+    updateReports();
+    // Re-render progress
+    updateProgress();
+    // Re-initialize chat with correct language welcome message
+    if (chatInitialized) {
+        chatInitialized = false;
+        const chatContainer = document.getElementById('chatMessages');
+        if (chatContainer) chatContainer.innerHTML = '';
+        chatHistory = [];
+        initChatIfNeeded();
+    }
+    // Re-render Google Sign-In button with correct language
+    if (!currentUser) showGoogleSignInButton();
+    // Re-render dashboard dynamic texts
+    const dashboardProgressText = document.getElementById('dashboardProgressText');
+    if (dashboardProgressText && dashboardProgressText.textContent.trim() === (lang === 'th' ? TRANSLATIONS.en.dashboardProgressTextDefault : TRANSLATIONS.th.dashboardProgressTextDefault)) {
+        set('dashboardProgressText', t.dashboardProgressTextDefault);
+    }
+    const dashCoachTip = document.getElementById('dashboardCoachTip');
+    if (dashCoachTip) {
+        const enDefault = 'Select Live Workout and start a session to receive posture guidance.';
+        const thDefault = 'เลือก "ออกกำลังกายสด" และเริ่มเซสชั่นเพื่อรับคำแนะนำท่าทาง';
+        if (dashCoachTip.textContent.trim() === enDefault || dashCoachTip.textContent.trim() === thDefault) {
+            set('dashboardCoachTip', t.dashboardCoachTipDefault);
+        }
+    }
+    // Update "No sessions yet" in history list
+    const historyList = document.getElementById('sessionHistoryList');
+    if (historyList && historyList.querySelector('.bubble-label')) {
+        const bubbleLabel = historyList.querySelector('.bubble-label');
+        if (bubbleLabel && (bubbleLabel.textContent === 'No sessions yet' || bubbleLabel.textContent === 'ยังไม่มีเซสชั่น')) {
+            updateSessionHistory();
+        }
+    }
+    // Update "None — great form!" in live primary issue
+    const lpi = document.getElementById('livePrimaryIssue');
+    if (lpi && (lpi.textContent === 'None — great form!' || lpi.textContent === 'ไม่มี — ฟอร์มดีมาก!')) {
+        lpi.textContent = t.noneGreatForm;
+    }
+    // Update "Waiting" in profile camera status
+    const pcs = document.getElementById('profileCameraStatus');
+    if (pcs && (pcs.textContent === 'Waiting' || pcs.textContent === 'รอ')) {
+        pcs.textContent = t.waitingText;
+    }
+    // Update summary analyzing text if modal is open
+    const summaryText = document.getElementById('summaryText');
+    if (summaryText && (summaryText.textContent === 'Analyzing your workout...' || summaryText.textContent === 'กำลังวิเคราะห์การออกกำลังกาย...')) {
+        summaryText.textContent = t.summaryAnalyzing;
+    }
 }
 
 // ===================== MASCOT =====================
@@ -3159,7 +3778,7 @@ function updateDailyChallenge() {
     const dateEl = document.getElementById('dailyChallengeDate');
     if (dateEl) {
         const d = new Date();
-        dateEl.textContent = d.toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' });
+        dateEl.textContent = d.toLocaleDateString(currentLang === 'th' ? 'th-TH' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' });
     }
 
     // Get today's sessions
@@ -3202,9 +3821,10 @@ function setDCCard(barId, countId, statusId, cardId, pct, current, target, done,
     const count = document.getElementById(countId);
     const status = document.getElementById(statusId);
     const card = document.getElementById(cardId);
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
     if (bar) bar.style.width = pct + '%';
     if (count) count.textContent = current;
-    if (status) status.textContent = done ? '✅ สำเร็จแล้ว!' : `🔒 ยังไม่ครบ (${current}/${target}${unit})`;
+    if (status) status.textContent = done ? t.dcDone : `🔒 ${currentLang === 'th' ? 'ยังไม่ครบ' : 'Not yet'} (${current}/${target}${unit})`;
     if (card) card.classList.toggle('completed', done);
 }
 
@@ -3219,8 +3839,9 @@ function updateChallengeHistory() {
         byDate[day].push(s);
     });
     const days = Object.keys(byDate).sort().reverse().slice(0, 7);
+    const tCH = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
     if (!days.length) {
-        list.innerHTML = '<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">ยังไม่มีประวัติ</span><strong>เริ่มออกกำลังกายเพื่อบันทึก</strong></div>';
+        list.innerHTML = `<div class="metric-bubble" style="opacity:0.5;"><span class="bubble-label">${currentLang === 'th' ? 'ยังไม่มีประวัติ' : 'No history yet'}</span><strong>${currentLang === 'th' ? 'เริ่มออกกำลังกายเพื่อบันทึก' : 'Start a workout to record'}</strong></div>`;
         return;
     }
     list.innerHTML = days.map(day => {
@@ -3229,9 +3850,10 @@ function updateChallengeHistory() {
         const sqReps = sessions.filter(s => s.exercise === 'squat').reduce((a,s) => a + s.reps, 0);
         const plSecs = sessions.filter(s => s.exercise === 'plank').reduce((a,s) => a + s.reps, 0);
         const done = puReps >= 5 && sqReps >= 5 && plSecs >= 15;
+        const doneLabel = currentLang === 'th' ? '— ครบแล้ว!' : '— Complete!';
         return `<div class="metric-bubble">
-            <span class="bubble-label">${new Date(day).toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'})}</span>
-            <strong>${done ? '✅' : '⏳'} Push-Up: ${puReps} | Squat: ${sqReps} | Plank: ${plSecs}s ${done ? '— ครบแล้ว!' : ''}</strong>
+            <span class="bubble-label">${new Date(day).toLocaleDateString(currentLang === 'th' ? 'th-TH' : 'en-US', {weekday:'short', day:'numeric', month:'short'})}</span>
+            <strong>${done ? '✅' : '⏳'} Push-Up: ${puReps} | Squat: ${sqReps} | Plank: ${plSecs}s ${done ? doneLabel : ''}</strong>
         </div>`;
     }).join('');
 }
@@ -3267,7 +3889,7 @@ function initSearch() {
             item.keywords.some(k => k.includes(q))
         );
         if (!results.length) {
-            dropdown.innerHTML = '<div style="padding:14px 18px;color:var(--muted);font-size:0.9rem;">ไม่พบผลลัพธ์</div>';
+            dropdown.innerHTML = `<div style="padding:14px 18px;color:var(--muted);font-size:0.9rem;">${currentLang === 'th' ? 'ไม่พบผลลัพธ์' : 'No results found'}</div>`;
         } else {
             dropdown.innerHTML = results.map(r => `
                 <div class="search-result-item" onclick="navigateTo('${r.page}');document.getElementById('globalSearchInput').value='';document.getElementById('searchDropdown').style.display='none';"
@@ -3308,6 +3930,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadCameraDevices();
     updateProfileUI();
     updateTopbarAvatar();
+    showGoogleSignInButton();
     initCharts();
     buildExerciseGuide();
     initSearch();
