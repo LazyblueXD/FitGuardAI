@@ -130,15 +130,20 @@
         /* === AI THINKING ANIMATION === */
         .ai-thinking { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
         .ai-thinking-dots { display: flex; gap: 5px; }
-        .ai-thinking-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: thinkDot 1.4s ease-in-out infinite; }
+        .ai-thinking-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: bounceDot 0.6s infinite alternate; }
         .ai-thinking-dots span:nth-child(2) { animation-delay: 0.2s; background: var(--accent-2); }
         .ai-thinking-dots span:nth-child(3) { animation-delay: 0.4s; background: var(--green); }
-        @keyframes thinkDot { 0%,80%,100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+        @keyframes bounceDot {
+            from { transform: translateY(0); opacity: 0.4; }
+            to { transform: translateY(-8px); opacity: 1; }
+        }
         .ai-thinking-text { font-size: 0.82rem; color: var(--muted); font-style: italic; animation: thinkTextFade 2s ease-in-out infinite; }
         @keyframes thinkTextFade { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
         
-        #liveRepCount { font-size: 8rem !important; font-weight: 900; color: var(--accent); text-shadow: 0 0 30px rgba(0, 212, 255, 0.4); margin: 20px 0; }
+        #liveRepCount { font-size: 8rem !important; font-weight: 900; color: var(--accent); text-shadow: 0 0 30px rgba(0, 212, 255, 0.4); margin: 20px 0; line-height: 1; }
+        /* Plank timer fix: reduce font size to prevent layout squeeze */
+        #liveRepCount[data-exercise="plank"] { font-size: 4.5rem !important; }
         .counter-container { text-align: center; padding: 40px; background: rgba(0,0,0,0.2); border-radius: 30px; margin-bottom: 30px; }
 
         /* === APP SHELL === */
@@ -208,11 +213,14 @@
         .live-grid { display: grid; gap: 20px; grid-template-columns: 4fr 1fr; align-items: start; }
         .camera-card { min-height: 670px; position: relative; overflow: hidden; }
         .camera-panel { position: relative; height: 100%; min-height: 670px; border-radius: 24px; background: #000; border: 1px solid rgba(0, 212, 255, 0.18); box-shadow: 0 0 0 1px rgba(0,212,255,0.06), inset 0 0 80px rgba(0, 212, 255, 0.06); overflow: hidden; }
-        .camera-feed { width: 100%; height: 100%; min-height: 670px; position: relative; overflow: hidden; background: #000; }
-        /* Video fills entire camera-feed — no letterbox, no cropping of body */
+        .camera-feed { width: 100%; height: auto; aspect-ratio: 16/9; min-height: 400px; position: relative; overflow: hidden; background: #000; }
+        /* Video fills entire camera-feed — responsive */
         .camera-feed video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); filter: brightness(1.08) contrast(1.08); }
-        /* Canvas overlays video exactly — NO CSS transform (JS handles mirror internally) */
+        /* Canvas overlays video exactly — responsive */
         .camera-feed canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        @media (max-width: 768px) {
+            .camera-feed { min-height: 300px; }
+        }
         /* Overlay is transparent in the middle — only top/bottom strips */
         .camera-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; background: transparent; }
         /* Footer strip: compact, semi-transparent, does NOT cover body area */
@@ -1078,10 +1086,8 @@
                                     <div id="profileLoginStatus">
                                         <span class="login-status-badge logged-out">● Not signed in</span>
                                         <p style="color:var(--muted);margin:10px 0 16px;font-size:0.9rem;">Sign in with Google to save your workout data, sync across devices, and unlock personalized AI coaching.</p>
-                                        <button class="google-login-btn" id="googleSignInBtn" onclick="handleGoogleSignIn()">
-                                            <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                                            Sign in with Google
-                                        </button>
+                                        <div id="googleSignInBtn"></div>
+                                        <p style="font-size:0.8rem;color:var(--muted);margin-top:8px;">* กรุณากรอก Google Client ID ในหน้า Settings เพื่อใช้งานระบบ Login</p>
                                     </div>
                                     <div id="profileLoggedInSection" style="display:none;">
                                         <span class="login-status-badge logged-in">● Signed in</span>
@@ -1158,12 +1164,21 @@
                             </div>
                             <div class="setting-item">
                                 <label>AI Coach Model</label>
-                                
+                                <select id="settingsAIModel" style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(7,27,53,0.95);color:white;font-size:0.9rem;">
+                                    <option value="gemini-2.5-flash">🚀 Gemini 2.5 Flash (Recommended)</option>
+                                    <option value="gemini-1.5-pro">⚡ Gemini 1.5 Pro</option>
+                                    <option value="gemini-1.5-flash">💨 Gemini 1.5 Flash</option>
+                                </select>
                             </div>
                             <div class="setting-item" style="grid-column:1/-1;">
                                 <label>Google Gemini API Key (for AI Coach)</label>
-                                <input type="password" id="settingsGeminiKey" placeholder="AIza... (optional, uses built-in key if empty)">
+                                <input type="password" id="settingsGeminiKey" placeholder="AIza... (กรอกที่นี่เพื่อใช้งาน Gemini 2.5 Flash)">
                                 <p style="color:var(--muted);font-size:0.8rem;margin:4px 0 0;">Your key is stored locally and never sent to our servers.</p>
+                            </div>
+                            <div class="setting-item" style="grid-column:1/-1;">
+                                <label>Google OAuth Client ID</label>
+                                <input type="text" id="settingsGoogleClientId" placeholder="123456789-xxxx.apps.googleusercontent.com">
+                                <p style="color:var(--muted);font-size:0.8rem;margin:4px 0 0;">กรอก Client ID เพื่อใช้งานระบบ Google Login จริง</p>
                             </div>
                         </div>
                         <div style="margin-top:22px;display:flex;gap:12px;">
@@ -1545,7 +1560,12 @@ function startCamera() {
     }
     const cs = document.getElementById('liveCameraStatus');
     if (cs) cs.textContent = 'Requesting camera...';
-    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user',}, audio: false })
+    // Detect mobile and throttle camera resolution
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const videoWidth = isMobile ? 320 : 640;
+    const videoHeight = isMobile ? 240 : 480;
+    
+    navigator.mediaDevices.getUserMedia({ video: { width: videoWidth, height: videoHeight, facingMode: 'user',}, audio: false })
         .then(stream => {
             videoEl.srcObject = stream;
             videoEl.onloadedmetadata = () => {
@@ -1586,7 +1606,7 @@ function initPose() {
         if (!pose) {
             pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${f}` });
             pose.setOptions({
-                modelComplexity: 1.25,
+                modelComplexity: 1,
                 smoothLandmarks: false,
                 enableSegmentation: false,
                 minDetectionConfidence: 0.5,
@@ -1651,7 +1671,7 @@ const SKELETON_CONNECTIONS = [
 // ===================== POSE RESULTS =====================
 let smoothedLandmarks = null;
 let landmarkHistory = []; // For Moving Average (5 frames)
-const MOVING_AVG_WINDOW = 2;
+const MOVING_AVG_WINDOW = 5; // Increased from 2 to 5 for better jitter reduction
 
 function applySmoothing(newLandmarks) {
     // 1. Handle Null/Missing Landmarks (Use previous if available)
@@ -1696,7 +1716,9 @@ function applySmoothing(newLandmarks) {
 let repState = {
     status: 'UP',
     lastRepTime: 0,
-    cooldown: 500 // 0.5s cooldown
+    cooldown: 500, // 0.5s cooldown
+    initialAnkleY: null,
+    footWarning: false
 };
 
 function updateRepState(lm) {
@@ -1705,17 +1727,18 @@ function updateRepState(lm) {
     const now = Date.now();
     if (now - repState.lastRepTime < repState.cooldown) return;
 
-    // 1. Get visible side
-    const lSh = lm[11], lEl = lm[13], lWr = lm[15], lHi = lm[23], lKn = lm[25], lAn = lm[27];
-    const rSh = lm[12], rEl = lm[14], rWr = lm[16], rHi = lm[24], rKn = lm[26], rAn = lm[28];
+    // Landmarks
+    const lSh = lm[11], lHi = lm[23], lKn = lm[25], lAn = lm[27];
+    const rSh = lm[12], rHi = lm[24], rKn = lm[26], rAn = lm[28];
+    const lEl = lm[13], rEl = lm[14], lWr = lm[15], rWr = lm[16];
     
     const useLeft = (lSh.visibility + lHi.visibility) > (rSh.visibility + rHi.visibility);
     const sh = useLeft ? lSh : rSh;
-    const el = useLeft ? lEl : rEl;
-    const wr = useLeft ? lWr : rWr;
     const hi = useLeft ? lHi : rHi;
     const kn = useLeft ? lKn : rKn;
     const an = useLeft ? lAn : rAn;
+    const el = useLeft ? lEl : rEl;
+    const wr = useLeft ? lWr : rWr;
 
     if (currentExercise === 'pushup') {
         const angle = calcAngle(sh, el, wr);
@@ -1728,18 +1751,44 @@ function updateRepState(lm) {
             repState.status = 'UP';
         }
     } else if (currentExercise === 'squat') {
-        const angle = calcAngle(hi, kn, an);
-        if (repState.status === 'UP' && angle < 120) {
-            repState.status = 'DOWN';
-        } else if (repState.status === 'DOWN' && angle > 145) {
-            repCount++;
-            updateCounterDisplay();
-            repState.lastRepTime = now;
-            repState.status = 'UP';
+        const leftKneeAngle = calcAngle(lHi, lKn, lAn);
+        const rightKneeAngle = calcAngle(rHi, rKn, rAn);
+        const backAngle = calcAngle(sh, hi, kn);
+        const currentAnkleY = (lAn.y + rAn.y) / 2;
+
+        // 1. FOOT ANCHORING: Store initial Y when standing straight
+        if (leftKneeAngle > 160 && rightKneeAngle > 160) {
+            repState.initialAnkleY = currentAnkleY;
+            repState.footWarning = false;
+        }
+
+        // Check for foot lift (Anti-Cheat)
+        if (repState.initialAnkleY !== null) {
+            const threshold = 0.03; // Adjust sensitivity
+            if (currentAnkleY < (repState.initialAnkleY - threshold)) {
+                repState.footWarning = true;
+            }
+        }
+
+        // 2. STRICT DUAL-KNEE CHECK (&&) & BACK ANGLE VALIDATION
+        const kneesDown = (leftKneeAngle <= 115 && rightKneeAngle <= 115);
+        const backValid = (backAngle >= 60 && backAngle <= 95);
+
+        if (repState.status === 'UP') {
+            if (kneesDown && backValid && !repState.footWarning) {
+                repState.status = 'DOWN';
+            }
+        } else if (repState.status === 'DOWN') {
+            if (leftKneeAngle > 145 && rightKneeAngle > 145) {
+                repCount++;
+                updateCounterDisplay();
+                repState.lastRepTime = now;
+                repState.status = 'UP';
+                repState.footWarning = false; // Reset warning after rep
+            }
         }
     } else if (currentExercise === 'plank') {
         const angle = calcAngle(sh, hi, an);
-        // Plank: สะโพกอยู่ช่วง 140° - 180° ให้ตัวจับเวลาเดินต่อทันที
         if (angle >= 140 && angle <= 180) {
             plankTimerActive = true;
         } else {
@@ -2074,7 +2123,6 @@ function checkStability(lm) {
 
 // ===================== FORM ANALYSIS =====================
 function analyzeForm(lm) {
-    // Relaxed position check: only block if RED (critical missing parts)
     if (sideViewStatus === 'RED') {
         isFormCorrect = false;
         plankTimerActive = false;
@@ -2082,51 +2130,61 @@ function analyzeForm(lm) {
         return { issues: [], badConnections: [], badJoints: [], formScore: 0 };
     }
 
-    const lSh = lm[11], rSh = lm[12];
-    const lEl = lm[13], rEl = lm[14];
-    const lWr = lm[15], rWr = lm[16];
-    const lHi = lm[23], rHi = lm[24];
-    const lKn = lm[25], rKn = lm[26];
-    const lAn = lm[27], rAn = lm[28];
+    const lSh = lm[11], rSh = lm[12], lEl = lm[13], rEl = lm[14], lWr = lm[15], rWr = lm[16];
+    const lHi = lm[23], rHi = lm[24], lKn = lm[25], rKn = lm[26], lAn = lm[27], rAn = lm[28];
 
-    // Pick the more-visible side
     const useLeft = (lSh.visibility || 0) >= (rSh.visibility || 0);
-    const sh = useLeft ? lSh : rSh;
-    const el = useLeft ? lEl : rEl;
-    const wr = useLeft ? lWr : rWr;
-    const hi = useLeft ? lHi : rHi;
-    const kn = useLeft ? lKn : rKn;
-    const an = useLeft ? lAn : rAn;
+    const sh = useLeft ? lSh : rSh, el = useLeft ? lEl : rEl, wr = useLeft ? lWr : rWr;
+    const hi = useLeft ? lHi : rHi, kn = useLeft ? lKn : rKn, an = useLeft ? lAn : rAn;
 
-    // Compute angles using dot-product method
-    const elbowAngle    = calcAngle(sh, el, wr);   // Shoulder-Elbow-Wrist
-    const kneeAngle     = calcAngle(hi, kn, an);   // Hip-Knee-Ankle
-    const hipAngle      = calcAngle(sh, hi, kn);   // Shoulder-Hip-Knee (body alignment)
-    const shoulderAngle = calcAngle(el, sh, hi);   // Elbow-Shoulder-Hip (for elbow flare)
+    const elbowAngle = calcAngle(sh, el, wr);
+    const leftKneeAngle = calcAngle(lHi, lKn, lAn);
+    const rightKneeAngle = calcAngle(rHi, rKn, rAn);
+    const hipAngle = calcAngle(sh, hi, kn); // Relational Back Angle
+    const shoulderAngle = calcAngle(el, sh, hi);
 
-    // Update angle display elements
     updateAngleDisplay('angleElbow', 'angleItemElbow', elbowAngle, 70, 160);
-    updateAngleDisplay('angleLeftKnee', 'angleItemLeftKnee', kneeAngle, 80, 180);
-    updateAngleDisplay('angleRightKnee', 'angleItemRightKnee', kneeAngle, 80, 180);
-    updateAngleDisplay('angleHip', 'angleItemHip', hipAngle, 160, 180);
+    updateAngleDisplay('angleLeftKnee', 'angleItemLeftKnee', leftKneeAngle, 90, 180);
+    updateAngleDisplay('angleRightKnee', 'angleItemRightKnee', rightKneeAngle, 90, 180);
+    updateAngleDisplay('angleHip', 'angleItemHip', hipAngle, 60, 95);
     updateAngleDisplay('angleLeftShoulder', 'angleItemLeftShoulder', shoulderAngle, 0, 45);
     updateAngleDisplay('angleRightShoulder', 'angleItemRightShoulder', shoulderAngle, 0, 45);
 
-    let issues = [], badConnections = [], badJoints = [];
+    let issues = [], badConnections = [], badJoints = [], formScore = 0;
     isFormCorrect = true;
-    let formScore = calculateFormScore(elbowAngle);
 
-    // ถอดเงื่อนไขตรวจฟอร์มผิดอื่น ๆ ออกให้หมดตามข้อกำหนด
-    // เน้นการนับครั้งที่ง่ายที่สุด
-    if (currentExercise === 'plank') {
+    if (currentExercise === 'pushup') {
+        formScore = calculateFormScore(elbowAngle);
+    } else if (currentExercise === 'squat') {
+        // FAIR FORM SCORING (75% Base + Depth Bonus)
+        const avgKnee = (leftKneeAngle + rightKneeAngle) / 2;
+        const backValid = (hipAngle >= 60 && hipAngle <= 95);
+        
+        if (avgKnee <= 115 && backValid) {
+            formScore = 75; // Base Score
+            // Depth Bonus: Scale from 115 (0 bonus) to 90 (25 bonus)
+            const depthBonus = Math.max(0, Math.min(25, (115 - avgKnee) * (25 / 25)));
+            formScore += depthBonus;
+        } else if (avgKnee > 115) {
+            formScore = Math.max(0, (avgKnee - 115) / (180 - 115) * 75); // Scaled when standing
+        }
+
+        if (repState.footWarning) {
+            issues.push('Keep your feet anchored! Don\'t jump!');
+            formScore = Math.max(0, formScore - 30);
+        }
+        if (!backValid && avgKnee < 140) {
+            issues.push('Keep your back between 60-95 degrees');
+        }
+    } else if (currentExercise === 'plank') {
         const plankAngle = calcAngle(sh, hi, an);
+        formScore = (plankAngle >= 140 && plankAngle <= 180) ? 100 : 60;
         if (plankAngle < 140 || plankAngle > 180) {
             issues.push('Adjust your posture to keep the timer running');
-            formScore = 70;
         }
     }
 
-    let finalForm = formScore + 10; formScore = finalForm <= 10 ? 0 : Math.min(100, finalForm);
+    formScore = Math.round(Math.min(100, formScore));
     if (workoutActive) formScores.push(formScore);
 
     // Update form ring and metrics
@@ -2154,6 +2212,7 @@ function analyzeForm(lm) {
 function updateCounterDisplay() {
     const el = document.getElementById('liveRepCount');
     if (!el) return;
+    el.setAttribute('data-exercise', currentExercise);
     if (currentExercise === 'plank') {
         const mins = Math.floor(plankSeconds / 60);
         const secs = plankSeconds % 60;
@@ -2200,32 +2259,39 @@ function addDebugError(msg) {
     log.prepend(item);
 }
 
-// ===================== GOOGLE SIGN IN =====================
+// ===================== GOOGLE SIGN IN (Real OAuth 2.0) =====================
 let currentUser = JSON.parse(localStorage.getItem('fitguardUser') || 'null');
+const GOOGLE_CLIENT_ID = localStorage.getItem('googleClientId') || 'YOUR_GOOGLE_CLIENT_ID_HERE';
 
 function handleGoogleSignIn() {
-    if (typeof google !== 'undefined' && google.accounts) {
+    if (typeof google !== 'undefined' && google.accounts && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID_HERE') {
         google.accounts.id.initialize({
-            client_id: '1234567890-placeholder.apps.googleusercontent.com',
+            client_id: GOOGLE_CLIENT_ID,
             callback: handleGoogleCredential,
             auto_select: false
         });
         google.accounts.id.prompt((notification) => {
             if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                showMockGoogleSignIn();
+                showGoogleSignInButton();
             }
         });
     } else {
-        showMockGoogleSignIn();
+        showGoogleSignInButton();
     }
 }
 
-function showMockGoogleSignIn() {
-    const name = prompt('Demo Mode: Enter your name (Google Sign-In requires a real Client ID)', 'Athlete');
-    if (name) {
-        const email = name.toLowerCase().replace(/\s+/g, '.') + '@gmail.com';
-        const user = { name, email, avatar: null, provider: 'google-demo' };
-        setCurrentUser(user);
+function showGoogleSignInButton() {
+    const signInBtn = document.getElementById('googleSignInBtn');
+    if (signInBtn && typeof google !== 'undefined' && google.accounts) {
+        try {
+            google.accounts.id.renderButton(signInBtn, {
+                theme: 'dark',
+                size: 'large',
+                text: 'signin_with'
+            });
+        } catch(e) {
+            console.warn('Google button render error:', e);
+        }
     }
 }
 
@@ -2244,6 +2310,9 @@ function setCurrentUser(user) {
     localStorage.setItem('fitguardUser', JSON.stringify(user));
     updateProfileUI();
     updateTopbarAvatar();
+    // Hide Google sign-in button after successful login
+    const signInBtn = document.getElementById('googleSignInBtn');
+    if (signInBtn) signInBtn.style.display = 'none';
 }
 
 function handleGoogleSignOut() {
@@ -2751,43 +2820,23 @@ async function callAICoach(userMessage) {
     const profileName = document.getElementById('profileNameInput') ? document.getElementById('profileNameInput').value : 'Athlete';
     const lang = currentLang === 'th' ? 'Thai' : 'English';
 
-    const systemPrompt = `You are FitGuard AI Coach — an expert personal trainer AI that teaches proper exercise form and provides personalized fitness coaching.
+    const systemPrompt = `You are FitGuard AI Coach — an expert personal trainer and Senior Full-Stack Developer. 
+    
+    Your mission is to help the user with fitness coaching AND app debugging.
+    
+    DEBUGGING PROTOCOL:
+    If the user reports a bug or asks for code fixes:
+    1. ANALYZE the issue described.
+    2. ASK the user for specific parameters, variables, or code snippets if they haven't provided them.
+    3. DO NOT output fixed code until you have confirmed the variables/parameters with the user.
+    4. Once confirmed, provide precise, optimized code fixes.
 
-Your personality: Friendly, encouraging, professional, and detail-oriented. You teach like a real trainer who cares about the user's form and safety.
-
-User Profile:
-- Name: ${profileName}
-- Goal: ${profileGoal}
-- Fitness Level: ${fitnessLevel}
-- Total Sessions: ${sessionHistory.length}
-- Total Reps: ${totalReps}
-- Average Form Score: ${avgForm}%
-- Current Exercise: ${EXERCISES[currentExercise] ? EXERCISES[currentExercise].name : currentExercise}
-
-IMPORTANT INSTRUCTIONS:
-1. **Exercise Teaching**: When asked about an exercise, provide:
-   - Step-by-step form instructions (be very detailed about body positioning)
-   - Common mistakes to avoid
-   - Tips for proper breathing
-   - How to progress safely
-   
-2. **Form Analysis**: If user mentions form issues, explain:
-   - What they're doing wrong (reference their actual stats if available)
-   - How to fix it with specific cues
-   - Why it matters for safety and effectiveness
-
-3. **Guide References**: When appropriate, suggest:
-   - "For more detailed visuals, check the **Exercise Guide** tab for step-by-step photos"
-   - "Visit the **Guide** section to see proper form demonstrations"
-   - "The **Exercise Guide** has detailed breakdowns of this movement"
-
-4. **Formatting**: Use **bold** for key points, bullet lists for steps, and clear paragraphs
-
-5. **Language**: Respond in ${lang} only
-
-6. **Tone**: Be encouraging but honest. If they have form issues, help them fix it with compassion.
-
-7. **Off-topic**: If asked about unrelated topics, politely redirect: "I'm here to help with your fitness! Let's talk about your workout or form."`;
+    FITNESS COACHING PROTOCOL:
+    - Personality: Friendly, encouraging, professional.
+    - User Profile: ${profileName}, Goal: ${profileGoal}, Level: ${fitnessLevel}.
+    - Exercise: ${EXERCISES[currentExercise] ? EXERCISES[currentExercise].name : currentExercise}.
+    - Formatting: Use **bold** for emphasis, bullet lists for steps.
+    - Language: Respond in ${lang} only.`;
 
     // Build messages for Gemini: convert to Gemini format
     const geminiHistory = chatHistory.slice(-20).map(msg => ({
@@ -2800,8 +2849,18 @@ IMPORTANT INSTRUCTIONS:
         return generateLocalCoachResponse(userMessage);
     }
 
+    // Get selected model from settings
+    const modelSelect = document.getElementById('settingsAIModel');
+    const selectedModel = modelSelect ? modelSelect.value : 'gemini-2.5-flash';
+    const modelMap = {
+        'gemini-2.5-flash': 'gemini-2.5-flash',
+        'gemini-1.5-pro': 'gemini-1.5-pro',
+        'gemini-1.5-flash': 'gemini-1.5-flash'
+    };
+    const apiModel = modelMap[selectedModel] || 'gemini-2.5-flash';
+
     try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModel}:generateContent?key=${encodeURIComponent(apiKey)}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2940,16 +2999,25 @@ document.getElementById('settingsSensitivity')?.addEventListener('input', (e) =>
 });
 
 document.getElementById('saveSettingsButton')?.addEventListener('click', () => {
+    const geminiKey = document.getElementById('settingsGeminiKey').value;
+    const googleId = document.getElementById('settingsGoogleClientId').value;
+    const model = document.getElementById('settingsAIModel').value;
+    
+    if (geminiKey) localStorage.setItem('geminiApiKey', geminiKey);
+    if (googleId) localStorage.setItem('googleClientId', googleId);
+    localStorage.setItem('selectedAIModel', model);
+
     const settings = {
         fps: document.getElementById('settingsFPS').value,
         sensitivity: document.getElementById('settingsSensitivity').value,
         notifications: document.getElementById('settingsNotifications').value,
         language: document.getElementById('settingsLanguage').value,
-        
+        aiModel: model
     };
     localStorage.setItem('fitguardSettings', JSON.stringify(settings));
     setLanguage(settings.language);
-    alert(currentLang === 'th' ? 'บันทึกการตั้งค่าแล้ว!' : 'Settings saved!');
+    alert(currentLang === 'th' ? 'บันทึกการตั้งค่าแล้ว! กรุณารีเฟรชหน้าเว็บเพื่อใช้ค่าใหม่' : 'Settings saved! Please refresh to apply changes.');
+    location.reload();
 });
 
 document.getElementById('settingsLanguage')?.addEventListener('change', (e) => setLanguage(e.target.value));
@@ -3247,7 +3315,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Auto-hide splash after 6s if user doesn't click
     setTimeout(() => {
         if (!document.getElementById('splashScreen').classList.contains('hidden')) enterSite();
-    }, 120000);
+    }, 7000);
 });</script>
 </body>
 </html>
