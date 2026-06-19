@@ -456,9 +456,106 @@
             .exercise-selection { grid-template-columns: 1fr; }
             .splash-btn { padding: 16px 36px; font-size: 1rem; }
         }
+
+        /* === AUTH MODAL === */
+        .auth-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .auth-modal-overlay.open { opacity: 1; pointer-events: all; }
+        .auth-modal { background: var(--panel-strong); border: 1px solid var(--border-strong); border-radius: 32px; padding: 40px; max-width: 480px; width: 90%; box-shadow: 0 40px 100px rgba(0,0,0,0.6); transform: translateY(20px) scale(0.95); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
+        .auth-modal-overlay.open .auth-modal { transform: translateY(0) scale(1); }
+        .auth-header { text-align: center; margin-bottom: 30px; }
+        .auth-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; background: linear-gradient(135deg, var(--accent), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .auth-subtitle { color: var(--muted); font-size: 0.95rem; }
+        .auth-form { display: grid; gap: 20px; }
+        .auth-input-group { display: grid; gap: 8px; }
+        .auth-input-group label { font-size: 0.85rem; color: var(--muted); font-weight: 600; margin-left: 4px; }
+        .auth-input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px 18px; color: white; font-size: 1rem; transition: all 0.3s ease; outline: none; }
+        .auth-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); box-shadow: 0 0 0 4px rgba(0,212,255,0.1); }
+        .auth-btn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #071b35; border: none; border-radius: 16px; padding: 16px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(0,212,255,0.25); }
+        .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,212,255,0.35); }
+        .auth-divider { display: flex; align-items: center; gap: 15px; margin: 25px 0; color: rgba(255,255,255,0.2); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+        .auth-switch { text-align: center; margin-top: 25px; font-size: 0.9rem; color: var(--muted); }
+        .auth-switch-link { color: var(--accent); cursor: pointer; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+        
+        /* === ONBOARDING MODAL === */
+        .onboarding-modal { max-width: 600px; }
+        .onboarding-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 600px) { .onboarding-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
+    <!-- AUTH MODAL -->
+    <div class="auth-modal-overlay" id="authModalOverlay">
+        <div class="auth-modal" id="authModal">
+            <button class="modal-close" onclick="closeAuthModal()">×</button>
+            <div class="auth-header">
+                <h2 class="auth-title" id="authModalTitle">Sign Up</h2>
+                <p class="auth-subtitle" id="authModalSubtitle">Create your account to track progress</p>
+            </div>
+            <div class="auth-form">
+                <div class="auth-input-group">
+                    <label id="authLabelEmail">Email</label>
+                    <input type="email" class="auth-input" id="authEmail" placeholder="name@example.com">
+                </div>
+                <div class="auth-input-group">
+                    <label id="authLabelPassword">Password</label>
+                    <input type="password" class="auth-input" id="authPassword" placeholder="••••••••">
+                </div>
+                <button class="auth-btn" id="authSubmitBtn" onclick="handleAuthSubmit()">Sign Up</button>
+            </div>
+            <div class="auth-divider">or</div>
+            <div id="googleSignInBtnModal" style="display:flex;justify-content:center;"></div>
+            <div class="auth-switch">
+                <span id="authSwitchText">Already have an account?</span> 
+                <span class="auth-switch-link" id="authSwitchLink" onclick="toggleAuthMode()">Sign In</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONBOARDING MODAL -->
+    <div class="auth-modal-overlay" id="onboardingModalOverlay">
+        <div class="auth-modal onboarding-modal" id="onboardingModal">
+            <div class="auth-header">
+                <h2 class="auth-title" id="onboardingTitle">Welcome to FitGuard!</h2>
+                <p class="auth-subtitle" id="onboardingSubtitle">Let's set up your profile for better AI coaching</p>
+            </div>
+            <div class="onboarding-grid">
+                <div class="auth-input-group">
+                    <label id="onboardingLabelAge">Age</label>
+                    <input type="number" class="auth-input" id="onboardingAge" placeholder="25">
+                </div>
+                <div class="auth-input-group">
+                    <label id="onboardingLabelWeight">Weight (kg)</label>
+                    <input type="number" class="auth-input" id="onboardingWeight" placeholder="70">
+                </div>
+                <div class="auth-input-group">
+                    <label id="onboardingLabelHeight">Height (cm)</label>
+                    <input type="number" class="auth-input" id="onboardingHeight" placeholder="175">
+                </div>
+                <div class="auth-input-group">
+                    <label id="onboardingLabelLevel">Experience Level</label>
+                    <select class="auth-input" id="onboardingLevel">
+                        <option value="none" id="levelOpt0">Never exercised</option>
+                        <option value="beginner" id="levelOpt1">Beginner</option>
+                        <option value="intermediate" id="levelOpt2" selected>Intermediate</option>
+                        <option value="advanced" id="levelOpt3">Advanced</option>
+                    </select>
+                </div>
+                <div class="auth-input-group" style="grid-column: span 2;">
+                    <label id="onboardingLabelGoal">Fitness Goal</label>
+                    <select class="auth-input" id="onboardingGoal">
+                        <option value="weight_loss" id="goalOpt1">Lose Weight</option>
+                        <option value="strength" id="goalOpt2">Build Strength</option>
+                        <option value="endurance" id="goalOpt3">Build Endurance</option>
+                        <option value="muscle" id="goalOpt4" selected>Build Muscle</option>
+                        <option value="general" id="goalOpt5">General Health</option>
+                    </select>
+                </div>
+            </div>
+            <button class="auth-btn" style="width:100%;margin-top:30px;" onclick="saveOnboardingData()">Complete Setup &amp; Start →</button>
+        </div>
+    </div>
+
     <!-- SPLASH SCREEN -->
     <div id="splashScreen">
         <div class="splash-grid-bg"></div>
@@ -501,9 +598,12 @@
                 <span class="splash-feature-pill"><span>📊</span> <span id="pill2">Real-time Feedback</span></span>
                 <span class="splash-feature-pill"><span>🏆</span> <span id="pill3">Progress Tracking</span></span>
             </div>
-            <div class="splash-btn-wrap">
-                <div class="splash-btn-glow"></div>
-                <button class="splash-btn" id="enterBtn" onclick="enterSite()"><span id="enterBtnText">Enter Website</span> &nbsp;→</button>
+            <div class="splash-btn-wrap" style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+                <div style="position:relative;">
+                    <div class="splash-btn-glow"></div>
+                    <button class="splash-btn" id="enterBtn" onclick="enterSite()"><span id="enterBtnText">Enter Website</span> &nbsp;→</button>
+                </div>
+                <button class="splash-btn" id="signUpBtn" onclick="openAuthModal('signup')" style="background:rgba(255,255,255,0.08);color:white;border:1px solid rgba(255,255,255,0.2);box-shadow:none;"><span id="signUpBtnText">Sign Up</span></button>
             </div>
             <div class="splash-hint">
                 <span class="splash-hint-line"></span>
@@ -775,6 +875,11 @@
                             <button class="active" data-exercise="pushup">💪 Push-Up</button>
                             <button data-exercise="squat">🦵 Squat</button>
                             <button data-exercise="plank">🧘 Plank</button>
+                            <button data-exercise="lunges">🦵 Lunges</button>
+                            <button data-exercise="mountain_climber">⛰️ Mt. Climber</button>
+                            <button data-exercise="jumping_jack">✨ Jumping Jack</button>
+                            <button data-exercise="side_plank">🌓 Side Plank</button>
+    
                         </div>
                     </div>
 
@@ -793,16 +898,24 @@
                                     <!-- Top strip: exercise name + camera status only -->
                                     <div style="padding:14px 16px;display:flex;gap:8px;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0.55) 0%,transparent 100%);">
                                         <span class="camera-chip" id="liveExerciseLabel">Exercise: Push-Up</span>
-                                        <span class="camera-chip" id="liveCameraStatus">Tracking: Waiting</span>
+                                        <span class="camera-chip" id="liveCameraStatus">Tracking: Waiting</span> <span class="camera-chip" id="frameCheckStatus">Frame: -</span>
                                     </div>
                                     <!-- Bottom strip: stats + start/stop button -->
+                                    
                                     <div class="camera-footer">
+                                        <div class="camera-stats">
+                                            <div class="camera-chip" id="zoomDisplay">1.0x</div>
+                                            <button class="badge-pill" onclick="changeZoom(0.1)" style="margin-left:4px;">➕</button>
+                                            <button class="badge-pill" onclick="changeZoom(-0.1)">➖</button>
+                                            <button class="badge-pill" onclick="resetZoom()">🔄</button>
+                                        </div>
                                         <div class="camera-stats">
                                             <div class="camera-chip">Form: <span id="liveFormAccuracy">0%</span></div>
                                             <div class="camera-chip">⏱ <span id="sessionTimer">00:00</span></div>
                                         </div>
                                         <button class="top-action" id="startStopButton" style="width:auto;padding:10px 20px;font-size:0.9rem;">▶️ Start</button>
                                     </div>
+    
                                 </div>
                             </div>
                         </div>
@@ -1250,6 +1363,12 @@
 
 // ===================== SPLASH =====================
 function enterSite() {
+    // If not signed in, force sign in first (unless they explicitly click enter)
+    if (!currentUser) {
+        openAuthModal('signin');
+        return;
+    }
+
     const splash = document.getElementById('splashScreen');
     if (splash) {
         splash.classList.add('hidden');
@@ -1338,7 +1457,124 @@ const EXERCISES = {
             <path d="M52 60 L40 85 L34 100" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 52 60;-25 52 60;0 52 60" dur="0.8s" repeatCount="indefinite"/></path>
             <path d="M68 60 L80 85 L86 100" stroke="#7cff6b" stroke-width="4" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 68 60;25 68 60;0 68 60" dur="0.8s" repeatCount="indefinite"/></path>`,
     },
-    plank: {
+    
+    lunges: {
+        name: { en: 'Lunges', th: 'ลันจ์' },
+        emoji: '🦵', 
+        badge: { en: 'Lower Body', th: 'ร่างกายส่วนล่าง' },
+        desc: { en: 'Great for strengthening legs and improving balance.', th: 'ท่าสร้างความแข็งแรงให้ขาและช่วยเรื่องการทรงตัว' },
+        steps: {
+            en: [
+                'Stand tall with feet hip-width apart.',
+                'Take a big step forward with one leg.',
+                'Lower your hips until both knees are bent at about a 90-degree angle.',
+                'Keep your front knee directly above your ankle.',
+                'Push back up to the starting position.'
+            ],
+            th: [
+                'ยืนตัวตรง แยกเท้ากว้างเท่าช่วงสะโพก',
+                'ก้าวขาข้างหนึ่งไปด้านหน้าก้าวใหญ่',
+                'ลดสะโพกลงจนเข่าทั้งสองข้างงอทำมุมประมาณ 90 องศา',
+                'รักษาเข่าด้านหน้าให้อยู่เหนือข้อเท้าพอดี',
+                'ดันตัวกลับขึ้นสู่ท่าเริ่มต้น'
+            ]
+        },
+        tips: { en: 'Keep your torso upright and core engaged. Do not let your back knee hit the floor hard.', th: 'รักษาลำตัวให้ตั้งตรงและเกร็งหน้าท้อง อย่าให้เข่าหลังกระแทกพื้นแรง' },
+        color: '#ff6577',
+        angles: {
+            knee: { min: 80, max: 100, label: { en: 'Knee Bend', th: 'การงอเข่า' } }
+        },
+        character: `<circle cx="60" cy="22" r="16" fill="#0d2b52" stroke="#ff6577" stroke-width="2"/>
+            <path d="M52 60 L40 85 L20 85" stroke="#ff6577" stroke-width="4" stroke-linecap="round"/>
+            <path d="M68 60 L80 100 L100 100" stroke="#ff6577" stroke-width="4" stroke-linecap="round"/>`,
+    },
+    mountain_climber: {
+        name: { en: 'Mountain Climber', th: 'ปีนเขา' },
+        emoji: '⛰️', 
+        badge: { en: 'Cardio', th: 'คาร์ดิโอ' },
+        desc: { en: 'High-intensity exercise that builds cardio and core strength.', th: 'ท่าออกกำลังกายความเข้มข้นสูงที่ช่วยสร้างคาร์ดิโอและแกนกลาง' },
+        steps: {
+            en: [
+                'Start in a plank position.',
+                'Drive one knee toward your chest.',
+                'Quickly switch legs, bringing the other knee forward.',
+                'Keep your back flat and hips down.',
+                'Continue alternating legs at a fast pace.'
+            ],
+            th: [
+                'เริ่มในท่าแพลงก์',
+                'ดึงเข่าข้างหนึ่งเข้าหาหน้าอก',
+                'สลับขาอย่างรวดเร็ว โดยดึงเข่าอีกข้างมาด้านหน้า',
+                'รักษาหลังให้ตรงและสะโพกไม่โด่ง',
+                'สลับขาไปเรื่อยๆ ด้วยความเร็ว'
+            ]
+        },
+        tips: { en: 'Maintain a strong plank form. Move your legs as if you are running against the floor.', th: 'รักษาฟอร์มแพลงก์ให้แข็งแรง เคลื่อนไหวขาเหมือนกำลังวิ่งอยู่บนพื้น' },
+        color: '#ffd56b',
+        angles: {
+            hip: { min: 60, max: 90, label: { en: 'Hip Flexion', th: 'การพับสะโพก' } }
+        },
+        character: `<rect x="30" y="42" width="60" height="18" rx="8" fill="#0d2b52" stroke="#ffd56b" stroke-width="2"/>
+            <path d="M40 60 L30 80" stroke="#ffd56b" stroke-width="4" stroke-linecap="round"/>
+            <path d="M80 60 L90 80" stroke="#ffd56b" stroke-width="4" stroke-linecap="round"/>`,
+    },
+    jumping_jack: {
+        name: { en: 'Jumping Jack', th: 'กระโดดตบ' },
+        emoji: '✨', 
+        badge: { en: 'Cardio', th: 'คาร์ดิโอ' },
+        desc: { en: 'Classic cardio move to get your heart rate up.', th: 'ท่าคาร์ดิโอพื้นฐานเพื่อเพิ่มอัตราการเต้นของหัวใจ' },
+        steps: {
+            en: [
+                'Stand with feet together and arms at your sides.',
+                'Jump up while spreading your legs and bringing arms overhead.',
+                'Jump again to return to the starting position.',
+                'Maintain a steady rhythm.'
+            ],
+            th: [
+                'ยืนเท้าชิดและวางแขนไว้ข้างลำตัว',
+                'กระโดดขึ้นพร้อมกางขาออกและชูมือขึ้นเหนือศีรษะ',
+                'กระโดดอีกครั้งเพื่อกลับสู่ท่าเริ่มต้น',
+                'รักษาจังหวะให้สม่ำเสมอ'
+            ]
+        },
+        tips: { en: 'Land softly on the balls of your feet. If detection is unstable, you can disable this exercise.', th: 'ลงพื้นเบาๆ ด้วยจมูกเท้า หากการตรวจจับไม่เสถียร สามารถปิดการใช้งานท่านี้ได้' },
+        color: '#00e6c3',
+        angles: {
+            arm: { min: 150, max: 180, label: { en: 'Arm Reach', th: 'การชูแขน' } }
+        },
+        character: `<circle cx="60" cy="22" r="16" fill="#0d2b52" stroke="#00e6c3" stroke-width="2"/>
+            <path d="M40 40 L20 20" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>
+            <path d="M80 40 L100 20" stroke="#00e6c3" stroke-width="4" stroke-linecap="round"/>`,
+    },
+    side_plank: {
+        name: { en: 'Side Plank', th: 'ไซด์แพลงก์' },
+        emoji: '🌓', 
+        badge: { en: 'Core', th: 'แกนกลางลำตัว' },
+        desc: { en: 'Targets the obliques and improves lateral stability.', th: 'เน้นกล้ามเนื้อหน้าท้องด้านข้างและเพิ่มความมั่นคงด้านข้าง' },
+        steps: {
+            en: [
+                'Lie on your side with feet stacked.',
+                'Prop yourself up on your elbow, directly under your shoulder.',
+                'Lift your hips until your body forms a straight line.',
+                'Hold the position.',
+                'Switch sides after the set.'
+            ],
+            th: [
+                'นอนตะแคงโดยวางเท้าซ้อนกัน',
+                'ดันตัวขึ้นด้วยข้อศอก โดยให้ข้อศอกอยู่ใต้ไหล่พอดี',
+                'ยกสะโพกขึ้นจนร่างกายเป็นเส้นตรง',
+                'ค้างท่าไว้',
+                'สลับข้างหลังจากจบเซ็ต'
+            ]
+        },
+        tips: { en: 'Do not let your hips sag. Keep your neck in line with your spine.', th: 'อย่าให้สะโพกหย่อน รักษาแนวคอให้ตรงกับกระดูกสันหลัง' },
+        color: '#7cff6b',
+        angles: {
+            hip: { min: 160, max: 180, label: { en: 'Lateral Alignment', th: 'แนวระนาบด้านข้าง' } }
+        },
+        character: `<circle cx="60" cy="22" r="16" fill="#0d2b52" stroke="#7cff6b" stroke-width="2"/>
+            <path d="M40 50 L80 50" stroke="#7cff6b" stroke-width="8" stroke-linecap="round"/>`,
+    },    plank: {
         name: { en: 'Plank', th: 'แพลงก์' },
         emoji: '🧘', 
         badge: { en: 'Core', th: 'แกนกลางลำตัว' },
@@ -1878,7 +2114,7 @@ function updateRepState(lm) {
                 repState.footWarning = false; // Reset warning after rep
             }
         }
-    } else if (currentExercise === 'plank') {
+    } else { updateNewExercises(lm, now); } if (currentExercise === 'plank') {
         const angle = calcAngle(sh, hi, an);
         if (angle >= 140 && angle <= 180) {
             plankTimerActive = true;
@@ -1897,6 +2133,122 @@ function calculateFormScore(angle) {
 
     return Math.round(score);
 }
+
+// ===================== ZOOM SYSTEM =====================
+let currentZoom = 1.0;
+function changeZoom(delta) {
+    currentZoom = Math.min(3.0, Math.max(1.0, currentZoom + delta));
+    applyZoom();
+}
+function resetZoom() {
+    currentZoom = 1.0;
+    applyZoom();
+}
+function applyZoom() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('overlayCanvas');
+    const zoomText = document.getElementById('zoomDisplay');
+    if (video) video.style.transform = `scaleX(-1) scale(${currentZoom})`;
+    if (canvas) canvas.style.transform = `scale(${currentZoom})`;
+    if (zoomText) zoomText.textContent = currentZoom.toFixed(1) + 'x';
+}
+
+// ===================== AUTO FRAME CHECK =====================
+function checkAutoFrame(lm) {
+    const t = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+    if (!lm) return;
+    const frameStatusEl = document.getElementById('frameCheckStatus');
+    if (!frameStatusEl) return;
+
+    // Calculate bounding box or height of the person
+    const yCoords = lm.map(p => p.y);
+    const height = Math.max(...yCoords) - Math.min(...yCoords);
+    
+    let status = "";
+    let color = "";
+
+    if (lm.length < 33 || lm.some(p => p.visibility < 0.3)) {
+        status = t.bodyNotDetected;
+        color = 'var(--danger)';
+    } else if (height > 0.85) {
+        status = t.tooClose;
+        color = 'var(--warning)';
+    } else if (height < 0.4) {
+        status = t.tooFar;
+        color = 'var(--accent)';
+    } else {
+        status = t.perfectPosition;
+        color = 'var(--green)';
+    }
+
+    frameStatusEl.textContent = status;
+    frameStatusEl.style.color = color;
+}
+
+// ===================== NEW EXERCISE LOGIC =====================
+function updateNewExercises(lm, now) {
+    const lSh = lm[11], lHi = lm[23], lKn = lm[25], lAn = lm[27];
+    const rSh = lm[12], rHi = lm[24], rKn = lm[26], rAn = lm[28];
+    const lEl = lm[13], rEl = lm[14], lWr = lm[15], rWr = lm[16];
+    
+    const useLeft = (lSh.visibility + lHi.visibility) > (rSh.visibility + rHi.visibility);
+    const sh = useLeft ? lSh : rSh;
+    const hi = useLeft ? lHi : rHi;
+    const kn = useLeft ? lKn : rKn;
+    const an = useLeft ? lAn : rAn;
+
+    if (currentExercise === 'lunges') {
+        const kneeAngle = calcAngle(hi, kn, an);
+        if (repState.status === 'UP' && kneeAngle < 100) {
+            repState.status = 'DOWN';
+        } else if (repState.status === 'DOWN' && kneeAngle > 150) {
+            repCount++;
+            updateCounterDisplay();
+            repState.lastRepTime = now;
+            repState.status = 'UP';
+        }
+    } else if (currentExercise === 'mountain_climber') {
+        // Track knee height relative to hip
+        const leftKneeToHip = lHi.y - lKn.y;
+        const rightKneeToHip = rHi.y - rKn.y;
+        const threshold = 0.1;
+
+        if (repState.status === 'UP' && (leftKneeToHip > threshold || rightKneeToHip > threshold)) {
+            repState.status = 'DOWN';
+        } else if (repState.status === 'DOWN' && leftKneeToHip < 0.02 && rightKneeToHip < 0.02) {
+            repCount++;
+            updateCounterDisplay();
+            repState.lastRepTime = now;
+            repState.status = 'UP';
+        }
+    
+    
+    } else if (currentExercise === 'jumping_jack') {
+        const armAngleL = calcAngle(lHi, lSh, lEl);
+        const armAngleR = calcAngle(rHi, rSh, rEl);
+        const legDist = Math.abs(lAn.x - rAn.x);
+        
+        // DOWN phase: Arms high, legs wide (counter-intuitive name but matching the 'DOWN' state logic in other exercises)
+        if (repState.status === 'UP' && (armAngleL > 130 || armAngleR > 130) && legDist > 0.25) {
+            repState.status = 'DOWN';
+        } 
+        // UP phase: Arms low, legs narrow
+        else if (repState.status === 'DOWN' && armAngleL < 60 && armAngleR < 60 && legDist < 0.15) {
+            repCount++;
+            updateCounterDisplay();
+            repState.lastRepTime = now;
+            repState.status = 'UP';
+        }
+    } else if (currentExercise === 'side_plank') {
+        const angle = calcAngle(sh, hi, an);
+        if (angle >= 150 && angle <= 180) {
+            plankTimerActive = true;
+        } else {
+            plankTimerActive = false;
+        }
+    }
+}
+
 function onPoseResults(results) {
     if (!ctxCanvas || !canvasEl) return;
 
@@ -1947,7 +2299,7 @@ function onPoseResults(results) {
     updatePoseIndicator();
     
     // Update rep counting state based on angles
-    updateRepState(lm);
+    updateRepState(lm); checkAutoFrame(lm);
 
     // Draw skeleton with color based on side-view status
     const formData = workoutActive ? analyzeForm(lm) : { badConnections: [], badJoints: [] };
@@ -2267,7 +2619,7 @@ function analyzeForm(lm) {
         if (!backValid && avgKnee < 140) {
             issues.push('Keep your back between 60-95 degrees');
         }
-    } else if (currentExercise === 'plank') {
+    } else { updateNewExercises(lm, now); } if (currentExercise === 'plank') {
         const plankAngle = calcAngle(sh, hi, an);
         formScore = (plankAngle >= 140 && plankAngle <= 180) ? 100 : 60;
         if (plankAngle < 140 || plankAngle > 180) {
@@ -2404,32 +2756,165 @@ function handleGoogleSignIn() {
     }
 }
 
-function showGoogleSignInButton() {
-    const signInBtn = document.getElementById('googleSignInBtn');
-    if (signInBtn && typeof google !== 'undefined' && google.accounts) {
-        try {
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleCredential,
-                ux_mode: 'popup'
-            });
-            google.accounts.id.renderButton(signInBtn, {
-                theme: 'dark',
-                size: 'large',
-                text: 'signin_with',
-                locale: currentLang === 'th' ? 'th' : 'en'
-            });
-        } catch(e) {
-            console.warn('Google button render error:', e);
-        }
+let authMode = 'signup';
+
+function openAuthModal(mode = 'signup') {
+    authMode = mode;
+    updateAuthModalUI();
+    document.getElementById('authModalOverlay').classList.add('open');
+    showGoogleSignInButton();
+}
+
+function closeAuthModal() {
+    document.getElementById('authModalOverlay').classList.remove('open');
+}
+
+function toggleAuthMode() {
+    authMode = authMode === 'signup' ? 'signin' : 'signup';
+    updateAuthModalUI();
+}
+
+function updateAuthModalUI() {
+    const title = document.getElementById('authModalTitle');
+    const subtitle = document.getElementById('authModalSubtitle');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const switchText = document.getElementById('authSwitchText');
+    const switchLink = document.getElementById('authSwitchLink');
+    
+    if (authMode === 'signup') {
+        title.textContent = currentLang === 'th' ? 'สมัครสมาชิก' : 'Sign Up';
+        subtitle.textContent = currentLang === 'th' ? 'สร้างบัญชีเพื่อบันทึกความก้าวหน้าของคุณ' : 'Create your account to track progress';
+        submitBtn.textContent = currentLang === 'th' ? 'สมัครสมาชิก' : 'Sign Up';
+        switchText.textContent = currentLang === 'th' ? 'มีบัญชีอยู่แล้ว?' : 'Already have an account?';
+        switchLink.textContent = currentLang === 'th' ? 'เข้าสู่ระบบ' : 'Sign In';
+    } else {
+        title.textContent = currentLang === 'th' ? 'เข้าสู่ระบบ' : 'Sign In';
+        subtitle.textContent = currentLang === 'th' ? 'ยินดีต้อนรับกลับมา! เข้าสู่ระบบเพื่อออกกำลังกายต่อ' : 'Welcome back! Sign in to continue your journey';
+        submitBtn.textContent = currentLang === 'th' ? 'เข้าสู่ระบบ' : 'Sign In';
+        switchText.textContent = currentLang === 'th' ? 'ยังไม่มีบัญชี?' : "Don't have an account?";
+        switchLink.textContent = currentLang === 'th' ? 'สมัครสมาชิก' : 'Sign Up';
     }
+}
+
+function handleAuthSubmit() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    
+    if (!email || !password) {
+        alert(currentLang === 'th' ? 'กรุณากรอกอีเมลและรหัสผ่าน' : 'Please enter email and password');
+        return;
+    }
+    
+    // Simulate auth
+    const user = { name: email.split('@')[0], email: email, avatar: null, provider: 'local' };
+    
+    if (authMode === 'signup') {
+        // New user -> Onboarding
+        setCurrentUser(user);
+        closeAuthModal();
+        openOnboardingModal();
+    } else {
+        // Existing user -> Enter site
+        setCurrentUser(user);
+        closeAuthModal();
+        enterSite();
+    }
+}
+
+function openOnboardingModal() {
+    document.getElementById('onboardingModalOverlay').classList.add('open');
+    updateOnboardingUI();
+}
+
+function updateOnboardingUI() {
+    const title = document.getElementById('onboardingTitle');
+    const sub = document.getElementById('onboardingSubtitle');
+    if (currentLang === 'th') {
+        title.textContent = 'ยินดีต้อนรับสู่ FitGuard!';
+        sub.textContent = 'มาตั้งค่าโปรไฟล์ของคุณเพื่อการแนะนำจาก AI ที่ดียิ่งขึ้น';
+        document.getElementById('onboardingLabelAge').textContent = 'อายุ';
+        document.getElementById('onboardingLabelWeight').textContent = 'น้ำหนัก (กก.)';
+        document.getElementById('onboardingLabelHeight').textContent = 'ส่วนสูง (ซม.)';
+        document.getElementById('onboardingLabelLevel').textContent = 'ระดับประสบการณ์';
+        document.getElementById('onboardingLabelGoal').textContent = 'เป้าหมายการออกกำลังกาย';
+        document.getElementById('levelOpt0').textContent = 'ไม่เคยออกกำลังกาย';
+        document.getElementById('levelOpt1').textContent = 'มือใหม่';
+        document.getElementById('levelOpt2').textContent = 'ระดับปานกลาง';
+        document.getElementById('levelOpt3').textContent = 'ระดับสูง';
+        document.getElementById('goalOpt1').textContent = 'ลดน้ำหนัก';
+        document.getElementById('goalOpt2').textContent = 'เพิ่มความแข็งแรง';
+        document.getElementById('goalOpt3').textContent = 'เพิ่มความอึด';
+        document.getElementById('goalOpt4').textContent = 'สร้างกล้ามเนื้อ';
+        document.getElementById('goalOpt5').textContent = 'สุขภาพทั่วไป';
+    }
+}
+
+function saveOnboardingData() {
+    const age = document.getElementById('onboardingAge').value;
+    const weight = document.getElementById('onboardingWeight').value;
+    const height = document.getElementById('onboardingHeight').value;
+    const level = document.getElementById('onboardingLevel').value;
+    const goal = document.getElementById('onboardingGoal').value;
+    
+    if (!age || !weight || !height) {
+        alert(currentLang === 'th' ? 'กรุณากรอกข้อมูลให้ครบถ้วน' : 'Please fill in all information');
+        return;
+    }
+    
+    const profile = {
+        name: currentUser.name,
+        age: age,
+        weight: weight,
+        height: height,
+        fitnessLevel: document.getElementById('onboardingLevel').options[document.getElementById('onboardingLevel').selectedIndex].text,
+        goal: document.getElementById('onboardingGoal').options[document.getElementById('onboardingGoal').selectedIndex].text
+    };
+    
+    localStorage.setItem('fitguardProfile', JSON.stringify(profile));
+    loadProfile(); // Update internal state and UI
+    
+    document.getElementById('onboardingModalOverlay').classList.remove('open');
+    enterSite();
+}
+
+function showGoogleSignInButton() {
+    const btns = [document.getElementById('googleSignInBtn'), document.getElementById('googleSignInBtnModal')];
+    btns.forEach(btn => {
+        if (btn && typeof google !== 'undefined' && google.accounts) {
+            try {
+                google.accounts.id.initialize({
+                    client_id: GOOGLE_CLIENT_ID,
+                    callback: handleGoogleCredential,
+                    ux_mode: 'popup'
+                });
+                google.accounts.id.renderButton(btn, {
+                    theme: 'dark',
+                    size: 'large',
+                    text: 'signin_with',
+                    locale: currentLang === 'th' ? 'th' : 'en'
+                });
+            } catch(e) {
+                console.warn('Google button render error:', e);
+            }
+        }
+    });
 }
 
 function handleGoogleCredential(response) {
     try {
         const payload = JSON.parse(atob(response.credential.split('.')[1]));
         const user = { name: payload.name, email: payload.email, avatar: payload.picture, provider: 'google' };
+        
+        // Check if it's a new user (no profile saved)
+        const existingProfile = localStorage.getItem('fitguardProfile');
         setCurrentUser(user);
+        closeAuthModal();
+        
+        if (!existingProfile) {
+            openOnboardingModal();
+        } else {
+            enterSite();
+        }
     } catch(e) {
         addDebugError('Google credential parse error: ' + e.message);
     }
@@ -2448,8 +2933,8 @@ function setCurrentUser(user) {
 function handleGoogleSignOut() {
     currentUser = null;
     localStorage.removeItem('fitguardUser');
-    updateProfileUI();
-    updateTopbarAvatar();
+    localStorage.removeItem('fitguardProfile'); // Clear profile on logout for demo purposes
+    location.reload();
 }
 
 function updateProfileUI() {
@@ -3410,6 +3895,13 @@ const TRANSLATIONS = {
         chatWithCoachBtn: 'Chat with AI Coach →',
         summaryCloseBtn: 'Close',
         summaryAnalyzing: 'Analyzing your workout...',
+
+        zoomDisplay: 'Zoom',
+        perfectPosition: 'Perfect Position',
+        tooClose: 'Too Close',
+        tooFar: 'Too Far',
+        bodyNotDetected: 'Body Not Detected',
+    
         // Modal
         modalSubtitle: 'How to perform correctly',
         // Dynamic texts
@@ -3549,6 +4041,13 @@ const TRANSLATIONS = {
         chatWithCoachBtn: 'คุยกับ AI โค้ช →',
         summaryCloseBtn: 'ปิด',
         summaryAnalyzing: 'กำลังวิเคราะห์การออกกำลังกาย...',
+
+        zoomDisplay: 'ซูม',
+        perfectPosition: 'ตำแหน่งดีมาก',
+        tooClose: 'ใกล้เกินไป',
+        tooFar: 'ไกลเกินไป',
+        bodyNotDetected: 'ตรวจไม่พบร่างกาย',
+    
         // Modal
         modalSubtitle: 'วิธีปฏิบัติที่ถูกต้อง',
         // Dynamic texts
@@ -3585,6 +4084,7 @@ function setLanguage(lang) {
     set('splashSubtitle', t.splashSubtitle);
     set('pill1', t.pill1); set('pill2', t.pill2); set('pill3', t.pill3);
     set('enterBtnText', t.enterBtn);
+    set('signUpBtnText', lang === 'th' ? 'สมัครสมาชิก' : 'Sign Up');
     set('splashHintText', t.splashHint);
     set('statLabel1', t.statLabel1); set('statLabel2', t.statLabel2);
     set('statLabel3', t.statLabel3); set('statLabel4', t.statLabel4);
@@ -3656,6 +4156,9 @@ function setLanguage(lang) {
     set('debugPanelTitle', t.debugPanelTitle); set('debugPanelChip', t.debugPanelChip);
     set('debugLabel1', t.debugLabel1); set('debugLabel2', t.debugLabel2);
     set('debugLabel3', t.debugLabel3); set('debugLabel4', t.debugLabel4); set('debugLabel5', t.debugLabel5);
+
+    set('frameCheckStatus', lang === 'th' ? 'เฟรม: -' : 'Frame: -');
+    
 
     // ---- EXERCISE GUIDE ----
     set('guideTitle', t.guideTitle); set('guideChip', t.guideChip);
@@ -4005,10 +4508,6 @@ window.addEventListener('DOMContentLoaded', () => {
     buildExerciseGuide();
     initSearch();
     updateDailyChallenge();
-    // Auto-hide splash after 6s if user doesn't click
-    setTimeout(() => {
-        if (!document.getElementById('splashScreen').classList.contains('hidden')) enterSite();
-    }, 7000);
 });</script>
 </body>
 </html>
